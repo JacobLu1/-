@@ -120,6 +120,10 @@
   node scripts/serve-video.js
   ```
   启动后访问 `http://localhost:8972` 验证。
+
+  > **小程序播放视频报 `ERR_CONNECTION_REFUSED` 或 `MEDIA_ELEMENT_ERROR: Format error`**：说明本地视频服务器未启动，先在「微信小程序」目录下执行上面的 `node scripts/serve-video.js`，再在微信开发者工具里重新编译。若改过端口，同步修改 `scripts/serve-video.js`（默认 8972）与 `utils/video-config.js` 中的 `VIDEO_BASE_LOCAL`。
+  >
+  > **真机预览**：视频服务器需监听局域网地址，把 `utils/video-config.js` 的 `VIDEO_BASE_LOCAL` 换成 `http://<电脑局域网IP>:8972/video/`（启动服务器时控制台会打印局域网地址），并保证手机与电脑在同一网络。
 - **上线发布**：把 `backend/video/` 下的视频上传到 uniCloud 云存储（uniCloud 控制台 → 云存储），再把云存储目录地址填入 `utils/video-config.js` 中的 `VIDEO_BASE_ONLINE`（如 `https://xxx.bspapp.com/upload/video/`），重新打包两端即可。留空则自动用本地地址，不影响开发。
 
 ## 后端交接
