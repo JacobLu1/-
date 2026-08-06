@@ -1,0 +1,17 @@
+# 依赖与编译产物
+node_modules/
+unpackage/
+
+# HBuilderX 本地配置
+.hbuilderx/
+
+# 视频文件（大文件不走 Git，交接时单独传输）
+**/backend/video/
+
+# 临时文件
+*.log
+temp_style.css
+
+# 系统文件
+.DS_Store
+Thumbs.db

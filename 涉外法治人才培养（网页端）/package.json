@@ -1,0 +1,11 @@
+{
+  "name": "涉外法治人才培养测评网站",
+  "version": "1.0.0",
+  "description": "涉外法治人才自主能力测评平台",
+  "scripts": {},
+  "dependencies": {
+    "@element-plus/icons-vue": "^2.3.2",
+    "echarts": "^6.1.0",
+    "element-plus": "^2.14.3"
+  }
+}
