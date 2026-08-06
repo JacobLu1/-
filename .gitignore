@@ -8,6 +8,9 @@ unpackage/
 # 视频文件（大文件不走 Git，交接时单独传输）
 **/backend/video/
 
+# 云函数密钥配置（不提交到 git）
+**/uniCloud-aliyun/cloudfunctions/aiChat/config.local.json
+
 # 临时文件
 *.log
 temp_style.css

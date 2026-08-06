@@ -139,17 +139,13 @@
                   </view>
                 </view>
 
-                <!-- Loading / Typing -->
+                <!-- Loading / 思考中 -->
                 <view v-else-if="msg.role === 'loading'" :id="'msg-' + idx" class="msg msg-ai">
                   <view class="msg-avatar msg-avatar-ai" aria-hidden="true">
                     <view class="avatar-small-icon"></view>
                   </view>
-                  <view class="bubble bubble-ai" aria-label="AI正在输入">
-                    <view class="typing-dots" aria-hidden="true">
-                      <view class="typing-dot"></view>
-                      <view class="typing-dot"></view>
-                      <view class="typing-dot"></view>
-                    </view>
+                  <view class="bubble bubble-ai bubble-loading" aria-label="AI正在思考">
+                    <text class="loading-text">思考中 {{ msg.elapsed }}s</text>
                   </view>
                 </view>
               </template>
@@ -319,19 +315,72 @@ function sendMessage() {
   inputText.value = ''
 
   nextTick(() => {
-    messages.value.push({ role: 'loading' })
+    messages.value.push({ role: 'loading', elapsed: 0 })
+    startLoadingTimer()
     simulateAIResponse(text)
     scrollToBottom()
   })
 }
 
-function simulateAIResponse(userText) {
-  setTimeout(() => {
+// 思考中计时：每秒更新 loading 气泡的 elapsed 秒数
+let loadingTimer = null
+
+function startLoadingTimer() {
+  stopLoadingTimer()
+  loadingTimer = setInterval(() => {
+    const last = messages.value[messages.value.length - 1]
+    if (last && last.role === 'loading') {
+      last.elapsed = (last.elapsed || 0) + 1
+    }
+  }, 1000)
+}
+
+function stopLoadingTimer() {
+  if (loadingTimer) {
+    clearInterval(loadingTimer)
+    loadingTimer = null
+  }
+}
+
+async function simulateAIResponse(userText) {
+  // 收集最近对话作为上下文（去掉 loading 气泡）
+  const history = messages.value
+    .filter((m) => m.role === 'user' || m.role === 'ai')
+    .map((m) => ({
+      role: m.role === 'user' ? 'user' : 'assistant',
+      content: m.content
+    }))
+
+  try {
+    // customUI: true 关闭 uniCloud 调用云对象时自动弹出的 loading 弹窗（灰色遮罩转圈）
+    const aiChat = uniCloud.importObject('aiChat', { customUI: true })
+    const res = await aiChat.chat({ messages: history })
+
+    messages.value.pop() // remove loading
+    const now = new Date()
+
+    if (res && res.errCode === 0) {
+      messages.value.push({
+        role: 'ai',
+        content: res.content,
+        time: formatTime(now),
+        liked: false
+      })
+    } else {
+      messages.value.push({
+        role: 'ai',
+        content: res && res.errMsg ? res.errMsg : 'AI 服务暂时不可用，请稍后重试',
+        time: formatTime(now),
+        liked: false
+      })
+    }
+  } catch (e) {
+    console.error('aiChat error:', e)
     messages.value.pop() // remove loading
 
+    // 降级：云函数调用失败时回退到本地内置回复
     const response = AI_RESPONSES[responseIndex.value % AI_RESPONSES.length]
     responseIndex.value++
-
     const now = new Date()
     messages.value.push({
       role: 'ai',
@@ -342,10 +391,11 @@ function simulateAIResponse(userText) {
       time: formatTime(now),
       liked: false
     })
+  }
 
-    saveChatHistory()
-    scrollToBottom()
-  }, 1500 + Math.random() * 1000)
+  saveChatHistory()
+  stopLoadingTimer()
+  scrollToBottom()
 }
 
 function scrollToBottom() {
@@ -383,6 +433,7 @@ function copyMessage(content) {
 
 function clearCurrentChat() {
   if (messages.value.length === 0) return
+  stopLoadingTimer()
   uni.showModal({
     title: '清空对话',
     content: '确定要清空当前对话的所有消息吗？',
@@ -851,6 +902,8 @@ onLoad(() => {
   display: block;
   margin-bottom: 6px;
   color: var(--rule-foreground);
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 .bubble-points {
   display: flex; flex-direction: column; gap: 5px;
@@ -887,17 +940,16 @@ onLoad(() => {
 .ba-like.liked { color: var(--state-error); }
 .ba-like:active, .ba-copy:active { opacity: 0.7; }
 
-/* ---- Typing Indicator ---- */
-.typing-dots {
-  display: flex; align-items: center; gap: 5px; padding: 4px 0;
+/* ---- Loading 气泡 ---- */
+.bubble-loading {
+  display: flex;
+  align-items: center;
 }
-.typing-dot {
-  width: 8px; height: 8px; border-radius: var(--rule-radius-full);
-  background: var(--rule-muted-foreground);
-  animation: typing-bounce 1.2s ease-in-out infinite;
+.loading-text {
+  font-size: 13px;
+  color: var(--rule-muted-foreground);
+  white-space: nowrap;
 }
-.typing-dot:nth-child(2) { animation-delay: 0.2s; }
-.typing-dot:nth-child(3) { animation-delay: 0.4s; }
 
 /* ---- Chat Footer ---- */
 .chat-footer {
@@ -1009,15 +1061,9 @@ onLoad(() => {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.5; transform: scale(0.8); }
 }
-@keyframes typing-bounce {
-  0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
-  30% { opacity: 1; transform: translateY(-3px); }
-}
-
 /* ---- Reduced motion ---- */
 @media (prefers-reduced-motion: reduce) {
-  .chat-status-dot,
-  .typing-dot { animation: none; }
+  .chat-status-dot { animation: none; }
   .send-btn, .chip, .clear-btn { transition: none; }
   .send-btn:hover { transform: none; }
 }
