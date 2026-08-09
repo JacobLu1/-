@@ -292,7 +292,7 @@ const overview = reactive({
 
 async function loadOverview() {
   try {
-    const usersObj = uniCloud.importObject('users')
+    const usersObj = uniCloud.importObject('users', { customUI: true })
     const r = (await usersObj.overview()) || {}
     if (r.errCode === 0) {
       overview.questionCount = r.questionCount || 0

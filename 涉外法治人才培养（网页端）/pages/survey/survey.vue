@@ -437,7 +437,7 @@ function handleLogout() {
 /* =========== 开始页 / 退出 =========== */
 async function loadQuestions() {
   try {
-    const questionsObj = uniCloud.importObject('questions')
+    const questionsObj = uniCloud.importObject('questions', { customUI: true })
     const r = (await questionsObj.listPublic({ type: 'all', page: 1, pageSize: 200 })) || {}
     if (r.errCode !== 0) {
       uni.showToast({ title: r.errMsg || '题目加载失败', icon: 'none' })
@@ -591,7 +591,7 @@ function doSubmit() {
   // 云端保存测评结果（失败不影响本地跳转）
   const submitToken = uni.getStorageSync('token')
   if (submitToken) {
-    const surveyObj = uniCloud.importObject('survey')
+    const surveyObj = uniCloud.importObject('survey', { customUI: true })
     surveyObj.saveResult({ token: submitToken, result }).then((r) => {
       if (r && r.errCode !== 0) console.warn('[survey] 保存测评结果失败:', r.errMsg)
     }).catch((err) => {

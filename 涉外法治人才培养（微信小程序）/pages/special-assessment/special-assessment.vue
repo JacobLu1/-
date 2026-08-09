@@ -87,7 +87,7 @@ export default {
     },
     async loadSpecialList() {
       try {
-        const questionsObj = uniCloud.importObject('questions')
+        const questionsObj = uniCloud.importObject('questions', { customUI: true })
         const r = (await questionsObj.listPublic({ type: 'all', page: 1, pageSize: 200 })) || {}
         if (r.errCode !== 0) {
           uni.showToast({ title: r.errMsg || '专项分类加载失败', icon: 'none' })

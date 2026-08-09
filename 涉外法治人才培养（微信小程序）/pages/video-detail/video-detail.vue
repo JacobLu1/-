@@ -138,7 +138,7 @@ export default {
   methods: {
     async loadResource(id) {
       try {
-        const resourcesObj = uniCloud.importObject('resources')
+    const resourcesObj = uniCloud.importObject('resources', { customUI: true })
         const r = (await resourcesObj.get({ id })) || {}
         if (r.errCode !== 0) {
           uni.showToast({ title: r.errMsg || '视频加载失败', icon: 'none' })

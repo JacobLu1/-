@@ -489,7 +489,7 @@ export default {
         return
       }
       this.loading = true
-      const surveyObj = uniCloud.importObject('survey')
+      const surveyObj = uniCloud.importObject('survey', { customUI: true })
       surveyObj.myResults({ token, page: 1, pageSize: 20 })
         .then((r) => {
           r = r || {}

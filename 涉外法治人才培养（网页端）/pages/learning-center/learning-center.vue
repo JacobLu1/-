@@ -127,7 +127,7 @@
                 </view>
               </view>
             </view>
-            <view v-if="!skills.length" class="lc-empty">暂无技能课程</view>
+            <view v-if="!videos.length" class="lc-empty">暂无视频课程</view>
           </section>
 
           <!-- ===== 法律英语资源 Section ===== -->
@@ -162,33 +162,30 @@
                 <view class="lc-section-bar"></view>
                 <view>
                   <text class="lc-section-title">专业技能提升</text>
-                  <text class="lc-section-subtitle">五大核心能力系统训练，点击卡片查看课程详情</text>
+                  <text class="lc-section-subtitle">法律英语综合训练，覆盖词汇、听力与实务能力</text>
                 </view>
               </view>
             </view>
             <view class="skill-grid">
-              <view class="skill-card"
-                    v-for="(skill, sIdx) in skills"
-                    :key="sIdx"
-                    @tap="onSkillCardTap(skill)">
+              <view class="skill-card" @tap="goToLegalEnglish">
                 <view class="skill-card-head">
-                  <view class="skill-icon-wrap" :style="{ background: skill.iconBg }">
-                    <view :class="skill.iconClass"></view>
+                  <view class="skill-icon-wrap" style="background: linear-gradient(135deg, #2563EB, #0EA5E9)">
+                    <view class="headphones-icon"></view>
                   </view>
                   <view class="skill-info">
-                    <text class="skill-name">{{ skill.name }}</text>
-                    <text class="skill-desc">{{ skill.desc }}</text>
+                    <text class="skill-name">法律英语综合训练</text>
+                    <text class="skill-desc">词汇、听力与实务训练，点击进入综合训练</text>
                   </view>
                 </view>
                 <view class="skill-meta">
-                  <text class="skill-course-count">{{ skill.courseCount }}门课程</text>
+                  <text class="skill-course-count">4 个训练模块</text>
                   <view class="skill-progress-wrap">
                     <view class="skill-progress-track">
-                      <view class="skill-progress-fill" :style="{ width: skill.progress + '%' }"></view>
+                      <view class="skill-progress-fill" style="width: 0%"></view>
                     </view>
                     <view class="skill-progress-label">
                       <text>学习进度</text>
-                      <text class="skill-progress-pct">{{ skill.progress }}%</text>
+                      <text class="skill-progress-pct">0%</text>
                     </view>
                   </view>
                 </view>
@@ -479,7 +476,7 @@ async function loadResources() {
   if (resourceLoading.value) return
   resourceLoading.value = true
   try {
-    const resourcesObj = uniCloud.importObject('resources')
+    const resourcesObj = uniCloud.importObject('resources', { customUI: true })
     const r = (await resourcesObj.listPublic({ type: 'all' })) || {}
     if (r.errCode !== 0) {
       uni.showToast({ title: r.errMsg || '资源加载失败', icon: 'none' })
@@ -491,32 +488,6 @@ async function loadResources() {
     STAT_CONFIG.courses.suffix = ''
     STAT_CONFIG.courses.to = videos.value.length
     statRaw.courses = videos.value.length
-
-    const skillMap = {}
-    const skillGradients = [
-      'linear-gradient(135deg, #2563EB, #0EA5E9)',
-      'linear-gradient(135deg, #4F46E5, #7C3AED)',
-      'linear-gradient(135deg, #0891B2, #06B6D4)',
-      'linear-gradient(135deg, #B45309, #F59E0B)',
-      'linear-gradient(135deg, #1E40AF, #3B82F6)'
-    ]
-    const skillIcons = ['headphones-icon', 'handshake-icon', 'globe-icon', 'gavel-icon', 'file-text-icon']
-    englishResources.value.forEach((r, idx) => {
-      const name = r.category || '未分类'
-      if (!skillMap[name]) {
-        skillMap[name] = {
-          name,
-          desc: '法律英语资源',
-          courseCount: 0,
-          progress: 0,
-          iconBg: skillGradients[idx % skillGradients.length],
-          iconClass: skillIcons[idx % skillIcons.length],
-          route: '/pages/learning-center/legal-english'
-        }
-      }
-      skillMap[name].courseCount++
-    })
-    skills.value = Object.values(skillMap)
 
     const recs = []
     videos.value.forEach(v => {
@@ -543,22 +514,49 @@ async function loadResources() {
     })
     recommendations.value = recs.slice(0, 6)
 
-    try {
-      const usersObj = uniCloud.importObject('users')
-      const ovr = (await usersObj.overview()) || {}
-      if (ovr.errCode === 0) {
-        STAT_CONFIG.studyCount.to = ovr.surveyCount || 0
-        STAT_CONFIG.completionRate.to = ovr.knowledgeCount || 0
-        statRaw.studyCount = ovr.surveyCount || 0
-        statRaw.completionRate = ovr.knowledgeCount || 0
-      }
-    } catch (e) {
-      console.error('[learning-center] overview load error:', e)
+    const ovr = await loadOverviewWithCache()
+    if (ovr && ovr.errCode === 0) {
+      STAT_CONFIG.studyCount.to = ovr.surveyCount || 0
+      STAT_CONFIG.completionRate.to = ovr.knowledgeCount || 0
+      statRaw.studyCount = ovr.surveyCount || 0
+      statRaw.completionRate = ovr.knowledgeCount || 0
     }
   } catch (e) {
     uni.showToast({ title: (e && e.errMsg) || '资源加载失败', icon: 'none' })
   } finally {
     resourceLoading.value = false
+  }
+}
+
+const OVERVIEW_CACHE_KEY = 'lc_overview_cache'
+const OVERVIEW_CACHE_TTL = 10 * 60 * 1000
+
+async function loadOverviewWithCache() {
+  const now = Date.now()
+  try {
+    const cached = uni.getStorageSync(OVERVIEW_CACHE_KEY)
+    if (cached && cached.expireAt && cached.expireAt > now && cached.data) {
+      return cached.data
+    }
+  } catch (e) {
+    // 缓存读取失败时直接重新请求
+  }
+
+  try {
+    const usersObj = uniCloud.importObject('users', { customUI: true })
+    const ovr = (await usersObj.overview()) || {}
+    if (ovr.errCode === 0) {
+      try {
+        uni.setStorageSync(OVERVIEW_CACHE_KEY, {
+          expireAt: now + OVERVIEW_CACHE_TTL,
+          data: ovr
+        })
+      } catch (e) {}
+    }
+    return ovr
+  } catch (e) {
+    console.error('[learning-center] overview load error:', e)
+    return null
   }
 }
 
@@ -591,14 +589,8 @@ function showMoreVideos() {
 /* ============================================================
    Skills Data
    ============================================================ */
-const skills = ref([])
-
-function onSkillCardTap(skill) {
-  if (skill.route) {
-    uni.navigateTo({ url: skill.route })
-  } else {
-    uni.showToast({ title: `${skill.name} 功能开发中`, icon: 'none' })
-  }
+function goToLegalEnglish() {
+  uni.navigateTo({ url: '/pages/learning-center/legal-english' })
 }
 
 /* ============================================================

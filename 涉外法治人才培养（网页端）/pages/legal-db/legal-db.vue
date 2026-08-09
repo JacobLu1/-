@@ -271,7 +271,7 @@ const detailDoc = ref(null)
 async function loadDocs() {
   loading.value = true
   try {
-    const knowledgeObj = uniCloud.importObject('knowledge')
+    const knowledgeObj = uniCloud.importObject('knowledge', { customUI: true })
     const r = (await knowledgeObj.listPublic({ category: 'all', keyword: '', page: 1, pageSize: 500 })) || {}
     if (r.errCode === 0) {
       results.value = (r.list || []).map(doc => ({
@@ -448,7 +448,7 @@ function goPage(page) {
 
 async function viewDetail(item) {
   try {
-    const knowledgeObj = uniCloud.importObject('knowledge')
+    const knowledgeObj = uniCloud.importObject('knowledge', { customUI: true })
     const r = (await knowledgeObj.get({ id: item.id })) || {}
     if (r.errCode === 0) {
       detailDoc.value = r.doc

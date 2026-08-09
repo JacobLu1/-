@@ -350,11 +350,11 @@ async function loadDashboard() {
   const adminToken = getAdminToken()
   try {
     const [userR, surveyR, questionR, resourceR, surveyListR] = await Promise.all([
-      uniCloud.importObject('users').stats({ adminToken }),
-      uniCloud.importObject('survey').stats({ adminToken }),
-      uniCloud.importObject('questions').stats({ adminToken }),
-      uniCloud.importObject('resources').list({ adminToken, type: 'all' }),
-      uniCloud.importObject('survey').list({ adminToken, page: 1, pageSize: 10 })
+    uniCloud.importObject('users', { customUI: true }).stats({ adminToken }),
+    uniCloud.importObject('survey', { customUI: true }).stats({ adminToken }),
+    uniCloud.importObject('questions', { customUI: true }).stats({ adminToken }),
+    uniCloud.importObject('resources', { customUI: true }).list({ adminToken, type: 'all' }),
+    uniCloud.importObject('survey', { customUI: true }).list({ adminToken, page: 1, pageSize: 10 })
     ])
 
     if (userR && userR.errCode === 0) {

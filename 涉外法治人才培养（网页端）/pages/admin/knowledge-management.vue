@@ -394,7 +394,7 @@ function toRow(doc) {
 
 async function loadDocs() {
   try {
-    const knowledgeObj = uniCloud.importObject('knowledge')
+    const knowledgeObj = uniCloud.importObject('knowledge', { customUI: true })
     const r = (await knowledgeObj.list({ adminToken: getAdminToken(), category: 'all', keyword: '', status: '', page: 1, pageSize: 200 })) || {}
     if (r.errCode === 0) {
       documents.value = (r.list || []).map(toRow)
@@ -408,7 +408,7 @@ async function loadDocs() {
 
 async function loadStats() {
   try {
-    const knowledgeObj = uniCloud.importObject('knowledge')
+    const knowledgeObj = uniCloud.importObject('knowledge', { customUI: true })
     const r = (await knowledgeObj.stats({ adminToken: getAdminToken() })) || {}
     if (r.errCode === 0) {
       statsData.total = r.total || 0
@@ -513,7 +513,7 @@ const saveDoc = async () => {
     status: formStatus.value
   }
   try {
-    const knowledgeObj = uniCloud.importObject('knowledge')
+    const knowledgeObj = uniCloud.importObject('knowledge', { customUI: true })
     const r = editingId.value
       ? (await knowledgeObj.update({ adminToken: getAdminToken(), id: editingId.value, data })) || {}
       : (await knowledgeObj.add({ adminToken: getAdminToken(), data })) || {}
@@ -538,7 +538,7 @@ const handleDelete = (doc) => {
     success: async (res) => {
       if (res.confirm) {
         try {
-          const knowledgeObj = uniCloud.importObject('knowledge')
+    const knowledgeObj = uniCloud.importObject('knowledge', { customUI: true })
           const r = (await knowledgeObj.remove({ adminToken: getAdminToken(), id: doc.id })) || {}
           if (r.errCode === 0) {
             uni.showToast({ title: '已删除', icon: 'success' })

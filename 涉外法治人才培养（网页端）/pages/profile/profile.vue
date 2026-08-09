@@ -329,7 +329,7 @@ export default {
     loadResults() {
       const token = uni.getStorageSync('token')
       if (!token) return
-      const surveyObj = uniCloud.importObject('survey')
+    const surveyObj = uniCloud.importObject('survey', { customUI: true })
       surveyObj.myResults({ token, page: 1, pageSize: 20 })
         .then((r) => {
           r = r || {}
@@ -397,7 +397,7 @@ export default {
         return
       }
       this.saving = true
-      const usersObj = uniCloud.importObject('users')
+    const usersObj = uniCloud.importObject('users', { customUI: true })
       usersObj.updateProfile({ token, data: { ...this.editForm } })
         .then((r) => {
           r = r || {}
@@ -442,7 +442,7 @@ export default {
         return
       }
       this.savingPwd = true
-      const usersObj = uniCloud.importObject('users')
+    const usersObj = uniCloud.importObject('users', { customUI: true })
       usersObj.changePassword({ token, oldPassword, newPassword })
         .then((r) => {
           r = r || {}
