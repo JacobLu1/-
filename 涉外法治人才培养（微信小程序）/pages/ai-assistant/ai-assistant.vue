@@ -113,7 +113,7 @@ export default {
       recording: false,
       reduceMotion: false,
 
-      GREETING: '你好，陆知远！我是你的涉外法治AI助手，可以帮你解析法条、梳理案例、起草文书要点。今天想学点什么？',
+      displayName: '用户',
       SEED_USER_Q: '请解释国际商事仲裁中管辖权异议的处理流程。',
       ANSWERS: [
         {
@@ -154,9 +154,15 @@ export default {
     }
   },
   computed: {
+    greeting() {
+      return '你好，' + this.displayName + '！我是你的涉外法治AI助手，可以帮你解析法条、梳理案例、起草文书要点。今天想学点什么？'
+    },
     canSend() {
       return !!(this.inputText && this.inputText.trim().length > 0)
     }
+  },
+  onShow() {
+    this.loadUserInfo()
   },
   onReady() {
     // 顶部安全区适配：动态获取系统状态栏高度
@@ -164,6 +170,11 @@ export default {
     this.renderSeed()
   },
   methods: {
+    loadUserInfo() {
+      const app = getApp()
+      const user = (app && app.globalData && app.globalData.userInfo) || uni.getStorageSync('userInfo') || {}
+      this.displayName = (user && (user.name || user.account)) || '用户'
+    },
     getStatusBarHeight() {
       try {
         return uni.getWindowInfo().statusBarHeight || 0
@@ -264,7 +275,7 @@ export default {
       this.mid = 1
       this.$nextTick(() => {
         const d = this.reduceMotion ? 0 : 0.08
-        this.addMsg('ai', this.GREETING, d)
+        this.addMsg('ai', this.greeting, d)
         setTimeout(() => {
           this.addMsg('user', this.escapeHtml(this.SEED_USER_Q), this.reduceMotion ? 0 : 0.28)
           setTimeout(() => {

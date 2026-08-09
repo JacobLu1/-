@@ -107,33 +107,14 @@ export default {
     return {
       statusBarHeight: 0,
       reportData: {
-        score: 85,
+        score: 0,
         totalScore: 100,
-        time: '28分32秒',
-        answeredCount: 10,
-        totalCount: 10,
-        dimensions: [
-          { name: '国际商事仲裁', score: 88, target: 90 },
-          { name: '跨境数据合规', score: 82, target: 85 },
-          { name: '国际贸易法', score: 90, target: 88 },
-          { name: '涉外民事诉讼', score: 78, target: 85 },
-          { name: '国际私法', score: 85, target: 88 }
-        ]
+        time: '0分0秒',
+        answeredCount: 0,
+        totalCount: 0,
+        dimensions: []
       },
-      adviceList: [
-        {
-          title: '涉外民事诉讼',
-          desc: '建议加强协议管辖和法律适用方面的学习',
-          icon: 'ri-book-open-line',
-          bg: 'linear-gradient(135deg, #F59E0B, #D97706)'
-        },
-        {
-          title: '跨境数据合规',
-          desc: '建议深入学习GDPR和数据出境规则',
-          icon: 'ri-database-2-line',
-          bg: 'linear-gradient(135deg, #8B5CF6, #6D28D9)'
-        }
-      ]
+      adviceList: []
     }
   },
   onReady() {
@@ -166,6 +147,7 @@ export default {
       }
     },
     generateAdvice() {
+      if (!this.reportData.dimensions || !this.reportData.dimensions.length) return
       const advice = []
       this.reportData.dimensions.forEach(dim => {
         if (dim.score < dim.target) {
@@ -204,6 +186,9 @@ export default {
         .exec((res) => {
           if (!res[0]) return
           
+          const dimensions = this.reportData.dimensions || []
+          if (!dimensions.length) return
+
           const canvas = res[0].node
           const ctx = canvas.getContext('2d')
           
@@ -213,7 +198,6 @@ export default {
           canvas.height = res[0].height * dpr
           ctx.scale(dpr, dpr)
           
-          const dimensions = this.reportData.dimensions
           const centerX = 150
           const centerY = 150
           const maxRadius = 100

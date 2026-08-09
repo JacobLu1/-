@@ -87,16 +87,16 @@
           <text class="v-sub">面向涉外律师、国际仲裁员、合规官与法科学生，提供从知识\n图谱、实务情境到胜任力模型的科学化人才培养体系，为国家\n级涉外法治人才库精准绘制画像。</text>
           <view class="v-stats">
             <view class="stat">
-              <text class="stat-num" :data-count="128">{{ animatedStats.dimension }}</text>
-              <text class="stat-label">测评维度</text>
+              <text class="stat-num" :data-count="statTargets.dimension">{{ animatedStats.dimension }}</text>
+              <text class="stat-label">题库题目</text>
             </view>
             <view class="stat">
-              <text class="stat-num" :data-count="36">{{ animatedStats.countries }}</text>
-              <text class="stat-label">覆盖国家与地区</text>
+              <text class="stat-num" :data-count="statTargets.countries">{{ animatedStats.countries }}</text>
+              <text class="stat-label">上线资源</text>
             </view>
             <view class="stat">
-              <text class="stat-num" :data-count="58000" data-suffix="+">{{ animatedStats.talents }}</text>
-              <text class="stat-label">已认证人才</text>
+              <text class="stat-num" :data-count="statTargets.talents" data-suffix="+">{{ animatedStats.talents }}</text>
+              <text class="stat-label">测评人数</text>
             </view>
           </view>
         </view>
@@ -246,13 +246,18 @@ export default {
         countries: '0',
         talents: '0'
       },
+      statTargets: {
+        dimension: 0,
+        countries: 0,
+        talents: 0
+      },
       starStyles: []
     }
   },
   mounted() {
     this.initStarStyles()
     this.refreshCaptcha()
-    this.animateStats()
+    this.loadStats()
     this.initParticles()
   },
   onLoad(options) {
@@ -284,11 +289,31 @@ export default {
       this.captchaText = code
       this.captchaRotation = Math.random() * 6 - 3
     },
+    loadStats() {
+      const usersObj = uniCloud.importObject('users')
+      usersObj.overview()
+        .then((r) => {
+          r = r || {}
+          if (r.errCode === 0) {
+            this.statTargets = {
+              dimension: r.questionCount || 0,
+              countries: r.resourceCount || 0,
+              talents: r.surveyCount || 0
+            }
+          }
+        })
+        .catch((err) => {
+          console.error('[login] overview load error:', err)
+        })
+        .finally(() => {
+          this.animateStats()
+        })
+    },
     animateStats() {
       const targets = [
-        { key: 'dimension', target: 128, suffix: '' },
-        { key: 'countries', target: 36, suffix: '' },
-        { key: 'talents', target: 58000, suffix: '+' }
+        { key: 'dimension', target: this.statTargets.dimension, suffix: '' },
+        { key: 'countries', target: this.statTargets.countries, suffix: '' },
+        { key: 'talents', target: this.statTargets.talents, suffix: '+' }
       ]
       
       const duration = 1600

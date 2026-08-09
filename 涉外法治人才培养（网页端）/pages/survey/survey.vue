@@ -138,7 +138,7 @@
                 <text class="q-badge">第 {{ currentQuestion.globalIndex }} 题 / 共 {{ totalObjectiveQuestions }} 题</text>
                 <text class="q-category">{{ questionCategoryLabel }}</text>
               </view>
-              <text class="q-text">{{ currentQuestion.question }}</text>
+              <text class="q-text">{{ currentQuestion.title }}</text>
 
               <!-- 单选 -->
               <view v-if="currentQuestion.type === 'single'" class="q-options"
@@ -321,46 +321,12 @@ import { ref, computed, reactive, onMounted, onUnmounted, watch } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import { getDisplayName, getLevelText } from '@/utils/auth.js'
 
-/* =========== 题目数据（保持原样） =========== */
-const SINGLE_QUESTIONS=[
-  {question:'根据《中华人民共和国涉外民事关系法律适用法》，涉外合同当事人没有选择合同适用的法律的，适用与合同有最密切联系的法律。下列哪项不属于确定"最密切联系地"的考量因素？',options:[{key:'A',text:'合同订立地'},{key:'B',text:'合同履行地'},{key:'C',text:'当事人国籍'},{key:'D',text:'标的物所在地'}],answer:'C'},
-  {question:'关于《承认及执行外国仲裁裁决公约》（《纽约公约》），下列说法正确的是：',options:[{key:'A',text:'仅适用于缔约国之间作出的仲裁裁决'},{key:'B',text:'允许以公共政策为由拒绝承认任何外国裁决'},{key:'C',text:'要求裁决在申请执行地国具有终局性'},{key:'D',text:'规定了统一的仲裁程序规则'}],answer:'C'},
-  {question:'根据中国《出口管制法》，临时管制措施的期限一般不超过多久？',options:[{key:'A',text:'6个月'},{key:'B',text:'1年'},{key:'C',text:'2年'},{key:'D',text:'无固定期限'}],answer:'C'},
-  {question:'在国际货物买卖中，CIF术语下风险转移的界限是：',options:[{key:'A',text:'货交第一承运人时'},{key:'B',text:'货物越过装运港船舷时'},{key:'C',text:'货物到达目的港时'},{key:'D',text:'买方收取货物时'}],answer:'B'},
-  {question:'根据《外商投资法》，外商投资准入特别管理措施（负面清单）以外的领域，按照何种原则管理？',options:[{key:'A',text:'审批制'},{key:'B',text:'核准制'},{key:'C',text:'备案制'},{key:'D',text:'内外资一致原则'}],answer:'D'},
-  {question:'关于国际私法中的"公共秩序保留"制度，下列表述正确的是：',options:[{key:'A',text:'是各国普遍采用的拒绝适用外国法的理由'},{key:'B',text:'仅适用于婚姻家庭领域'},{key:'C',text:'需要经过外交途径确认'},{key:'D',text:'一旦援引则案件必须终止审理'}],answer:'A'},
-  {question:'RCEP（《区域全面经济伙伴关系协定》）的原产地规则中，区域价值成分（RVC）标准一般为多少？',options:[{key:'A',text:'不低于20%'},{key:'B',text:'不低于30%'},{key:'C',text:'不低于40%'},{key:'D',text:'不低于50%'}],answer:'C'},
-  {question:'根据中国《民事诉讼法》关于涉外民事诉讼的规定，在中国领域内没有住所的当事人提出上诉的期限为收到判决书、裁定书之日起：',options:[{key:'A',text:'15日'},{key:'B',text:'30日'},{key:'C',text:'60日'},{key:'D',text:'90日'}],answer:'B'},
-  {question:'关于跨境数据传输的合规要求，下列哪项不符合中国现行法律规定？',options:[{key:'A',text:'关键信息基础设施运营者向境外提供数据应当进行安全评估'},{key:'B',text:'处理个人信息达到一定数量需通过安全评估或签订标准合同'},{key:'C',text:'所有企业均可自由向境外传输任何类型的数据'},{key:'D',text:'向境外提供重要数据应当申报数据出境安全评估'}],answer:'C'},
-  {question:'根据《联合国国际货物销售合同公约》（CISG），要约于何时生效？',options:[{key:'A',text:'要约人发出要约时'},{key:'B',text:'受要约人收到要约时'},{key:'C',text:'受要约人承诺时'},{key:'D',text:'双方达成合意时'}],answer:'B'}
-]
-const MULTI_QUESTIONS=[
-  {question:'下列哪些情形属于《涉外民事关系法律适用法》规定的"涉外民事关系"？',options:[{key:'A',text:'一方或双方为外国公民'},{key:'B',text:'经常居所地在国外的中国公民之间的民事关系'},{key:'C',text:'标的物位于国外'},{key:'D',text:'产生、变更或消灭民事关系的法律事实发生在国外'},{key:'E',text:'当事人协议选择适用外国法'}],answer:['A','B','C','D']},
-  {question:'关于国际商事仲裁，下列哪些说法是正确的？',options:[{key:'A',text:'仲裁庭有权认定自己的管辖权（自裁管辖权原则）'},{key:'B',text:'仲裁裁决具有终局性，一般不得上诉'},{key:'C',text:'仲裁程序不公开进行是基本原则'},{key:'D',text:'仲裁庭可以依职权主动调查收集证据'},{key:'E',text:'当事人可以在仲裁过程中随时和解并撤回仲裁申请'}],answer:['A','B','C','E']},
-  {question:'根据WTO规则，下列哪些属于最惠国待遇原则的例外情形？',options:[{key:'A',text:'关税同盟和自由贸易区成员间的优惠'},{key:'B',text:'普惠制（GSP）下的特殊待遇'},{key:'C',text:'边境贸易安排'},{key:'D',text:'保障措施'},{key:'E',text:'一般例外和安全例外条款'}],answer:['A','B','C','E']},
-  {question:'关于外国法院判决在中国的承认与执行，下列条件中正确的有：',options:[{key:'A',text:'需要中国与该国之间存在条约或互惠关系'},{key:'B',text:'判决必须是终局的、具有执行力的'},{key:'C',text:'不违反中国的公共利益'},{key:'D',text:'被告在中国境内有可供执行的财产'},{key:'E',text:'原审法院必须是中国承认的外国法院'}],answer:['A','B','C']},
-  {question:'下列关于《反外国制裁法》的说法，哪些是正确的？',options:[{key:'A',text:'反制措施包括不予签发签证、不准入境等'},{key:'B',text:'可查封、扣押、冻结在中国境内的财产'},{key:'C',text:'禁止或限制中国境内的组织个人与被制裁对象交易'},{key:'D',text:'国务院有关部门可制定反制清单'},{key:'E',text:'反制决定自公布之日起立即生效'}],answer:['A','B','C','D','E']},
-  {question:'在国际投资争端解决机制（ISDS）中，常见的争议解决方式包括：',options:[{key:'A',text:'ICSID（解决投资争端国际中心）仲裁'},{key:'B',text:'UNCITRAL（贸法会）仲裁规则'},{key:'C',text:'东道国当地法院诉讼'},{key:'D',text:'投资者与东道国政府协商谈判'},{key:'E',text:'WTO争端解决机制'}],answer:['A','B','C','D']}
-]
-const JUDGE_QUESTIONS=[
-  {question:'根据中国法律，外国人在中国领域内享有与中国公民同等的民事诉讼权利能力。（ ）',answer:true},
-  {question:'在国际货物买卖中，FOB术语下卖方负责办理货物运输保险。（ ）',answer:false},
-  {question:'《巴黎公约》确立的国民待遇原则适用于所有知识产权类型。（ ）',answer:true}
-]
-const SUBJECTIVE_QUESTIONS=[
-  {title:'案例分析：涉外仲裁协议效力争议',type:'case',typeLabel:'案例分析',caseText:'中国A公司与德国B公司签订一份设备采购合同，合同约定："因本合同引起的或与本合同有关的任何争议，应提交北京仲裁委员会仲裁。"后因设备质量问题发生纠纷，B公司在北京法院提起诉讼。A公司提出管辖异议，主张应由北京仲裁委员会管辖。B公司辩称其未在仲裁协议上签字，仲裁协议对其无效。请问：（1）该仲裁协议是否对B公司具有约束力？（2）如B公司未提出异议而直接参加诉讼且进行实体答辩，会产生什么法律后果？',placeholder:'请结合《仲裁法》《纽约公约》及相关司法解释进行分析（建议不少于300字）...'},
-  {title:'论述：RCEP协定对中国涉外法律服务行业的影响与应对策略',type:'essay',typeLabel:'论述题',caseText:'',placeholder:'请从RCEP原产地规则累积效应、服务贸易开放承诺等角度分析机遇与挑战（建议不少于300字）...'},
-  {title:'论述：数字时代跨境数据流动的法律规制困境与完善路径',type:'essay',typeLabel:'论述题',caseText:'',placeholder:'请结合中国《网络安全法》《数据安全法》、欧盟GDPR、美国CLOUD Act等法规体系分析（建议不少于300字）...'}
-]
-const QUESTION_CATEGORY='国际私法'
-
-/* =========== 能力维度映射（用于结果页维度评分） =========== */
-const QUESTION_DIMS = {
-  s_0: '国际私法', s_1: '涉外商事法', s_2: '国际经济法', s_3: '国际经济法', s_4: '国际经济法',
-  s_5: '国际私法', s_6: '国际经济法', s_7: '国际私法', s_8: '国际经济法', s_9: '国际经济法',
-  m_0: '国际私法', m_1: '涉外商事法', m_2: '国际经济法', m_3: '国际私法', m_4: '国际公法', m_5: '国际经济法',
-  j_0: '国际私法', j_1: '国际经济法', j_2: '国际公法'
-}
+/* =========== 题目数据（由 question 数据库加载） =========== */
+const TYPE_LABELS = { single: '单选题', multi: '多选题', judge: '判断题', subjective: '主观题' }
+const objectiveQuestions = ref([])
+const subjectiveQuestions = ref([])
+const questionsReady = ref(false)
+const QUESTION_CATEGORY = '国际私法'
 const DIMENSION_NAMES = ['国际私法', '国际经济法', '国际公法', '涉外商事法']
 const DIMENSION_ADVICE = {
   '国际私法': '加强涉外民事关系法律适用法与涉外民事诉讼程序的学习，结合典型案例理解公共秩序保留、最密切联系等核心制度。',
@@ -378,7 +344,7 @@ const specialCategory = ref('')
 const formData = reactive({
   name: '', school: '', career: '', email: '',
   objectiveAnswers: {},
-  subjectiveAnswers: ['', '', '']
+  subjectiveAnswers: []
 })
 const remainingTime = ref(45 * 60 + 12)
 let timer = null
@@ -412,29 +378,13 @@ const questionCategoryLabel = computed(() => {
 
 /* =========== 计算属性 =========== */
 const allObjectiveQuestions = computed(() => {
-  const list = []
-  SINGLE_QUESTIONS.forEach((q, i) => list.push({
-    ...q, type: 'single', typeLabel: '单选题',
-    globalIndex: i + 1, globalKey: 's_' + i, answer: q.answer,
-    dim: QUESTION_DIMS['s_' + i] || '综合'
+  return objectiveQuestions.value.map((q, i) => ({
+    ...q,
+    typeLabel: TYPE_LABELS[q.type] || '客观题',
+    globalIndex: i + 1,
+    globalKey: 'q_' + i,
+    dim: q.dimension || '综合'
   }))
-  MULTI_QUESTIONS.forEach((q, i) => {
-    const b = SINGLE_QUESTIONS.length
-    list.push({
-      ...q, type: 'multi', typeLabel: '多选题',
-      globalIndex: b + i + 1, globalKey: 'm_' + i, answer: q.answer,
-      dim: QUESTION_DIMS['m_' + i] || '综合'
-    })
-  })
-  JUDGE_QUESTIONS.forEach((q, i) => {
-    const b = SINGLE_QUESTIONS.length + MULTI_QUESTIONS.length
-    list.push({
-      ...q, type: 'judge', typeLabel: '判断题',
-      globalIndex: b + i + 1, globalKey: 'j_' + i, answer: q.answer,
-      dim: QUESTION_DIMS['j_' + i] || '综合'
-    })
-  })
-  return list
 })
 const totalObjectiveQuestions = computed(() => allObjectiveQuestions.value.length)
 const currentQuestion = computed(() => allObjectiveQuestions.value[currentQIndex.value] || null)
@@ -449,7 +399,6 @@ const answeredObjectiveCount = computed(() => {
 const objectiveProgressPercent = computed(() =>
   Math.round(answeredObjectiveCount.value / totalObjectiveQuestions.value * 100)
 )
-const subjectiveQuestions = ref(SUBJECTIVE_QUESTIONS)
 const timerDisplay = computed(() => {
   const m = Math.floor(remainingTime.value / 60)
   const s = remainingTime.value % 60
@@ -486,7 +435,31 @@ function handleLogout() {
 }
 
 /* =========== 开始页 / 退出 =========== */
-function startComprehensive() {
+async function loadQuestions() {
+  try {
+    const questionsObj = uniCloud.importObject('questions')
+    const r = (await questionsObj.listPublic({ type: 'all', page: 1, pageSize: 200 })) || {}
+    if (r.errCode !== 0) {
+      uni.showToast({ title: r.errMsg || '题目加载失败', icon: 'none' })
+      questionsReady.value = true
+      return
+    }
+    const list = r.list || []
+    objectiveQuestions.value = list.filter(q => q.type !== 'subjective')
+    subjectiveQuestions.value = list.filter(q => q.type === 'subjective')
+    questionsReady.value = true
+  } catch (e) {
+    uni.showToast({ title: (e && e.errMsg) || '题目加载失败', icon: 'none' })
+    questionsReady.value = true
+  }
+}
+
+async function ensureQuestionsLoaded() {
+  if (!questionsReady.value) await loadQuestions()
+}
+
+async function startComprehensive() {
+  await ensureQuestionsLoaded()
   if (isSpecialMode.value) resetForm()
   currentQIndex.value = 0
   visitedSet.clear()
@@ -678,7 +651,11 @@ function computeResult() {
     dimensions,
     recommendations,
     mode: isSpecialMode.value ? 'special' : 'comprehensive',
-    specialCategory: specialCategory.value
+    specialCategory: specialCategory.value,
+    rawAnswers: {
+      objective: formData.objectiveAnswers,
+      subjective: formData.subjectiveAnswers
+    }
   }
 }
 function saveLocalData() {
@@ -695,7 +672,7 @@ function loadLocalData() {
         formData.career = p.career || ''
         formData.email = p.email || ''
         formData.objectiveAnswers = p.objectiveAnswers || {}
-        formData.subjectiveAnswers = p.subjectiveAnswers || ['', '', '']
+        formData.subjectiveAnswers = p.subjectiveAnswers || new Array(subjectiveQuestions.value.length).fill('')
       }
     }
   } catch (e) {}
@@ -720,7 +697,7 @@ function resetForm() {
   formData.career = ''
   formData.email = ''
   formData.objectiveAnswers = {}
-  formData.subjectiveAnswers = ['', '', '']
+  formData.subjectiveAnswers = new Array(subjectiveQuestions.value.length).fill('')
   visitedSet.clear()
 }
 
@@ -745,7 +722,7 @@ onMounted(() => {
 
 onUnmounted(() => { if (timer) clearInterval(timer) })
 
-onLoad((options) => {
+onLoad(async (options) => {
   // ===== 登录鉴权：无 token 则强制跳转登录页 =====
   const token = uni.getStorageSync('token')
   if (!token) {
@@ -772,6 +749,7 @@ onLoad((options) => {
     currentQIndex.value = 0
     return
   }
+  await loadQuestions()
   loadLocalData()
 })
 

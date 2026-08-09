@@ -5,8 +5,10 @@
 
     <!-- 固定答题区：整页固定，无需上下滚动 -->
     <view class="quiz-area">
+      <view v-if="loading" class="q-empty">题目加载中...</view>
+      <view v-else-if="!questions.length" class="q-empty">暂无题目，请先在管理后台录入</view>
       <!-- 合并卡片：倒计时 + 题号导航 + 进度 + 题目内容 -->
-      <view class="q-card" :class="cardAnimClass">
+      <view v-else class="q-card" :class="cardAnimClass">
         <!-- 顶部信息行：倒计时 + 题号导航 + 标记 -->
         <view class="quiz-head">
         <view class="countdown-block" :class="{ urgent: isUrgent }" aria-live="polite">
@@ -88,8 +90,8 @@
             :class="{ selected: isOptSelected(i) }"
             @click="selectOpt(i)"
           >
-            <text class="badge">{{ letters[i] }}</text>
-            <text class="txt">{{ opt }}</text>
+            <text class="badge">{{ opt.key || letters[i] }}</text>
+            <text class="txt">{{ opt.text }}</text>
             <text class="check-ico ri-check-line" v-if="isOptSelected(i)"></text>
           </view>
         </view>
@@ -98,16 +100,16 @@
         <view v-else-if="currentQ.type === '判断题'" class="judge-opts" role="radiogroup" aria-label="判断题选项">
           <view 
             class="judge true" 
-            :class="{ selected: answers[current] === '正确' }"
-            @click="selectJudge('正确')"
+            :class="{ selected: answers[current] === true }"
+            @click="selectJudge(true)"
           >
             <text class="j-ico ri-check-line"></text>
             <text class="lbl">正确</text>
           </view>
           <view 
             class="judge false" 
-            :class="{ selected: answers[current] === '错误' }"
-            @click="selectJudge('错误')"
+            :class="{ selected: answers[current] === false }"
+            @click="selectJudge(false)"
           >
             <text class="j-ico ri-close-line"></text>
             <text class="lbl">错误</text>
@@ -135,7 +137,7 @@
     </view>
 
     <!-- 底部操作栏 -->
-    <view class="action-bar">
+    <view v-if="questions.length" class="action-bar">
       <view 
         class="ab-btn exit" 
         @click="showExitModal"
@@ -200,22 +202,13 @@ export default {
   data() {
     return {
       statusBarHeight: 0,
-      total: 10,
+      total: 0,
       current: 1,
-      totalSec: 23 * 60 + 45,
+      totalSec: 45 * 60,
       cdTimer: null,
-      questions: [
-        { n:1, type:'单选题', stem:'根据《承认及执行外国仲裁裁决公约》（《纽约公约》），下列哪项不属于缔约国可拒绝承认与执行外国仲裁裁决的情形？', options:['仲裁协议依其适用法律为无效','败诉方未能获得指定仲裁员或进行仲裁程序的适当通知','仲裁庭的组成与当事人约定不符','仲裁裁决在实体法律适用上存在错误'], multi:false },
-        { n:2, type:'多选题', stem:'关于国际商事仲裁的管辖权，下列表述正确的有？', options:['仲裁庭有权对其管辖权异议作出决定','仲裁协议独立于主合同而存在','当事人可在仲裁程序中提出管辖权异议','仲裁庭的管辖权最终源于当事人的仲裁协议','法院在任何情形下均不得对仲裁管辖权进行任何审查'], multi:true },
-        { n:3, type:'判断题', stem:'WTO 争端解决机构（DSB）通过的上诉机构报告与专家组报告对争端当事成员具有约束力，成员方应予执行。' },
-        { n:4, type:'主观题', stem:'请简述跨境数据流动合规审查的主要步骤。', maxLen:500 },
-        { n:5, type:'单选题', stem:'根据《联合国国际货物销售合同公约》（CISG），下列哪种情形构成卖方交付的货物与合同不符？', options:['货物数量短少','货物包装不符合约定方式','货物未按约定时间交付','以上情形均构成货物与合同不符'], multi:false },
-        { n:6, type:'多选题', stem:'关于国际私法中的冲突规范，下列表述正确的有？', options:['冲突规范属于间接规范','冲突规范需通过连接点确定准据法','冲突规范直接规定当事人的实体权利义务','识别是适用冲突规范的前提','反致是冲突规范适用中的常见问题'], multi:true },
-        { n:7, type:'判断题', stem:'法律英语中以 "without prejudice" 标记的通信内容，通常可在后续诉讼中作为对己方不利的证据使用。' },
-        { n:8, type:'主观题', stem:'请论述涉外民事诉讼中协议管辖的成立条件及其限制。', maxLen:500 },
-        { n:9, type:'单选题', stem:'在比较法研究中，下列哪项不属于大陆法系的典型特征？', options:['法官造法具有核心地位','成文法典体系化','法学理论具有权威性','民法典作为法律渊源的核心'], multi:false },
-        { n:10, type:'多选题', stem:'关于数据跨境流动的法律规制，下列表述正确的有？', options:['我国《个人信息保护法》对个人信息出境设有明确规则','欧盟 GDPR 采用充分性决定机制','关键信息基础设施运营者数据出境受严格限制','个人信息出境可通过安全评估或签订标准合同等途径','跨境数据流动目前已实现完全自由化'], multi:true }
-      ],
+      loading: true,
+      special: '',
+      questions: [],
       answers: {},
       flagged: new Set(),
       letters: ['A','B','C','D','E'],
@@ -240,22 +233,68 @@ export default {
     },
     answeredCount() { return (this.answeredNum / this.total) * 100 }
   },
-  onLoad(options) {
-    // 只有从"开始测评"页面进入时才启动倒计时
-    if (options.fromStart === 'true') {
-      this.startCountdown()
+  async onLoad(options) {
+    this.options = options || {}
+    if (this.options.special) {
+      try {
+        this.special = decodeURIComponent(this.options.special)
+      } catch (e) {
+        this.special = this.options.special
+      }
+    }
+    if (this.options.fromStart === 'true') {
       this.startTime = Date.now()
+    }
+    await this.loadQuestions()
+    this.statusBarHeight = this.getStatusBarHeight()
+    if (this.options.fromStart === 'true') {
+      this.startCountdown()
     }
   },
   onReady() {
     // 顶部安全区适配：动态获取系统状态栏高度
     this.statusBarHeight = this.getStatusBarHeight()
-    this.initAnswers()
+    if (this.questions.length) this.initAnswers()
   },
   onUnload() {
     if (this.cdTimer) clearInterval(this.cdTimer)
   },
   methods: {
+    async loadQuestions() {
+      try {
+        const questionsObj = uniCloud.importObject('questions')
+        const r = (await questionsObj.listPublic({ type: 'all', page: 1, pageSize: 200 })) || {}
+        if (r.errCode !== 0) {
+          uni.showToast({ title: r.errMsg || '题目加载失败', icon: 'none' })
+          return
+        }
+        let list = r.list || []
+        if (this.special) {
+          list = list.filter(q => (q.dimension || '综合') === this.special)
+        }
+        const typeMap = { single: '单选题', multi: '多选题', judge: '判断题', subjective: '主观题' }
+        this.questions = list.map((q, i) => ({
+          n: i + 1,
+          id: q._id,
+          type: typeMap[q.type] || q.type,
+          rawType: q.type,
+          stem: q.title || '',
+          options: Array.isArray(q.options) ? q.options.map(o => ({ key: o.key, text: o.text })) : [],
+          multi: q.type === 'multi',
+          answer: q.answer,
+          dimension: q.dimension || '综合',
+          caseText: q.caseText || '',
+          placeholder: q.placeholder || '',
+          maxLen: q.type === 'subjective' ? 1000 : 0
+        }))
+        this.total = this.questions.length
+        this.initAnswers()
+      } catch (e) {
+        uni.showToast({ title: (e && e.errMsg) || '题目加载失败', icon: 'none' })
+      } finally {
+        this.loading = false
+      }
+    },
     startCountdown() {
       if (this.countdownStarted) return
       this.countdownStarted = true
@@ -301,19 +340,21 @@ export default {
     },
     isOptSelected(i) {
       const a = this.answers[this.current]
-      if (this.currentQ.multi) return a.indexOf(i) >= 0
-      return a === i
+      const key = this.currentQ.options[i] && this.currentQ.options[i].key
+      if (this.currentQ.multi) return Array.isArray(a) && a.indexOf(key) >= 0
+      return a === key
     },
     selectOpt(i) {
       if (this.animating) return
+      const key = this.currentQ.options[i] && this.currentQ.options[i].key
       if (this.currentQ.multi) {
         const arr = this.answers[this.current]
-        const pos = arr.indexOf(i)
+        const pos = arr.indexOf(key)
         if (pos >= 0) arr.splice(pos, 1)
-        else arr.push(i)
+        else arr.push(key)
         this.$forceUpdate()
       } else {
-        this.$set(this.answers, this.current, i)
+        this.$set(this.answers, this.current, key)
       }
     },
     selectJudge(v) {
@@ -378,30 +419,92 @@ export default {
       const usedMinutes = Math.floor(usedSeconds / 60)
       const usedSecs = usedSeconds % 60
       const timeStr = `${usedMinutes}分${usedSecs}秒`
-      
-      // 模拟成绩数据（实际项目中应该从后端获取）
-      const reportData = {
-        score: 85,
+
+      const reportData = this.buildReport(timeStr)
+
+      // 存储报告数据到本地
+      uni.setStorageSync('lastAssessmentReport', reportData)
+      this.saveResult(reportData).finally(() => {
+        // 跳转到报告页面
+        uni.navigateTo({
+          url: '/pages/assessment-report/assessment-report'
+        })
+      })
+    },
+    buildReport(timeStr) {
+      const dimCorrect = {}
+      const dimTotal = {}
+      let correct = 0
+      let objectiveTotal = 0
+      this.questions.forEach(q => {
+        if (q.type === '主观题') return
+        const d = q.dimension || '综合'
+        if (!dimTotal[d]) {
+          dimCorrect[d] = 0
+          dimTotal[d] = 0
+        }
+        dimTotal[d]++
+        objectiveTotal++
+        const user = this.answers[q.n]
+        let ok = false
+        if (q.type === '多选题') {
+          const a = Array.isArray(user) ? [...user].sort().join(',') : ''
+          const b = Array.isArray(q.answer) ? [...q.answer].sort().join(',') : ''
+          ok = !!a && a === b
+        } else {
+          ok = user === q.answer
+        }
+        if (ok) {
+          correct++
+          dimCorrect[d]++
+        }
+      })
+      const score = objectiveTotal ? Math.round(correct / objectiveTotal * 100) : 0
+      const level = score >= 90 ? '卓越' : score >= 80 ? '优秀' : score >= 70 ? '良好' : score >= 60 ? '中等' : '待提升'
+      const dimensions = Object.keys(dimTotal).map(name => ({
+        name,
+        score: dimTotal[name] ? Math.round(dimCorrect[name] / dimTotal[name] * 100) : 0,
+        target: 85
+      }))
+      const sorted = [...dimensions].sort((a, b) => a.score - b.score)
+      const recommendations = sorted.slice(0, 3).map(d => `${d.name}当前${d.score}分，建议加强该领域学习，目标达到${d.target}分`)
+      return {
+        score,
+        level,
         totalScore: 100,
         time: timeStr,
         answeredCount: this.answeredNum,
         totalCount: this.total,
-        dimensions: [
-          { name: '国际商事仲裁', score: 88, target: 90 },
-          { name: '跨境数据合规', score: 82, target: 85 },
-          { name: '国际贸易法', score: 90, target: 88 },
-          { name: '涉外民事诉讼', score: 78, target: 85 },
-          { name: '国际私法', score: 85, target: 88 }
-        ]
+        dimensions,
+        recommendations,
+        mode: this.special ? 'special' : 'comprehensive',
+        specialCategory: this.special || '',
+        rawAnswers: {
+          objective: this.answers,
+          subjective: this.questions
+            .filter(q => q.type === '主观题')
+            .map(q => this.answers[q.n] || '')
+        }
       }
-      
-      // 存储报告数据到本地
-      uni.setStorageSync('lastAssessmentReport', reportData)
-      
-      // 跳转到报告页面
-      uni.navigateTo({
-        url: '/pages/assessment-report/assessment-report'
-      })
+    },
+    async saveResult(result) {
+      const token = uni.getStorageSync('token')
+      if (!token) {
+        uni.showToast({ title: '当前未登录，结果仅保存本地', icon: 'none' })
+        return false
+      }
+      try {
+        const surveyObj = uniCloud.importObject('survey')
+        const r = await surveyObj.saveResult({ token, result })
+        if (r && r.errCode !== 0) {
+          uni.showToast({ title: r.errMsg || '测评结果上传失败', icon: 'none' })
+          return false
+        }
+        return true
+      } catch (e) {
+        uni.showToast({ title: '测评结果上传失败', icon: 'none' })
+        return false
+      }
     },
     navTo(url) {
       uni.navigateTo({ url })
@@ -496,6 +599,16 @@ page {
   display: flex;
   flex-direction: column;
   padding: 88rpx 36rpx 0;
+}
+.q-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 60rpx 40rpx;
+  text-align: center;
+  color: var(--muted);
+  font-size: 28rpx;
 }
 .quiz-head {
   display: flex;

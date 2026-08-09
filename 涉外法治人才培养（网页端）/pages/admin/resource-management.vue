@@ -21,6 +21,10 @@
           <view class="navi-icon navi-icon-file-question"></view>
           <text>题库管理</text>
         </view>
+        <view class="app-nav-item" @tap="navigateTo('/pages/admin/knowledge-management')">
+          <view class="navi-icon navi-icon-book"></view>
+          <text>知识库管理</text>
+        </view>
         <view class="app-nav-item" @tap="navigateTo('/pages/admin/user-management')">
           <view class="navi-icon navi-icon-users"></view>
           <text>用户管理</text>
@@ -75,10 +79,10 @@
                 <text class="qb-kpi-card-label">资源总数</text>
                 <view class="qb-kpi-card-icon"><view class="navi-icon navi-icon-folder"></view></view>
               </view>
-              <text class="qb-kpi-card-value">46</text>
+              <text class="qb-kpi-card-value">{{ kpiTotal }}</text>
               <view class="qb-kpi-card-foot">
                 <view class="navi-icon navi-icon-trending-up-sm"></view>
-                <text>涵盖 6 类学习资源</text>
+                <text>resource 集合实时统计</text>
               </view>
             </view>
             <view class="qb-kpi-card qb-accent-success">
@@ -86,10 +90,10 @@
                 <text class="qb-kpi-card-label">视频资源</text>
                 <view class="qb-kpi-card-icon"><view class="navi-icon navi-icon-video"></view></view>
               </view>
-              <text class="qb-kpi-card-value">18</text>
+              <text class="qb-kpi-card-value">{{ kpiVideo }}</text>
               <view class="qb-kpi-card-foot">
                 <view class="navi-icon navi-icon-trending-up-sm"></view>
-                <text>含课程视频与精讲</text>
+                <text>type = video</text>
               </view>
             </view>
             <view class="qb-kpi-card qb-accent-warning">
@@ -97,10 +101,10 @@
                 <text class="qb-kpi-card-label">法律英语资源</text>
                 <view class="qb-kpi-card-icon"><view class="navi-icon navi-icon-book-open"></view></view>
               </view>
-              <text class="qb-kpi-card-value">21</text>
+              <text class="qb-kpi-card-value">{{ kpiEnglish }}</text>
               <view class="qb-kpi-card-foot">
                 <view class="navi-icon navi-icon-trending-up-sm"></view>
-                <text>词汇、听力、实务</text>
+                <text>type = english</text>
               </view>
             </view>
             <view class="qb-kpi-card">
@@ -108,10 +112,10 @@
                 <text class="qb-kpi-card-label">文档资料</text>
                 <view class="qb-kpi-card-icon"><view class="navi-icon navi-icon-file-text"></view></view>
               </view>
-              <text class="qb-kpi-card-value">7</text>
+              <text class="qb-kpi-card-value">{{ kpiDoc }}</text>
               <view class="qb-kpi-card-foot">
                 <view class="navi-icon navi-icon-trending-up-sm"></view>
-                <text>法律法规与学习资料</text>
+                <text>当前未启用</text>
               </view>
             </view>
           </view>
@@ -123,7 +127,7 @@
             <view class="qb-section-title-wrap">
               <view class="qb-section-bar"></view>
               <view>
-                <text class="qb-section-title">上传学习资源</text>
+                <text class="qb-section-title">录入学习资源</text>
                 <text class="qb-section-subtitle">支持视频、法律英语等学习资源，参考学习中心内容</text>
               </view>
             </view>
@@ -135,7 +139,6 @@
                 <view class="qb-pills">
                   <view class="qb-pill" :class="{ 'is-active': uploadType === 'video' }" @tap="uploadType = 'video'">视频资源</view>
                   <view class="qb-pill" :class="{ 'is-active': uploadType === 'english' }" @tap="uploadType = 'english'">法律英语</view>
-                  <view class="qb-pill" :class="{ 'is-active': uploadType === 'doc' }" @tap="uploadType = 'doc'">文档资料</view>
                 </view>
               </view>
               <view class="rm-form-field rm-form-field-grow">
@@ -148,17 +151,34 @@
               </view>
             </view>
 
-            <view class="rm-dropzone" @tap="pickFile">
-              <view class="navi-icon navi-icon-upload-cloud rm-dropzone-icon"></view>
-              <text class="rm-dropzone-title">{{ selectedFile ? '已选择文件' : '点击选择文件上传' }}</text>
-              <text class="rm-dropzone-sub">{{ selectedFile || '支持 MP4 / MP3 / PDF / DOCX 等格式' }}</text>
+            <view class="rm-upload-row">
+              <view class="rm-form-field rm-form-field-grow">
+                <text class="rm-form-label">资源地址 / 文件名</text>
+                <input class="rm-input" v-model="uploadUrl" placeholder="完整 URL 或文件名，如 video_intl_arbitration_0.mp4" />
+              </view>
+              <view class="rm-form-field">
+                <text class="rm-form-label">封面 URL</text>
+                <input class="rm-input" v-model="uploadCover" placeholder="可留空" />
+              </view>
+            </view>
+            <view class="rm-upload-row">
+              <view class="rm-form-field rm-form-field-grow">
+                <text class="rm-form-label">资源简介</text>
+                <input class="rm-input" v-model="uploadDescription" placeholder="可选，用于学习中心展示" />
+              </view>
+            </view>
+
+            <view class="rm-dropzone">
+              <view class="navi-icon navi-icon-link rm-dropzone-icon"></view>
+              <text class="rm-dropzone-title">资源地址字段</text>
+              <text class="rm-dropzone-sub">填写完整 URL（如云存储地址）或文件名；文件名会按 video-config 基址拼接</text>
             </view>
 
             <view class="rm-upload-foot">
-              <text class="rm-upload-tip">上传后将进入审核，通过后在学习中心展示</text>
+              <text class="rm-upload-tip">保存后将进入审核，通过后在学习中心展示</text>
               <view class="qb-create-btn" @tap="doUpload">
                 <view class="navi-icon navi-icon-upload-cloud"></view>
-                <text>上传资源</text>
+                <text>保存资源</text>
               </view>
             </view>
           </view>
@@ -322,7 +342,9 @@ const todayDateText = computed(() => {
 const uploadType = ref('video')
 const uploadTitle = ref('')
 const uploadMeta = ref('')
-const selectedFile = ref('')
+const uploadUrl = ref('')
+const uploadCover = ref('')
+const uploadDescription = ref('')
 
 /* ===== 视频资源 ===== */
 const videoSearch = ref('')
@@ -347,6 +369,12 @@ const filteredEnglish = computed(() => {
   return englishResources.value.filter(e => e.type === englishFilter.value)
 })
 
+/* ===== 资源概览 KPI ===== */
+const kpiTotal = computed(() => videos.value.length + englishResources.value.length)
+const kpiVideo = computed(() => videos.value.length)
+const kpiEnglish = computed(() => englishResources.value.length)
+const kpiDoc = computed(() => 0)
+
 /* ===== 云端数据 ===== */
 function getAdminToken() {
   return uni.getStorageSync('adminToken')
@@ -354,10 +382,10 @@ function getAdminToken() {
 
 // 云文档 → 页面表格行
 function toVideoItem(doc) {
-  return { id: doc._id, title: doc.title, category: doc.cat, tagClass: doc.tagClass, duration: doc.meta, date: doc.date, status: doc.status, statusClass: doc.statusClass }
+  return { id: doc._id, title: doc.title, category: doc.cat, tagClass: doc.tagClass, duration: doc.meta, date: doc.date, status: doc.status, statusClass: doc.statusClass, fileUrl: doc.fileUrl || '', cover: doc.cover || '', description: doc.description || '' }
 }
 function toEnglishItem(doc) {
-  return { id: doc._id, title: doc.title, type: doc.cat, typeClass: doc.tagClass, diffLabel: doc.meta, diffClass: doc.diffClass, date: doc.date, status: doc.status, statusClass: doc.statusClass }
+  return { id: doc._id, title: doc.title, type: doc.cat, typeClass: doc.tagClass, diffLabel: doc.meta, diffClass: doc.diffClass, date: doc.date, status: doc.status, statusClass: doc.statusClass, fileUrl: doc.fileUrl || '', cover: doc.cover || '', description: doc.description || '' }
 }
 
 async function loadAll() {
@@ -391,23 +419,6 @@ const handleLogout = () => {
   })
 }
 
-const pickFile = () => {
-  // #ifdef H5
-  try {
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = 'video/*,audio/*,.pdf,.doc,.docx,.mp3,.mp4'
-    input.onchange = () => {
-      const file = input.files && input.files[0]
-      if (file) selectedFile.value = file.name
-    }
-    input.click()
-    return
-  } catch (e) { /* 非 H5 环境降级为提示 */ }
-  // #endif
-  uni.showToast({ title: '请选择要上传的文件', icon: 'none' })
-}
-
 let payload = {}
 
 const doUpload = async () => {
@@ -427,6 +438,9 @@ const doUpload = async () => {
       tagClass: 'qb-type-case',
       meta: meta || '--:--',
       diffClass: '',
+      fileUrl: uploadUrl.value.trim(),
+      cover: uploadCover.value.trim(),
+      description: uploadDescription.value.trim(),
       status: '审核中',
       statusClass: 'qb-diff-mid'
     }
@@ -437,6 +451,9 @@ const doUpload = async () => {
       tagClass: 'qb-type-case',
       meta: '待定',
       diffClass: 'qb-diff-mid',
+      fileUrl: uploadUrl.value.trim(),
+      cover: uploadCover.value.trim(),
+      description: uploadDescription.value.trim(),
       status: '审核中',
       statusClass: 'qb-diff-mid'
     }
@@ -460,15 +477,17 @@ const doUpload = async () => {
 
   // 本地即时插入（保持原体验），成功后重新拉取云端保持一致
   if (uploadType.value === 'video') {
-    videos.value.unshift({ id: r.id, title, category: '待分类', tagClass: 'qb-type-case', duration: meta || '--:--', date, status: '审核中', statusClass: 'qb-diff-mid' })
+    videos.value.unshift({ id: r.id, title, category: '待分类', tagClass: 'qb-type-case', duration: meta || '--:--', date, status: '审核中', statusClass: 'qb-diff-mid', fileUrl: uploadUrl.value.trim(), cover: uploadCover.value.trim(), description: uploadDescription.value.trim() })
   } else {
-    englishResources.value.unshift({ id: r.id, title, type: '待分类', typeClass: 'qb-type-case', diffLabel: '待定', diffClass: 'qb-diff-mid', date, status: '审核中', statusClass: 'qb-diff-mid' })
+    englishResources.value.unshift({ id: r.id, title, type: '待分类', typeClass: 'qb-type-case', diffLabel: '待定', diffClass: 'qb-diff-mid', date, status: '审核中', statusClass: 'qb-diff-mid', fileUrl: uploadUrl.value.trim(), cover: uploadCover.value.trim(), description: uploadDescription.value.trim() })
   }
 
   uploadTitle.value = ''
   uploadMeta.value = ''
-  selectedFile.value = ''
-  uni.showToast({ title: '上传成功，等待审核', icon: 'success' })
+  uploadUrl.value = ''
+  uploadCover.value = ''
+  uploadDescription.value = ''
+  uni.showToast({ title: '保存成功，等待审核', icon: 'success' })
 }
 
 const handleEdit = (item) => {
@@ -481,7 +500,7 @@ const handleEdit = (item) => {
       if (!r1.confirm) return
       const title = (r1.content || '').trim()
       uni.showModal({
-        title: '编辑资源',
+        title: '编辑分类',
         editable: true,
         content: item.category || item.type || '',
         placeholderText: '请输入分类',
@@ -489,32 +508,54 @@ const handleEdit = (item) => {
           if (!r2.confirm) return
           const cat = (r2.content || '').trim()
           uni.showModal({
-            title: '编辑资源',
-            content: `当前状态：${item.status}。是否切换为「${item.status === '已上线' ? '审核中' : '已上线'}」？`,
-            confirmText: '切换状态',
-            cancelText: '仅保存信息',
-            success: async (r3) => {
-              const data = { title, cat, status: item.status, statusClass: item.statusClass }
-              if (r3.confirm) {
-                data.status = item.status === '已上线' ? '审核中' : '已上线'
-                data.statusClass = data.status === '已上线' ? 'qb-diff-easy' : 'qb-diff-mid'
-              }
-              try {
-                const resourcesObj = uniCloud.importObject('resources')
-                const r = (await resourcesObj.update({ adminToken: getAdminToken(), id: item.id, data })) || {}
-                if (r.errCode === 0) {
-                  item.title = title
-                  item.status = data.status
-                  item.statusClass = data.statusClass
-                  if (item.category !== undefined) item.category = cat
-                  else item.type = cat
-                  uni.showToast({ title: '已保存', icon: 'success' })
-                } else {
-                  uni.showToast({ title: r.errMsg || '保存失败', icon: 'none' })
+            title: '编辑资源地址',
+            editable: true,
+            content: item.fileUrl || '',
+            placeholderText: '完整 URL 或文件名',
+            success: (rUrl) => {
+              if (!rUrl.confirm) return
+              const fileUrl = (rUrl.content || '').trim()
+              uni.showModal({
+                title: '编辑资源简介',
+                editable: true,
+                content: item.description || '',
+                placeholderText: '请输入简介',
+                success: (rDesc) => {
+                  if (!rDesc.confirm) return
+                  const description = (rDesc.content || '').trim()
+                  uni.showModal({
+                    title: '编辑资源',
+                    content: `当前状态：${item.status}。是否切换为「${item.status === '已上线' ? '审核中' : '已上线'}」？`,
+                    confirmText: '切换状态',
+                    cancelText: '仅保存信息',
+                    success: async (r3) => {
+                      const data = { title, cat, fileUrl, description, status: item.status, statusClass: item.statusClass }
+                      if (r3.confirm) {
+                        data.status = item.status === '已上线' ? '审核中' : '已上线'
+                        data.statusClass = data.status === '已上线' ? 'qb-diff-easy' : 'qb-diff-mid'
+                      }
+                      try {
+                        const resourcesObj = uniCloud.importObject('resources')
+                        const r = (await resourcesObj.update({ adminToken: getAdminToken(), id: item.id, data })) || {}
+                        if (r.errCode === 0) {
+                          item.title = title
+                          item.fileUrl = fileUrl
+                          item.description = description
+                          item.status = data.status
+                          item.statusClass = data.statusClass
+                          if (item.category !== undefined) item.category = cat
+                          else item.type = cat
+                          uni.showToast({ title: '已保存', icon: 'success' })
+                        } else {
+                          uni.showToast({ title: r.errMsg || '保存失败', icon: 'none' })
+                        }
+                      } catch (e) {
+                        uni.showToast({ title: (e && e.errMsg) || '保存失败', icon: 'none' })
+                      }
+                    }
+                  })
                 }
-              } catch (e) {
-                uni.showToast({ title: (e && e.errMsg) || '保存失败', icon: 'none' })
-              }
+              })
             }
           })
         }
@@ -671,6 +712,10 @@ onMounted(() => {
 .navi-icon-file-question {
   -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z'/><polyline points='14 2 14 8 20 8'/><path d='M9 12.01h6'/><path d='M9 16.01h3'/></svg>") center/contain no-repeat;
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z'/><polyline points='14 2 14 8 20 8'/><path d='M9 12.01h6'/><path d='M9 16.01h3'/></svg>") center/contain no-repeat;
+}
+.navi-icon-book {
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z'/><path d='M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z'/></svg>") center/contain no-repeat;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z'/><path d='M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z'/></svg>") center/contain no-repeat;
 }
 .navi-icon-users {
   -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/><circle cx='9' cy='7' r='4'/><path d='M22 21v-2a4 4 0 0 0-3-3.87'/><path d='M16 3.13a4 4 0 0 1 0 7.75'/></svg>") center/contain no-repeat;

@@ -24,3 +24,14 @@ export function getVideoUrl(fileName) {
   const base = VIDEO_BASE_ONLINE || VIDEO_BASE_LOCAL || ''
   return base + encodeURIComponent(fileName)
 }
+
+/**
+ * 解析 resource.fileUrl：
+ * 完整 URL 直接使用，文件名则走 getVideoUrl 统一拼接视频基址。
+ */
+export function resolveResourceUrl(fileUrl) {
+  if (!fileUrl) return ''
+  const value = String(fileUrl).trim()
+  if (/^(https?:|blob:|data:|\/)/i.test(value)) return value
+  return getVideoUrl(value)
+}

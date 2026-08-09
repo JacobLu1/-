@@ -1,0 +1,60 @@
+{
+	"bsonType": "object",
+	"required": ["userId", "score"],
+	"permission": {
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"userId": {
+			"bsonType": "string",
+			"description": "用户 _id"
+		},
+		"account": {
+			"bsonType": "string",
+			"description": "用户账号"
+		},
+		"name": {
+			"bsonType": "string",
+			"description": "用户姓名"
+		},
+		"mode": {
+			"bsonType": "string",
+			"enum": ["comprehensive", "special"],
+			"description": "测评模式：comprehensive 综合 / special 专项"
+		},
+		"specialCategory": {
+			"bsonType": "string",
+			"description": "专项测评领域"
+		},
+		"score": {
+			"bsonType": "int",
+			"description": "总分（0-100）"
+		},
+		"level": {
+			"bsonType": "string",
+			"description": "等级评价"
+		},
+		"dimensions": {
+			"bsonType": "array",
+			"description": "各维度得分 [{name, score}]"
+		},
+		"recommendations": {
+			"bsonType": "array",
+			"description": "学习建议"
+		},
+		"rawAnswers": {
+			"bsonType": "object",
+			"description": "原始答题记录 {objective: {}, subjective: []}"
+		},
+		"createDate": {
+			"bsonType": "timestamp",
+			"description": "提交时间"
+		}
+	}
+}

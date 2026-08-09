@@ -67,7 +67,8 @@
               <text class="special-subtitle">请选择一个您希望重点考察的涉外法治领域，系统将针对该领域进行专项测评。</text>
             </view>
 
-            <view class="special-grid">
+            <view v-if="!specials.length" class="special-empty">暂无专项分类，待后续接入题目分类后开放</view>
+            <view v-else class="special-grid">
               <view class="special-card"
                     v-for="(s, idx) in specials" :key="idx"
                     :class="'sc-tone-' + (idx % 4)"
@@ -97,18 +98,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { requireLogin, getDisplayName, getLevelText } from '@/utils/auth.js'
 
-const SPECIALS = [
-  { name: '国际私法', initial: '私', desc: '涉外民事关系法律适用、国际民事诉讼与司法协助', meta: '法律适用 · 涉外诉讼', time: 30 },
-  { name: '国际经济法', initial: '经', desc: '国际贸易、国际投资与 WTO 规则体系', meta: '贸易 · 投资 · WTO', time: 35 },
-  { name: '国际公法', initial: '公', desc: '国际条约、国家责任与国际组织制度', meta: '条约 · 国家责任', time: 30 },
-  { name: '涉外商事法', initial: '商', desc: '涉外合同、涉外商事仲裁与纠纷解决', meta: '合同 · 仲裁 · 诉讼', time: 35 },
-  { name: '海商法', initial: '海', desc: '海上货物运输、提单制度与海事争议处理', meta: '运输 · 提单 · 海事', time: 25 },
-  { name: '跨境合规', initial: '合', desc: '数据出境、出口管制与反制裁合规实务', meta: '数据 · 管制 · 合规', time: 25 },
-  { name: '国际仲裁', initial: '裁', desc: '仲裁协议效力、仲裁程序与裁决承认执行', meta: '仲裁协议 · 裁决执行', time: 30 },
-  { name: '涉外知识产权', initial: '知', desc: '商标、专利与著作权的国际保护机制', meta: '商标 · 专利 · 著作权', time: 30 }
-]
-
-const specials = ref(SPECIALS)
+const specials = ref([])
 const userName = ref(getDisplayName())
 const userRole = ref(getLevelText())
 const userInitial = computed(() => (userName.value || '用').slice(0, 1))
@@ -381,6 +371,14 @@ onMounted(() => {
   color: var(--rule-muted-foreground);
   margin-top: 8px;
   line-height: 1.7;
+}
+.special-empty {
+  padding: 48px 20px;
+  border-radius: 8px;
+  border: 1px dashed rgba(120, 160, 210, 0.35);
+  color: var(--rule-ink-3);
+  text-align: center;
+  font-size: 14px;
 }
 .special-grid {
   display: grid;

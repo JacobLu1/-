@@ -72,11 +72,11 @@
                 </view>
                 <view class="lc-hero-stat hero-stat-enter" style="--delay: 1">
                   <text class="lc-hero-stat-num">{{ displayStats.studyCount }}</text>
-                  <text class="lc-hero-stat-label">学习人次</text>
+                  <text class="lc-hero-stat-label">累计测评</text>
                 </view>
                 <view class="lc-hero-stat hero-stat-enter" style="--delay: 2">
                   <text class="lc-hero-stat-num">{{ displayStats.completionRate }}</text>
-                  <text class="lc-hero-stat-label">平均完课率</text>
+                  <text class="lc-hero-stat-label">知识条目</text>
                 </view>
               </view>
             </view>
@@ -117,16 +117,42 @@
                   <view class="video-meta">
                     <text class="video-meta-item">
                       <view class="user-icon-sm"></view>
-                      <text>{{ video.author }}</text>
+                      <text>{{ video.category }}</text>
                     </text>
                     <text class="video-meta-item">
                       <view class="eye-icon-sm"></view>
-                      <text>{{ video.views }}</text>
+                      <text>{{ video.status }}</text>
                     </text>
                   </view>
                 </view>
               </view>
             </view>
+            <view v-if="!skills.length" class="lc-empty">暂无技能课程</view>
+          </section>
+
+          <!-- ===== 法律英语资源 Section ===== -->
+          <section class="lc-section" :class="{ 'is-visible': sections.english }" aria-label="法律英语资源">
+            <view class="lc-section-header">
+              <view class="lc-section-title-wrap">
+                <view class="lc-section-bar"></view>
+                <view>
+                  <text class="lc-section-title">法律英语资源</text>
+                  <text class="lc-section-subtitle">词汇、听力与实务资源来自资源数据库</text>
+                </view>
+              </view>
+            </view>
+            <view class="rec-grid">
+              <view class="rec-card" v-for="(item, eIdx) in englishResources" :key="eIdx" @tap="openEnglishResource(item)">
+                <text class="rec-tag rec-tag-adv">{{ item.category }}</text>
+                <text class="rec-title">{{ item.title }}</text>
+                <text class="rec-reason">{{ item.description || (item.level ? '难度：' + item.level : '暂无简介') }}</text>
+                <view class="rec-btn">
+                  <text>{{ item.fileUrl ? '查看资源' : '暂无资源文件' }}</text>
+                  <view class="arrow-r"></view>
+                </view>
+              </view>
+            </view>
+            <view v-if="!englishResources.length" class="lc-empty">暂无法律英语资源</view>
           </section>
 
           <!-- ===== Professional Skills Section ===== -->
@@ -196,6 +222,7 @@
                 </view>
               </view>
             </view>
+            <view v-if="!recommendations.length" class="lc-empty">暂无推荐内容</view>
           </section>
         </main>
       </view>
@@ -207,6 +234,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { onLoad, onReady, onPageScroll } from '@dcloudio/uni-app'
 import { requireLogin, getDisplayName, getLevelText } from '@/utils/auth.js'
+import { resolveResourceUrl } from '@/utils/video-config.js'
 
 /* ============================================================
    Scroll-Reveal Animation System (与 index.vue 一致)
@@ -262,9 +290,9 @@ const animatedStats = reactive({
    ============================================================ */
 // 每个数字项的目标配置
 const STAT_CONFIG = {
-  courses:        { from: 0, to: 120,  decimals: 0, suffix: '+', useGrouping: false },
-  studyCount:     { from: 0, to: 8500, decimals: 0, suffix: '',  useGrouping: true  },
-  completionRate: { from: 0, to: 87,   decimals: 0, suffix: '%', useGrouping: false }
+  courses:        { from: 0, to: 0, decimals: 0, suffix: '', useGrouping: false },
+  studyCount:     { from: 0, to: 0, decimals: 0, suffix: '',  useGrouping: true  },
+  completionRate: { from: 0, to: 0, decimals: 0, suffix: '', useGrouping: false }
 }
 
 // 默认动画时长（毫秒），可配置
@@ -408,39 +436,148 @@ function animateStats() {
 /* ============================================================
    Video Data
    ============================================================ */
-const videos = ref([
-  {
-    title: '国际商事仲裁实务精讲',
-    author: '王教授',
-    duration: '45:30',
-    views: '1,230',
-    gradient: 'linear-gradient(135deg, #1E40AF, #3B82F6)'
-  },
-  {
-    title: 'WTO争端解决机制解析',
-    author: '李教授',
-    duration: '38:15',
-    views: '985',
-    gradient: 'linear-gradient(135deg, #0F766E, #14B8A6)'
-  },
-  {
-    title: '跨境投资法律风险防控',
-    author: '张教授',
-    duration: '52:00',
-    views: '1,560',
-    gradient: 'linear-gradient(135deg, #7C3AED, #A78BFA)'
-  },
-  {
-    title: '国际海商法典型案例',
-    author: '陈教授',
-    duration: '41:20',
-    views: '1,102',
-    gradient: 'linear-gradient(135deg, #B45309, #F59E0B)'
+const videoGradients = [
+  'linear-gradient(135deg, #1E40AF, #3B82F6)',
+  'linear-gradient(135deg, #0F766E, #14B8A6)',
+  'linear-gradient(135deg, #7C3AED, #A78BFA)',
+  'linear-gradient(135deg, #B45309, #F59E0B)',
+  'linear-gradient(135deg, #DB2777, #F472B6)',
+  'linear-gradient(135deg, #2563EB, #0EA5E9)'
+]
+
+const videos = ref([])
+const englishResources = ref([])
+const resourceLoading = ref(false)
+
+function mapVideo(doc, index) {
+  return {
+    id: doc._id,
+    title: doc.title,
+    category: doc.cat || '未分类',
+    duration: doc.meta || '--:--',
+    status: doc.status || '已上线',
+    fileUrl: doc.fileUrl || '',
+    cover: doc.cover || '',
+    description: doc.description || '',
+    gradient: videoGradients[index % videoGradients.length]
   }
-])
+}
+
+function mapEnglish(doc) {
+  return {
+    id: doc._id,
+    title: doc.title,
+    category: doc.cat || '未分类',
+    level: doc.meta || '',
+    fileUrl: doc.fileUrl || '',
+    cover: doc.cover || '',
+    description: doc.description || ''
+  }
+}
+
+async function loadResources() {
+  if (resourceLoading.value) return
+  resourceLoading.value = true
+  try {
+    const resourcesObj = uniCloud.importObject('resources')
+    const r = (await resourcesObj.listPublic({ type: 'all' })) || {}
+    if (r.errCode !== 0) {
+      uni.showToast({ title: r.errMsg || '资源加载失败', icon: 'none' })
+      return
+    }
+    const list = r.list || []
+    videos.value = list.filter(d => d.type === 'video').map(mapVideo)
+    englishResources.value = list.filter(d => d.type === 'english').map(mapEnglish)
+    STAT_CONFIG.courses.suffix = ''
+    STAT_CONFIG.courses.to = videos.value.length
+    statRaw.courses = videos.value.length
+
+    const skillMap = {}
+    const skillGradients = [
+      'linear-gradient(135deg, #2563EB, #0EA5E9)',
+      'linear-gradient(135deg, #4F46E5, #7C3AED)',
+      'linear-gradient(135deg, #0891B2, #06B6D4)',
+      'linear-gradient(135deg, #B45309, #F59E0B)',
+      'linear-gradient(135deg, #1E40AF, #3B82F6)'
+    ]
+    const skillIcons = ['headphones-icon', 'handshake-icon', 'globe-icon', 'gavel-icon', 'file-text-icon']
+    englishResources.value.forEach((r, idx) => {
+      const name = r.category || '未分类'
+      if (!skillMap[name]) {
+        skillMap[name] = {
+          name,
+          desc: '法律英语资源',
+          courseCount: 0,
+          progress: 0,
+          iconBg: skillGradients[idx % skillGradients.length],
+          iconClass: skillIcons[idx % skillIcons.length],
+          route: '/pages/learning-center/legal-english'
+        }
+      }
+      skillMap[name].courseCount++
+    })
+    skills.value = Object.values(skillMap)
+
+    const recs = []
+    videos.value.forEach(v => {
+      recs.push({
+        tag: v.category,
+        tagClass: 'rec-tag-adv',
+        title: v.title,
+        reason: `视频 · ${v.duration}`,
+        level: 1,
+        levelLabel: '视频',
+        url: `/pages/learning-center/video-detail?id=${v.id}`
+      })
+    })
+    englishResources.value.forEach(r => {
+      recs.push({
+        tag: r.category,
+        tagClass: 'rec-tag-adv',
+        title: r.title,
+        reason: r.description || '法律英语资源',
+        level: 1,
+        levelLabel: '资源',
+        fileUrl: r.fileUrl
+      })
+    })
+    recommendations.value = recs.slice(0, 6)
+
+    try {
+      const usersObj = uniCloud.importObject('users')
+      const ovr = (await usersObj.overview()) || {}
+      if (ovr.errCode === 0) {
+        STAT_CONFIG.studyCount.to = ovr.surveyCount || 0
+        STAT_CONFIG.completionRate.to = ovr.knowledgeCount || 0
+        statRaw.studyCount = ovr.surveyCount || 0
+        statRaw.completionRate = ovr.knowledgeCount || 0
+      }
+    } catch (e) {
+      console.error('[learning-center] overview load error:', e)
+    }
+  } catch (e) {
+    uni.showToast({ title: (e && e.errMsg) || '资源加载失败', icon: 'none' })
+  } finally {
+    resourceLoading.value = false
+  }
+}
 
 function playVideo(video) {
-  uni.navigateTo({ url: '/pages/learning-center/video-detail' })
+  uni.navigateTo({ url: `/pages/learning-center/video-detail?id=${video.id}` })
+}
+
+function openEnglishResource(item) {
+  const url = resolveResourceUrl(item.fileUrl)
+  if (!url) {
+    uni.showToast({ title: '该资源暂未配置文件地址', icon: 'none' })
+    return
+  }
+  // #ifdef H5
+  window.open(url, '_blank')
+  // #endif
+  // #ifndef H5
+  uni.setClipboardData({ data: url, success: () => uni.showToast({ title: '资源地址已复制', icon: 'none' }) })
+  // #endif
 }
 
 function goToListeningTraining() {
@@ -454,49 +591,7 @@ function showMoreVideos() {
 /* ============================================================
    Skills Data
    ============================================================ */
-const skills = ref([
-  {
-    name: '法律英语综合训练',
-    desc: '通过模拟法庭辩论、国际会议发言等场景，训练法律英语听说读写能力',
-    courseCount: 8,
-    progress: 45,
-    iconBg: 'linear-gradient(135deg, #2563EB, #0EA5E9)',
-    iconClass: 'headphones-icon',
-    route: '/pages/learning-center/legal-english'
-  },
-  {
-    name: '国际商务谈判',
-    desc: '掌握国际贸易投资谈判策略与技巧，提升实务谈判能力',
-    courseCount: 6,
-    progress: 30,
-    iconBg: 'linear-gradient(135deg, #4F46E5, #7C3AED)',
-    iconClass: 'handshake-icon'
-  },
-  {
-    name: '跨文化法律交流',
-    desc: '理解不同法系文化差异，培养跨文化法律沟通能力',
-    courseCount: 5,
-    progress: 60,
-    iconBg: 'linear-gradient(135deg, #0891B2, #06B6D4)',
-    iconClass: 'globe-icon'
-  },
-  {
-    name: '实务模拟庭审',
-    desc: '通过真实案例模拟庭审全流程，积累实战经验',
-    courseCount: 7,
-    progress: 20,
-    iconBg: 'linear-gradient(135deg, #B45309, #F59E0B)',
-    iconClass: 'gavel-icon'
-  },
-  {
-    name: '高端文书写作',
-    desc: '掌握国际法律文书写作规范与技巧，提升专业文书质量',
-    courseCount: 9,
-    progress: 50,
-    iconBg: 'linear-gradient(135deg, #1E40AF, #3B82F6)',
-    iconClass: 'file-text-icon'
-  }
-])
+const skills = ref([])
 
 function onSkillCardTap(skill) {
   if (skill.route) {
@@ -509,43 +604,16 @@ function onSkillCardTap(skill) {
 /* ============================================================
    Recommendations Data
    ============================================================ */
-const recommendations = ref([
-  {
-    tag: '国际私法',
-    tagClass: 'rec-tag-adv',
-    title: '《承认与执行外国判决的新发展》',
-    reason: '进阶 · 阅读 · 18 分钟',
-    level: 3,
-    levelLabel: '高级'
-  },
-  {
-    tag: '国际商法',
-    tagClass: 'rec-tag-adv',
-    title: 'CISG适用案例精讲',
-    reason: '实战 · 视频 · 32 分钟',
-    level: 2,
-    levelLabel: '中级'
-  },
-  {
-    tag: '数据合规',
-    tagClass: 'rec-tag-adv',
-    title: '数据跨境流动合规指南',
-    reason: '进阶 · 阅读 · 25 分钟',
-    level: 3,
-    levelLabel: '高级'
-  },
-  {
-    tag: '国际贸易法',
-    tagClass: 'rec-tag-adv',
-    title: '国际贸易术语Incoterms实务解析',
-    reason: '实战 · 视频 · 45 分钟',
-    level: 2,
-    levelLabel: '中级'
-  }
-])
+const recommendations = ref([])
 
 function startLearning(rec) {
-  uni.showToast({ title: `开始学习: ${rec.title}`, icon: 'none' })
+  if (rec.url) {
+    uni.navigateTo({ url: rec.url })
+  } else if (rec.fileUrl) {
+    openEnglishResource(rec)
+  } else {
+    uni.showToast({ title: '该资源暂未配置入口', icon: 'none' })
+  }
 }
 
 /* ============================================================
@@ -556,6 +624,7 @@ const sections = reactive({
   // 避免首屏出现"透明度为0→延迟后淡入"的假白屏/闪烁观感
   // 也取消 setTimeouts 调度开销
   video: true,
+  english: true,
   skills: true,
   recommendation: true
 })
@@ -616,6 +685,7 @@ onLoad(() => {
       userName.value = info.name
     }
   } catch (e) {}
+  loadResources()
 })
 </script>
 
@@ -1349,6 +1419,15 @@ onLoad(() => {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 20px;
+}
+.lc-empty {
+  margin-top: 16px;
+  padding: 32px;
+  border: 1px dashed var(--rule-border);
+  border-radius: 10px;
+  color: var(--rule-ink-3);
+  text-align: center;
+  font-size: 14px;
 }
 .rec-card {
   background: var(--rule-card);

@@ -73,7 +73,8 @@
             <text class="more-arrow">›</text>
           </view>
         </view>
-        <view class="ach-row">
+        <view v-if="!achievements.length" class="ach-empty">暂无成就</view>
+        <view v-else class="ach-row">
           <view
             class="ach-badge"
             v-for="(b, i) in achievements.slice(0, 2)"
@@ -174,34 +175,29 @@ export default {
     const cachedUser = uni.getStorageSync('userInfo') || {}
     return {
       statusBarHeight: 0,
-      userName: cachedUser.name || '陆知远',
+      userName: cachedUser.name || cachedUser.account || '用户',
       role: cachedUser.role === 'admin' ? '涉外法治 · 管理员' : '涉外法治 · 学员',
-      level: cachedUser.level || 'Lv.5',
-      levelText: cachedUser.levelText || '成长值 1280 / 2000',
-      levelPct: 64,
+      level: cachedUser.level || 'Lv.1',
+      levelText: cachedUser.levelText || '暂无成长数据',
+      levelPct: 0,
       levelFill: 0,
       stats: [
-        { prefix: '', num: 86, unit: 'h', suffix: '', label: '学习时长' },
-        { prefix: '', num: 24, unit: '', suffix: '', label: '完成课程' },
-        { prefix: '', num: 7, unit: '', suffix: '', label: '获得证书' },
-        { prefix: 'Top ', num: 8, unit: '', suffix: '%', label: '学习排名' }
+        { prefix: '', num: 0, unit: '次', suffix: '', label: '测评次数' },
+        { prefix: '', num: 0, unit: '分', suffix: '', label: '平均得分' },
+        { prefix: '', num: 0, unit: '分', suffix: '', label: '最高得分' },
+        { prefix: 'Top ', num: 0, unit: '', suffix: '%', label: '学习排名' }
       ],
       animStats: [0, 0, 0, 0],
-      achievements: [
-        { name: '仲裁新锐', date: '2024.03', ico: 'ri-scales-3-line', bg: 'linear-gradient(135deg, #5B9DF9, #2E7BE0)' },
-        { name: '合规达人', date: '2024.05', ico: 'ri-shield-check-line', bg: 'linear-gradient(135deg, #8B5CF6, #6D28D9)' },
-        { name: '双语法律人', date: '2024.06', ico: 'ri-earth-line', bg: 'linear-gradient(135deg, #06B6D4, #0891B2)' },
-        { name: '连续打卡30天', date: '2024.07', ico: 'ri-calendar-line', bg: 'linear-gradient(135deg, #F59E0B, #D97706)' }
-      ],
+      achievements: [],
       learnMenus: [
-        { name: '我的证书', meta: '7张', ico: 'ri-medal-line', bg: 'linear-gradient(135deg, #F59E0B, #D97706)' },
+        { name: '我的证书', meta: '', ico: 'ri-medal-line', bg: 'linear-gradient(135deg, #F59E0B, #D97706)' },
         { name: '我的错题', meta: '', ico: 'ri-bookmark-3-line', bg: 'linear-gradient(135deg, #FB7185, #E11D48)' },
         { name: '学习报告', meta: '', ico: 'ri-bar-chart-2-line', bg: 'linear-gradient(135deg, #5B9DF9, #2E7BE0)' },
         { name: '测评历史', meta: '', ico: 'ri-file-list-3-line', bg: 'linear-gradient(135deg, #8B5CF6, #6D28D9)' },
         { name: '我的收藏', meta: '', ico: 'ri-star-line', bg: 'linear-gradient(135deg, #22C55E, #16A34A)' }
       ],
       generalMenus: [
-        { name: '消息通知', badge: '3', ico: 'ri-notification-3-line', bg: 'linear-gradient(135deg, #FB7185, #E11D48)' },
+        { name: '消息通知', badge: '', ico: 'ri-notification-3-line', bg: 'linear-gradient(135deg, #FB7185, #E11D48)' },
         { name: '账号设置', badge: '', ico: 'ri-settings-3-line', bg: 'linear-gradient(135deg, #5B9DF9, #2E7BE0)' },
         { name: '帮助与反馈', badge: '', ico: 'ri-chat-3-line', bg: 'linear-gradient(135deg, #06B6D4, #0891B2)' }
       ],
@@ -215,13 +211,14 @@ export default {
   onShow() {
     // 读取登录用户信息（每次进入页面都刷新）
     const app = getApp()
-    const ui = app.globalData.userInfo || {}
-    if (ui.name) {
-      this.userName = ui.name
+    const ui = (app && app.globalData && app.globalData.userInfo) || uni.getStorageSync('userInfo') || {}
+    if (ui && Object.keys(ui).length) {
+      this.userName = ui.name || ui.account || '用户'
       this.role = ui.role === 'admin' ? '涉外法治 · 管理员' : '涉外法治 · 学员'
       this.level = ui.level || 'Lv.1'
-      this.levelText = ui.levelText || '初级学习者'
+      this.levelText = ui.levelText || '暂无成长数据'
     }
+    this.loadSurveyStats()
   },
   onReady() {
     this.statusBarHeight = this.getStatusBarHeight()
@@ -249,6 +246,23 @@ export default {
     navBack() { uni.navigateBack({ delta: 1 }) },
     goAllAchievements() {
       uni.navigateTo({ url: '/pages/achievements/achievements' })
+    },
+    async loadSurveyStats() {
+      const token = uni.getStorageSync('token')
+      if (!token) return
+      try {
+        const surveyObj = uniCloud.importObject('survey')
+        const r = await surveyObj.myResults({ token, page: 1, pageSize: 100 })
+        if (r.errCode !== 0) return
+        const list = r.list || []
+        const scores = list.map(item => Number(item.score) || 0)
+        this.stats[0].num = list.length
+        this.stats[1].num = scores.length ? Number((scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1)) : 0
+        this.stats[2].num = scores.length ? Math.max(...scores) : 0
+        this.animateStats()
+      } catch (e) {
+        console.warn('[profile] 测评统计加载失败:', e)
+      }
     },
     animateStats() {
       const targets = this.stats.map(s => s.num)
@@ -607,6 +621,12 @@ page { height: 100vh; overflow: hidden; }
 .more-hover { opacity: .7; }
 .more-arrow { font-size: 26rpx; line-height: 1; }
 
+.ach-empty {
+  padding: 40rpx 8rpx;
+  text-align: center;
+  font-size: 24rpx;
+  color: var(--muted);
+}
 .ach-row {
   display: grid;
   grid-template-columns: 1fr 1fr;

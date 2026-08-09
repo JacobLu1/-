@@ -86,10 +86,11 @@
         <section class="lt-hero" aria-label="听力实训概览">
           <h2 class="lt-hero-title">每周法律英语听力实训</h2>
           <p class="lt-hero-subtitle">坚持每日听力训练，巩固涉外法律英语能力</p>
-          <p class="lt-hero-progress">
+          <p v-if="weeklyTasks.length" class="lt-hero-progress">
             <i data-lucide="check-circle-2"></i>
-            本周已完成 2/7 项听力任务，累计练习 4.5 小时
+            本周已完成 {{ weeklyTasks.filter(t => t.status === 'done').length }}/{{ weeklyTasks.length }} 项听力任务
           </p>
+          <p v-else class="lt-hero-progress">暂无听力任务数据</p>
         </section>
 
         <!-- ===== Section 1: 本周听力任务 ===== -->
@@ -123,6 +124,7 @@
               <span class="lt-status" :class="`lt-status-${task.status}`">{{ task.statusText }}</span>
             </div>
           </div>
+          <div v-if="!weeklyTasks.length" class="lt-empty">暂无听力任务</div>
         </section>
 
         <!-- ===== Section 2: 听力练习操作台 ===== -->
@@ -132,7 +134,7 @@
               <span class="lc-section-bar"></span>
               <div>
                 <h2 class="lc-section-title">听力练习操作台</h2>
-                <p class="lc-section-subtitle">当前练习 · 跨境并购谈判实录</p>
+                <p class="lc-section-subtitle">{{ playerTitle }}</p>
               </div>
             </div>
           </div>
@@ -150,7 +152,7 @@
                   </svg>
                 </button>
                 <div class="lt-player-info">
-                  <div class="lt-player-title">跨境并购谈判实录（第3节）</div>
+                  <div class="lt-player-title">{{ playerTitle }}</div>
                   <div class="lt-player-bar">
                     <div class="lt-progress-bar">
                       <div class="lt-progress-fill lt-player-fill" :style="{width: playerProgress + '%'}"></div>
@@ -177,7 +179,8 @@
                     <span class="lt-lang-tag" :class="{'is-active': currentLang === 'zh'}" @click="currentLang = 'zh'">中文</span>
                   </div>
                 </div>
-                <p class="lt-transcript">{{ currentTranscript }}</p>
+                <p v-if="currentTranscript" class="lt-transcript">{{ currentTranscript }}</p>
+                <p v-else class="lt-empty">暂无听力原文</p>
               </div>
               <!-- Panel B: 习题作答区域 -->
               <div class="lt-panel lt-panel-quiz">
@@ -186,6 +189,7 @@
                   <span class="lt-quiz-count">{{ quizQuestions.length }}题</span>
                 </div>
                 <div class="lt-quiz-list">
+                  <div v-if="!quizQuestions.length" class="lt-empty">暂无习题</div>
                   <div v-for="(question, qIndex) in quizQuestions" :key="qIndex" class="lt-quiz-item">
                     <div class="lt-quiz-q">{{ question.question }}</div>
                     <div class="lt-quiz-options">
@@ -224,6 +228,7 @@
             </div>
           </div>
           <div class="lt-history-grid">
+            <div v-if="!historyRecords.length" class="lt-empty">暂无历史记录</div>
             <div v-for="(record, index) in historyRecords" 
                  :key="index" 
                  class="lt-history-card"
@@ -275,56 +280,31 @@ const todayDateText = computed(() => {
 
 // 响应式数据
 const isPlaying = ref(false)
-const playerProgress = ref(41)
-const playerCurrentTime = ref('03:24')
-const playerTotalTime = ref('08:15')
+const playerProgress = ref(0)
+const playerCurrentTime = ref('00:00')
+const playerTotalTime = ref('00:00')
+const playerTitle = ref('暂无练习内容')
 const playbackRate = ref(1.0)
 const currentLang = ref('en')
 const selectedAnswers = ref({})
 const visibleSections = ref([false, false, false])
 
-// 本周任务数据
-const weeklyTasks = ref([
-  { dayNum: 1, day: '周一', difficulty: 'intermediate', difficultyText: '中级', title: '合同条款听写训练', progress: 100, status: 'done', statusText: '已完成' },
-  { dayNum: 2, day: '周二', difficulty: 'advanced', difficultyText: '高级', title: '国际仲裁裁决听力', progress: 100, status: 'done', statusText: '已完成' },
-  { dayNum: 3, day: '周三', difficulty: 'advanced', difficultyText: '高级', title: '跨境并购谈判实录', progress: 60, status: 'active', statusText: '进行中' },
-  { dayNum: 4, day: '周四', difficulty: 'intermediate', difficultyText: '中级', title: '海商法条款精听', progress: 0, status: 'pending', statusText: '未开始' },
-  { dayNum: 5, day: '周五', difficulty: 'intermediate', difficultyText: '中级', title: '知识产权许可协议', progress: 0, status: 'pending', statusText: '未开始' },
-  { dayNum: 6, day: '周六', difficulty: 'advanced', difficultyText: '高级', title: 'WTO争端解决听证', progress: 0, status: 'pending', statusText: '未开始' },
-  { dayNum: 7, day: '周日', difficulty: 'beginner', difficultyText: '初级', title: '法律英语新闻听力', progress: 0, status: 'pending', statusText: '未开始' }
-])
+// 本周任务数据：等待听力资源结构接入
+const weeklyTasks = ref([])
 
 // 文本数据
 const transcripts = {
-  en: 'Pursuant to Section 4.2 of the Share Purchase Agreement, the Seller shall indemnify the Purchaser against any losses arising from any breach of representations and warranties set forth in Schedule 3. The indemnification period shall expire twenty-four (24) months following the Closing Date, except for claims based on tax matters which shall survive for sixty (60) months.',
-  zh: '根据《股权购买协议》第4.2条的规定，卖方应就附表3中所列的陈述和保证的任何违约行为所导致的任何损失向买方进行赔偿。赔偿期限应在交割日后的二十四（24）个月届满，但基于税务事项的索赔除外，该等索赔应存续六十（60）个月。'
+  en: '',
+  zh: ''
 }
 
 const currentTranscript = computed(() => transcripts[currentLang.value])
 
-// 习题数据
-const quizQuestions = ref([
-  {
-    question: '1. What is the indemnification period for general breaches?',
-    options: ['A. 12个月', 'B. 24个月', 'C. 36个月', 'D. 60个月']
-  },
-  {
-    question: '2. Which claims have a longer survival period?',
-    options: ['A. 合同违约', 'B. 税务事项', 'C. 知识产权', 'D. 劳动纠纷']
-  },
-  {
-    question: '3. Where are the representations and warranties detailed?',
-    options: ['A. Schedule 1', 'B. Schedule 2', 'C. Schedule 3', 'D. Schedule 4']
-  }
-])
+// 习题数据：等待听力资源结构接入
+const quizQuestions = ref([])
 
 // 历史记录数据
-const historyRecords = ref([
-  { accuracy: 92, level: 'high', title: '合同条款听写训练', date: '2026-07-28', duration: '15分钟', strokeDashoffset: 21.11 },
-  { accuracy: 85, level: 'mid', title: '国际仲裁裁决听力', date: '2026-07-27', duration: '22分钟', strokeDashoffset: 39.58 },
-  { accuracy: 95, level: 'high', title: '法律英语新闻听力', date: '2026-07-26', duration: '10分钟', strokeDashoffset: 13.19 },
-  { accuracy: 78, level: 'low', title: '海商法条款精听', date: '2026-07-25', duration: '18分钟', strokeDashoffset: 58.06 }
-])
+const historyRecords = ref([])
 
 // 方法
 const togglePlay = () => {
@@ -336,6 +316,10 @@ const selectAnswer = (qIndex, oIndex) => {
 }
 
 const submitAnswers = () => {
+  if (!quizQuestions.value.length) {
+    uni.showToast({ title: '暂无习题', icon: 'none' })
+    return
+  }
   console.log('提交答案:', selectedAnswers.value)
   uni.showToast({ title: '答案已提交', icon: 'success' })
 }
@@ -687,6 +671,15 @@ onLoad(() => {
 .app-topbar-breadcrumb {
   font-size: 12px;
   color: var(--rule-muted-foreground);
+}
+
+.lt-empty {
+  padding: 28px 16px;
+  border: 1px dashed var(--rule-border);
+  border-radius: 12px;
+  color: var(--rule-muted-foreground);
+  font-size: 13px;
+  text-align: center;
 }
 
 /* === Section common === */

@@ -8,7 +8,7 @@
         <text class="search-ico ri-search-line"></text>
         <input class="search-input" type="text" placeholder="搜索测评记录" placeholder-class="search-placeholder" />
       </view>
-      <view class="avatar-btn" hover-class="avatar-hover" @click="navTo('/pages/profile/profile')">陆</view>
+      <view class="avatar-btn" hover-class="avatar-hover" @click="navTo('/pages/profile/profile')">{{ avatarText }}</view>
     </view>
 
     <!-- Scrollable screen body -->
@@ -18,7 +18,7 @@
       <view class="page-head reveal d1">
         <view>
           <text class="page-title">我的数据中心</text>
-          <text class="page-sub">陆知远 · 涉外法治学习画像</text>
+          <text class="page-sub">{{ displayName }} · 涉外法治学习画像</text>
         </view>
         <view class="chip">近6个月</view>
       </view>
@@ -32,7 +32,7 @@
           <view class="stat-num"><text class="num count">{{ stats.quizCount }}</text><text class="unit">次</text></view>
           <text class="stat-label">测评次数</text>
           <view class="stat-trend up">
-            <text>↑ 2 次</text>
+            <text>累计统计</text>
           </view>
         </view>
 
@@ -43,7 +43,7 @@
           <view class="stat-num"><text class="num count">{{ stats.avgScore }}</text></view>
           <text class="stat-label">平均得分</text>
           <view class="stat-trend up">
-            <text>↑ 5.2%</text>
+            <text>平均成绩</text>
           </view>
         </view>
 
@@ -54,7 +54,7 @@
           <view class="stat-num"><text class="num count">{{ stats.topScore }}</text></view>
           <text class="stat-label">最高得分</text>
           <view class="stat-trend up">
-            <text>↑ 4 分</text>
+            <text>最高成绩</text>
           </view>
         </view>
 
@@ -65,7 +65,7 @@
           <view class="stat-num"><text class="num count">Top {{ stats.rankPct }}%</text></view>
           <text class="stat-label">群体排名</text>
           <view class="stat-trend up">
-            <text>↑ 3 位</text>
+            <text>个人画像</text>
           </view>
         </view>
       </view>
@@ -116,23 +116,26 @@
           <text class="card-sub">当前水平 / 目标 100</text>
         </view>
 
-        <view class="dim-row" v-for="(d, i) in dimensions" :key="i">
-          <view class="dim-top">
-            <text class="dim-name">{{ d.name }}</text>
-            <view class="lvl" :class="d.levelClass">{{ d.levelLabel }}</view>
-          </view>
-          <view class="dim-bar">
-            <view class="dim-fill" :style="{ width: d.animatedWidth + '%' }"></view>
-            <view class="dim-target"></view>
-          </view>
-          <view class="dim-meta">
-            <view>
-              <text class="dim-score">{{ d.score }}</text>
-              <text class="dim-score-max">/100</text>
+        <block v-if="dimensions.length">
+          <view class="dim-row" v-for="(d, i) in dimensions" :key="i">
+            <view class="dim-top">
+              <text class="dim-name">{{ d.name }}</text>
+              <view class="lvl" :class="d.levelClass">{{ d.levelLabel }}</view>
             </view>
-            <text class="dim-gap-label">缺口 <text class="dim-gap-num">{{ d.gap }}%</text></text>
+            <view class="dim-bar">
+              <view class="dim-fill" :style="{ width: d.animatedWidth + '%' }"></view>
+              <view class="dim-target"></view>
+            </view>
+            <view class="dim-meta">
+              <view>
+                <text class="dim-score">{{ d.score }}</text>
+                <text class="dim-score-max">/100</text>
+              </view>
+              <text class="dim-gap-label">缺口 <text class="dim-gap-num">{{ d.gap }}%</text></text>
+            </view>
           </view>
-        </view>
+        </block>
+        <view v-else class="empty-note">暂无能力维度数据</view>
       </view>
 
       <!-- 7. 我的测评记录 -->
@@ -144,26 +147,29 @@
           </view>
           <text class="card-sub">全部 ›</text>
         </view>
-        <view class="record-row" v-for="(r, i) in quizRecords" :key="i">
-          <view class="record-ico">
-            <text class="record-ico-text ri-file-list-3-line"></text>
+        <block v-if="quizRecords.length">
+          <view class="record-row" v-for="(r, i) in quizRecords" :key="i">
+            <view class="record-ico">
+              <text class="record-ico-text ri-file-list-3-line"></text>
+            </view>
+            <view class="record-info">
+              <view class="record-name">{{ r.name }}</view>
+              <view class="record-date">{{ r.date }}</view>
+            </view>
+            <view class="record-score">
+              <text class="record-score-num">{{ r.score }}</text>
+              <text class="record-score-unit">分</text>
+            </view>
+            <view class="record-time">{{ r.time }}</view>
           </view>
-          <view class="record-info">
-            <view class="record-name">{{ r.name }}</view>
-            <view class="record-date">{{ r.date }}</view>
-          </view>
-          <view class="record-score">
-            <text class="record-score-num">{{ r.score }}</text>
-            <text class="record-score-unit">分</text>
-          </view>
-          <view class="record-time">{{ r.time }}</view>
-        </view>
+        </block>
+        <view v-else class="empty-note">暂无测评记录</view>
       </view>
 
       <!-- 6. Footer note -->
       <view class="foot-note reveal d5">
         <view class="foot-dot"></view>
-        <text>数据更新于 今日 09:00</text>
+        <text>数据来自 survey_result 测评记录</text>
       </view>
 
       <view style="height: 100rpx;"></view>
@@ -184,55 +190,122 @@ export default {
   data() {
     return {
       statusBarHeight: 0,
+      displayName: '用户',
+      avatarText: '用',
       stats: {
-        quizCount: 12,
-        avgScore: 82.5,
-        topScore: 96,
-        rankPct: 8
+        quizCount: 0,
+        avgScore: 0,
+        topScore: 0,
+        rankPct: 0
       },
 
       chartWidth: 326,
       radarWidth: 300,
 
-      lineData: [72, 75, 68, 80, 78, 85, 88, 96],
+      lineData: [],
 
-      radarData: [
-        { label: '国际商法', value: 82 },
-        { label: '跨境合规', value: 65 },
-        { label: '争议解决', value: 88 },
-        { label: '法律英语', value: 52 },
-        { label: '涉外诉讼', value: 70 },
-        { label: '比较法', value: 68 }
-      ],
+      radarData: [],
 
-      quizRecords: [
-        { name: '涉外法治综合测评', date: '2024-07-15', score: 92, time: '38分钟' },
-        { name: '国际商法专项测评', date: '2024-07-10', score: 85, time: '42分钟' },
-        { name: '跨境合规知识测评', date: '2024-07-05', score: 78, time: '45分钟' }
-      ],
+      quizRecords: [],
 
-      dimensions: [
-        { name: '国际商法', score: 82, levelClass: 'senior', levelLabel: '高级', gap: 18, animatedWidth: 0 },
-        { name: '跨境合规', score: 65, levelClass: 'mid', levelLabel: '中级', gap: 35, animatedWidth: 0 },
-        { name: '争议解决', score: 88, levelClass: 'senior', levelLabel: '高级', gap: 12, animatedWidth: 0 },
-        { name: '法律英语', score: 52, levelClass: 'junior', levelLabel: '初级', gap: 48, animatedWidth: 0 },
-        { name: '涉外诉讼', score: 70, levelClass: 'mid', levelLabel: '中级', gap: 30, animatedWidth: 0 },
-        { name: '比较法', score: 68, levelClass: 'mid', levelLabel: '中级', gap: 32, animatedWidth: 0 }
-      ]
+      dimensions: []
     }
   },
   onReady() {
-    // Top safe-area: dynamic system status bar height
     this.statusBarHeight = this.getStatusBarHeight()
+  },
+  async onShow() {
+    this.loadUserInfo()
+    await this.loadData()
     this.getChartWidths()
   },
-  onShow() {
-    // 首次渲染后初始化图表（canvas 节点就绪）；getChartWidths 也会兜底触发
-    setTimeout(() => {
-      this.initCharts()
-    }, 120)
-  },
   methods: {
+    async loadData() {
+      const token = uni.getStorageSync('token')
+      if (!token) {
+        this.applyRecords([])
+        return
+      }
+      try {
+        const surveyObj = uniCloud.importObject('survey')
+        const r = await surveyObj.myResults({ token, page: 1, pageSize: 50 })
+        if (r.errCode !== 0) {
+          uni.showToast({ title: r.errMsg || '测评记录加载失败', icon: 'none' })
+          this.applyRecords([])
+          return
+        }
+        this.applyRecords(r.list || [])
+      } catch (e) {
+        uni.showToast({ title: (e && e.errMsg) || '测评记录加载失败', icon: 'none' })
+        this.applyRecords([])
+      }
+    },
+    applyRecords(list) {
+      const scores = list.map(r => Number(r.score) || 0)
+      this.stats = {
+        quizCount: list.length,
+        avgScore: scores.length ? Number((scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1)) : 0,
+        topScore: scores.length ? Math.max(...scores) : 0,
+        rankPct: 0
+      }
+      this.lineData = [...scores].reverse().slice(0, 8)
+      this.quizRecords = list.map(r => ({
+        id: r._id,
+        name: this.formatRecordName(r),
+        date: this.formatDate(r.createDate),
+        score: Number(r.score) || 0,
+        time: r.time || '--'
+      }))
+
+      const dimMap = {}
+      const dimCount = {}
+      list.forEach(r => {
+        ;(r.dimensions || []).forEach(d => {
+          const name = d.name || '综合'
+          dimMap[name] = (dimMap[name] || 0) + (Number(d.score) || 0)
+          dimCount[name] = (dimCount[name] || 0) + 1
+        })
+      })
+      this.dimensions = Object.keys(dimMap).map(name => {
+        const score = Math.round(dimMap[name] / dimCount[name])
+        return {
+          name,
+          score,
+          levelClass: score >= 85 ? 'senior' : score >= 70 ? 'mid' : 'junior',
+          levelLabel: score >= 85 ? '高级' : score >= 70 ? '中级' : '初级',
+          gap: 100 - score,
+          animatedWidth: 0
+        }
+      })
+
+      const latest = list[0] || {}
+      this.radarData = (latest.dimensions || []).map(d => ({
+        label: d.name || '综合',
+        value: Number(d.score) || 0
+      }))
+    },
+    formatRecordName(r) {
+      if (r.mode === 'special' && r.specialCategory) {
+        return `${r.specialCategory}专项测评`
+      }
+      return '涉外法治综合测评'
+    },
+    formatDate(value) {
+      if (!value) return '--'
+      const d = new Date(value)
+      if (isNaN(d.getTime())) return String(value)
+      const y = d.getFullYear()
+      const m = String(d.getMonth() + 1).padStart(2, '0')
+      const day = String(d.getDate()).padStart(2, '0')
+      return `${y}-${m}-${day}`
+    },
+    loadUserInfo() {
+      const app = getApp()
+      const user = (app && app.globalData && app.globalData.userInfo) || uni.getStorageSync('userInfo') || {}
+      const name = (user && (user.name || user.account)) || '用户'
+      this.displayName = String(name).trim() || '用户'
+      this.avatarText = (this.displayName || '用').slice(0, 1).toUpperCase()
+    },
     getStatusBarHeight() {
       try {
         return uni.getWindowInfo().statusBarHeight || 0
@@ -274,7 +347,7 @@ export default {
           if (c) this.lineChart = c
         })
       }
-      if (!this.radarChart) {
+      if (!this.radarChart && this.radarData.length) {
         this.initEChart('#radarChartCanvas', this.buildRadarOption()).then(c => {
           if (c) this.radarChart = c
         })
@@ -906,6 +979,12 @@ page {
   font-size: 20rpx;
   font-weight: 600;
   color: var(--green);
+}
+.empty-note {
+  padding: 32rpx 8rpx;
+  text-align: center;
+  font-size: 24rpx;
+  color: var(--muted);
 }
 .record-time {
   font-size: 20rpx;

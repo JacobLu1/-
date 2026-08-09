@@ -13,6 +13,7 @@ unpackage/
 
 # 临时文件
 *.log
+*.zip
 temp_style.css
 
 # 系统文件

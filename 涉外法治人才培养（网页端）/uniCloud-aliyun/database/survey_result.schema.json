@@ -40,6 +40,10 @@
 			"bsonType": "string",
 			"description": "等级评价"
 		},
+		"time": {
+			"bsonType": "string",
+			"description": "测评用时"
+		},
 		"dimensions": {
 			"bsonType": "array",
 			"description": "各维度得分 [{name, score}]"
@@ -47,6 +51,10 @@
 		"recommendations": {
 			"bsonType": "array",
 			"description": "学习建议"
+		},
+		"rawAnswers": {
+			"bsonType": "object",
+			"description": "原始答题记录 {objective: {}, subjective: []}"
 		},
 		"createDate": {
 			"bsonType": "timestamp",

@@ -40,16 +40,16 @@
             <text class="feature-desc">围绕国际法知识储备、跨境法律实务、涉外法律文书写作与外语法律技能等核心维度，构建覆盖知识、能力与素养的立体化评估框架，全面诊断涉外法治人才的专业功底。</text>
             <view class="feature-stats">
               <view class="feature-stat">
-                <text class="feature-stat-num">8<text class="unit">大</text></text>
-                <text class="feature-stat-label">评估维度</text>
+                <text class="feature-stat-num">{{ overview.questionCount }}<text class="unit">题</text></text>
+                <text class="feature-stat-label">题库题目</text>
               </view>
               <view class="feature-stat">
-                <text class="feature-stat-num">200<text class="unit">+</text></text>
-                <text class="feature-stat-label">专业题库</text>
+                <text class="feature-stat-num">{{ overview.surveyCount }}<text class="unit">次</text></text>
+                <text class="feature-stat-label">累计测评</text>
               </view>
               <view class="feature-stat">
-                <text class="feature-stat-num">3<text class="unit">层</text></text>
-                <text class="feature-stat-label">能力诊断</text>
+                <text class="feature-stat-num">{{ overview.userCount }}<text class="unit">人</text></text>
+                <text class="feature-stat-label">注册用户</text>
               </view>
             </view>
           </view>
@@ -90,12 +90,12 @@
             <text class="feature-desc">基于测评数据沉淀，自动生成能力雷达、趋势曲线与薄弱项分析报告。以数据驱动洞察测评走势，精准定位技能差距，为个性化提升提供量化依据。</text>
             <view class="feature-stats">
               <view class="feature-stat">
-                <text class="feature-stat-num">7<text class="unit">类</text></text>
-                <text class="feature-stat-label">分析报告</text>
+                <text class="feature-stat-num">{{ overview.resourceCount }}<text class="unit">项</text></text>
+                <text class="feature-stat-label">上线资源</text>
               </view>
               <view class="feature-stat">
-                <text class="feature-stat-num">360<text class="unit">°</text></text>
-                <text class="feature-stat-label">能力画像</text>
+                <text class="feature-stat-num">{{ overview.knowledgeCount }}<text class="unit">篇</text></text>
+                <text class="feature-stat-label">知识条目</text>
               </view>
             </view>
           </view>
@@ -278,7 +278,33 @@ onReady(() => {
       }
     })
   }, 500)
+
+  loadOverview()
 })
+
+const overview = reactive({
+  questionCount: 0,
+  surveyCount: 0,
+  userCount: 0,
+  resourceCount: 0,
+  knowledgeCount: 0
+})
+
+async function loadOverview() {
+  try {
+    const usersObj = uniCloud.importObject('users')
+    const r = (await usersObj.overview()) || {}
+    if (r.errCode === 0) {
+      overview.questionCount = r.questionCount || 0
+      overview.surveyCount = r.surveyCount || 0
+      overview.userCount = r.userCount || 0
+      overview.resourceCount = r.resourceCount || 0
+      overview.knowledgeCount = r.knowledgeCount || 0
+    }
+  } catch (e) {
+    console.error('[index] overview load error:', e)
+  }
+}
 
 /**
  * 根据滚动位置检查哪些元素进入视口 → 切换 visibleSet

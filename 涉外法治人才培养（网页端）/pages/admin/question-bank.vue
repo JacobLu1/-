@@ -21,6 +21,10 @@
           <view class="navi-icon navi-icon-file-question"></view>
           <text>题库管理</text>
         </view>
+        <view class="app-nav-item" @tap="navigateTo('/pages/admin/knowledge-management')">
+          <view class="navi-icon navi-icon-book"></view>
+          <text>知识库管理</text>
+        </view>
         <view class="app-nav-item" @tap="navigateTo('/pages/admin/user-management')">
           <view class="navi-icon navi-icon-users"></view>
           <text>用户管理</text>
@@ -66,10 +70,10 @@
                 <text class="qb-kpi-card-label">题目总数</text>
                 <view class="qb-kpi-card-icon"><view class="navi-icon navi-icon-file-text"></view></view>
               </view>
-              <text class="qb-kpi-card-value">568</text>
+              <text class="qb-kpi-card-value">{{ kpiTotal }}</text>
               <view class="qb-kpi-card-foot">
                 <view class="navi-icon navi-icon-trending-up-sm"></view>
-                <text>涵盖 12 个法律维度</text>
+                <text>question 集合实时统计</text>
               </view>
             </view>
             <view class="qb-kpi-card">
@@ -77,10 +81,10 @@
                 <text class="qb-kpi-card-label">单选题</text>
                 <view class="qb-kpi-card-icon"><view class="navi-icon navi-icon-check-square"></view></view>
               </view>
-              <text class="qb-kpi-card-value">242</text>
+              <text class="qb-kpi-card-value">{{ kpiSingle }}</text>
               <view class="qb-kpi-card-foot">
                 <view class="navi-icon navi-icon-pie-chart"></view>
-                <text>占比 42.6%</text>
+                <text>type = single</text>
               </view>
             </view>
             <view class="qb-kpi-card qb-accent-success">
@@ -88,21 +92,21 @@
                 <text class="qb-kpi-card-label">多选题</text>
                 <view class="qb-kpi-card-icon"><view class="navi-icon navi-icon-list-checks"></view></view>
               </view>
-              <text class="qb-kpi-card-value">156</text>
+              <text class="qb-kpi-card-value">{{ kpiMulti }}</text>
               <view class="qb-kpi-card-foot">
                 <view class="navi-icon navi-icon-pie-chart"></view>
-                <text>占比 27.5%</text>
+                <text>type = multi</text>
               </view>
             </view>
             <view class="qb-kpi-card qb-accent-warning">
               <view class="qb-kpi-card-head">
-                <text class="qb-kpi-card-label">案例分析题</text>
+                <text class="qb-kpi-card-label">主观/判断题</text>
                 <view class="qb-kpi-card-icon"><view class="navi-icon navi-icon-briefcase"></view></view>
               </view>
-              <text class="qb-kpi-card-value">170</text>
+              <text class="qb-kpi-card-value">{{ kpiSubjective }}</text>
               <view class="qb-kpi-card-foot">
                 <view class="navi-icon navi-icon-pie-chart"></view>
-                <text>占比 29.9%</text>
+                <text>judge + subjective</text>
               </view>
             </view>
           </view>
@@ -110,6 +114,87 @@
 
         <!-- ===== Section 2: 筛选与搜索工具栏 ===== -->
         <section class="dc-section" :class="{ 'is-visible': visibleSections[1] }" aria-label="筛选与搜索工具栏">
+          <view v-if="formVisible" class="qb-form-card">
+            <view class="qb-section-header">
+              <view class="qb-section-title-wrap">
+                <view class="qb-section-bar"></view>
+                <view>
+                  <text class="qb-section-title">{{ editingId ? '编辑题目' : '新建题目' }}</text>
+                  <text class="qb-section-subtitle">保存后测评页实时读取已上线题目</text>
+                </view>
+              </view>
+            </view>
+            <view class="qb-form-row">
+              <view class="qb-form-field">
+                <text class="qb-form-label">题型</text>
+                <view class="qb-pills">
+                  <view class="qb-pill" :class="{ 'is-active': formType === 'single' }" @tap="formType = 'single'">单选题</view>
+                  <view class="qb-pill" :class="{ 'is-active': formType === 'multi' }" @tap="formType = 'multi'">多选题</view>
+                  <view class="qb-pill" :class="{ 'is-active': formType === 'judge' }" @tap="formType = 'judge'">判断题</view>
+                  <view class="qb-pill" :class="{ 'is-active': formType === 'subjective' }" @tap="formType = 'subjective'">主观题</view>
+                </view>
+              </view>
+              <view class="qb-form-field">
+                <text class="qb-form-label">难度</text>
+                <view class="qb-pills">
+                  <view class="qb-pill" :class="{ 'is-active': formDifficulty === 'easy' }" @tap="formDifficulty = 'easy'">初级</view>
+                  <view class="qb-pill" :class="{ 'is-active': formDifficulty === 'mid' }" @tap="formDifficulty = 'mid'">中级</view>
+                  <view class="qb-pill" :class="{ 'is-active': formDifficulty === 'hard' }" @tap="formDifficulty = 'hard'">高级</view>
+                </view>
+              </view>
+              <view class="qb-form-field">
+                <text class="qb-form-label">状态</text>
+                <view class="qb-pills">
+                  <view class="qb-pill" :class="{ 'is-active': formStatus === '已上线' }" @tap="formStatus = '已上线'">已上线</view>
+                  <view class="qb-pill" :class="{ 'is-active': formStatus === '审核中' }" @tap="formStatus = '审核中'">审核中</view>
+                </view>
+              </view>
+            </view>
+            <view class="qb-form-row">
+              <view class="qb-form-field qb-form-grow">
+                <text class="qb-form-label">题目内容</text>
+                <textarea class="qb-textarea" v-model="formTitle" placeholder="请输入完整题干"></textarea>
+              </view>
+            </view>
+            <view class="qb-form-row">
+              <view class="qb-form-field qb-form-grow">
+                <text class="qb-form-label">选项（单选/多选，每行一个，如 A. 合同订立地）</text>
+                <textarea v-if="formType === 'single' || formType === 'multi'" class="qb-textarea qb-textarea-sm" v-model="formOptions" placeholder="A. 选项内容&#10;B. 选项内容"></textarea>
+                <view v-else class="qb-form-hint">判断题和主观题无需选项</view>
+              </view>
+              <view class="qb-form-field">
+                <text class="qb-form-label">能力维度</text>
+                <input class="qb-input" v-model="formDimension" placeholder="如 国际私法" />
+              </view>
+              <view class="qb-form-field">
+                <text class="qb-form-label">答案</text>
+                <input class="qb-input" v-model="formAnswer" :placeholder="formType === 'multi' ? '如 A,B,C' : (formType === 'judge' ? '对 或 错' : '参考答案')" />
+              </view>
+            </view>
+            <view v-if="formType === 'subjective'" class="qb-form-row">
+              <view class="qb-form-field">
+                <text class="qb-form-label">主观题型</text>
+                <view class="qb-pills">
+                  <view class="qb-pill" :class="{ 'is-active': formSubType === 'essay' }" @tap="formSubType = 'essay'">论述题</view>
+                  <view class="qb-pill" :class="{ 'is-active': formSubType === 'case' }" @tap="formSubType = 'case'">案例分析题</view>
+                </view>
+              </view>
+            </view>
+            <view v-if="formType === 'subjective'" class="qb-form-row">
+              <view class="qb-form-field qb-form-grow">
+                <text class="qb-form-label">案例材料</text>
+                <textarea class="qb-textarea qb-textarea-sm" v-model="formCaseText" placeholder="可留空"></textarea>
+              </view>
+              <view class="qb-form-field qb-form-grow">
+                <text class="qb-form-label">作答提示</text>
+                <textarea class="qb-textarea qb-textarea-sm" v-model="formPlaceholder" placeholder="可留空"></textarea>
+              </view>
+            </view>
+            <view class="qb-form-actions">
+              <view class="qb-action-btn qb-action-del" @tap="closeForm">取消</view>
+              <view class="qb-create-btn" @tap="saveQuestion">保存题目</view>
+            </view>
+          </view>
           <view class="qb-toolbar">
             <view class="qb-toolbar-row">
               <view class="qb-search">
@@ -168,7 +253,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="q in questions" :key="q.id">
+                  <tr v-for="q in pagedQuestions" :key="q.id">
                     <td class="qb-qid">{{ q.id }}</td>
                     <td class="qb-qcontent"><text class="qb-qcontent-text">{{ q.content }}</text></td>
                     <td><text :class="['qb-type-tag', q.typeClass]">{{ q.typeLabel }}</text></td>
@@ -220,7 +305,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { requireAdmin } from '@/utils/auth.js'
 
 const visibleSections = ref([false, false, false, false])
@@ -228,8 +313,36 @@ const searchQuery = ref('')
 const typeFilter = ref('all')
 const diffFilter = ref('all')
 const currentPage = ref(1)
-const totalPages = ref(72)
 const pageSize = ref(8)
+const questions = ref([])
+const statsData = reactive({ total: 0, single: 0, multi: 0, judge: 0, subjective: 0 })
+
+const TYPE_LABELS = { single: '单选题', multi: '多选题', judge: '判断题', subjective: '主观题' }
+const TYPE_CLASS = { single: 'qb-type-single', multi: 'qb-type-multi', judge: 'qb-type-case', subjective: 'qb-type-case' }
+const DIFF_LABELS = { easy: '初级', mid: '中级', hard: '高级' }
+const DIFF_CLASS = { easy: 'qb-diff-easy', mid: 'qb-diff-mid', hard: 'qb-diff-hard' }
+
+const kpiTotal = computed(() => statsData.total)
+const kpiSingle = computed(() => statsData.single)
+const kpiMulti = computed(() => statsData.multi)
+const kpiSubjective = computed(() => statsData.judge + statsData.subjective)
+
+const filteredQuestions = computed(() => {
+  const q = searchQuery.value.trim().toLowerCase()
+  return questions.value.filter(item => {
+    const matchType = typeFilter.value === 'all' ||
+      item.type === typeFilter.value ||
+      (typeFilter.value === 'case' && item.type === 'subjective' && item.subType === 'case')
+    const matchDiff = diffFilter.value === 'all' || item.difficulty === diffFilter.value
+    const matchQuery = !q || item.title.toLowerCase().includes(q) || String(item.dimension || '').toLowerCase().includes(q)
+    return matchType && matchDiff && matchQuery
+  })
+})
+const totalPages = computed(() => Math.max(1, Math.ceil(filteredQuestions.value.length / pageSize.value)))
+const pagedQuestions = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  return filteredQuestions.value.slice(start, start + pageSize.value)
+})
 
 const todayDateText = computed(() => {
   const now = new Date()
@@ -239,16 +352,94 @@ const todayDateText = computed(() => {
   return `${y}年${m}月${d}日`
 })
 
-const questions = ref([
-  { id: 'Q001', content: '根据《联合国国际货物销售合同公约》，要约的撤回...', typeLabel: '单选题', typeClass: 'qb-type-single', diffLabel: '中级', diffClass: 'qb-diff-mid', dimension: '国际商法', date: '2026-07-20' },
-  { id: 'Q002', content: '在国际投资仲裁中，ICSID管辖权的成立条件包括...', typeLabel: '多选题', typeClass: 'qb-type-multi', diffLabel: '高级', diffClass: 'qb-diff-hard', dimension: '国际投资法', date: '2026-07-19' },
-  { id: 'Q003', content: '以下属于《海牙规则》承运人责任免责事项的有...', typeLabel: '多选题', typeClass: 'qb-type-multi', diffLabel: '中级', diffClass: 'qb-diff-mid', dimension: '海商法', date: '2026-07-18' },
-  { id: 'Q004', content: '分析WTO争端解决机制中专家组的审理程序...', typeLabel: '案例分析', typeClass: 'qb-type-case', diffLabel: '高级', diffClass: 'qb-diff-hard', dimension: 'WTO法', date: '2026-07-17' },
-  { id: 'Q005', content: '《巴黎公约》关于商标优先权的规定，下列说法...', typeLabel: '单选题', typeClass: 'qb-type-single', diffLabel: '初级', diffClass: 'qb-diff-easy', dimension: '知识产权法', date: '2026-07-16' },
-  { id: 'Q006', content: '国际商事仲裁中，仲裁庭的组成方式有哪些...', typeLabel: '多选题', typeClass: 'qb-type-multi', diffLabel: '中级', diffClass: 'qb-diff-mid', dimension: '国际仲裁', date: '2026-07-15' },
-  { id: 'Q007', content: '关于国际私法中意思自治原则的适用...', typeLabel: '单选题', typeClass: 'qb-type-single', diffLabel: '初级', diffClass: 'qb-diff-easy', dimension: '国际私法', date: '2026-07-14' },
-  { id: 'Q008', content: '跨境数据传输合规案例分析：某跨国公司...', typeLabel: '案例分析', typeClass: 'qb-type-case', diffLabel: '高级', diffClass: 'qb-diff-hard', dimension: '跨境合规', date: '2026-07-13' }
-])
+/* ===== 题目表单 ===== */
+const formVisible = ref(false)
+const editingId = ref('')
+const formType = ref('single')
+const formSubType = ref('essay')
+const formTitle = ref('')
+const formOptions = ref('')
+const formAnswer = ref('')
+const formDimension = ref('国际私法')
+const formDifficulty = ref('mid')
+const formStatus = ref('审核中')
+const formCaseText = ref('')
+const formPlaceholder = ref('')
+
+function getAdminToken() {
+  return uni.getStorageSync('adminToken')
+}
+
+function formatDate(value) {
+  if (!value) return ''
+  const d = new Date(value)
+  if (isNaN(d.getTime())) return String(value)
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+function answerText(q) {
+  if (q.type === 'judge') return q.answer ? '对' : '错'
+  if (Array.isArray(q.answer)) return q.answer.join(',')
+  return q.answer === undefined || q.answer === null || q.answer === '' ? '-' : String(q.answer)
+}
+
+function toRow(doc) {
+  return {
+    id: doc._id,
+    title: doc.title,
+    content: doc.title,
+    type: doc.type,
+    typeLabel: doc.type === 'subjective'
+      ? (doc.subType === 'case' || (!doc.subType && doc.caseText) ? '案例分析题' : '论述题')
+      : TYPE_LABELS[doc.type] || doc.type,
+    typeClass: TYPE_CLASS[doc.type] || 'qb-type-case',
+    diffLabel: DIFF_LABELS[doc.difficulty] || '中级',
+    diffClass: DIFF_CLASS[doc.difficulty] || 'qb-diff-mid',
+    dimension: doc.dimension || '综合',
+    date: formatDate(doc.createDate),
+    status: doc.status || '审核中',
+    difficulty: doc.difficulty || 'mid',
+    answer: doc.answer,
+    answerText: answerText(doc),
+    options: Array.isArray(doc.options) ? doc.options : [],
+    subType: doc.subType || '',
+    caseText: doc.caseText || '',
+    placeholder: doc.placeholder || ''
+  }
+}
+
+async function loadQuestions() {
+  try {
+    const questionsObj = uniCloud.importObject('questions')
+    const r = (await questionsObj.list({ adminToken: getAdminToken(), type: 'all', page: 1, pageSize: 200 })) || {}
+    if (r.errCode === 0) {
+      questions.value = (r.list || []).map(toRow)
+    } else {
+      uni.showToast({ title: r.errMsg || '题目加载失败', icon: 'none' })
+    }
+  } catch (e) {
+    uni.showToast({ title: (e && e.errMsg) || '题目加载失败', icon: 'none' })
+  }
+}
+
+async function loadStats() {
+  try {
+    const questionsObj = uniCloud.importObject('questions')
+    const r = (await questionsObj.stats({ adminToken: getAdminToken() })) || {}
+    if (r.errCode === 0) {
+      statsData.total = r.total || 0
+      statsData.single = r.single || 0
+      statsData.multi = r.multi || 0
+      statsData.judge = r.judge || 0
+      statsData.subjective = r.subjective || 0
+    }
+  } catch (e) {
+    uni.showToast({ title: (e && e.errMsg) || '统计加载失败', icon: 'none' })
+  }
+}
 
 const pages = computed(() => {
   const result = []
@@ -274,22 +465,111 @@ const handleLogout = () => {
   })
 }
 
+function resetForm() {
+  editingId.value = ''
+  formType.value = 'single'
+  formSubType.value = 'essay'
+  formTitle.value = ''
+  formOptions.value = ''
+  formAnswer.value = ''
+  formDimension.value = '国际私法'
+  formDifficulty.value = 'mid'
+  formStatus.value = '审核中'
+  formCaseText.value = ''
+  formPlaceholder.value = ''
+}
+
 const handleCreateQuestion = () => {
-  uni.showToast({ title: '新建题目功能', icon: 'none' })
+  resetForm()
+  formVisible.value = true
 }
 
 const handleEdit = (q) => {
-  uni.showToast({ title: `编辑题目 ${q.id}`, icon: 'none' })
+  editingId.value = q.id
+  formType.value = q.type || 'single'
+  formSubType.value = q.subType === 'case' ? 'case' : (q.caseText ? 'case' : 'essay')
+  formTitle.value = q.title || ''
+  formOptions.value = (q.options || []).map(o => `${o.key}. ${o.text}`).join('\n')
+  formAnswer.value = q.type === 'judge' ? (q.answer ? '对' : '错') : (Array.isArray(q.answer) ? q.answer.join(',') : (q.answer || ''))
+  formDimension.value = q.dimension || '国际私法'
+  formDifficulty.value = q.difficulty || 'mid'
+  formStatus.value = q.status || '审核中'
+  formCaseText.value = q.caseText || ''
+  formPlaceholder.value = q.placeholder || ''
+  formVisible.value = true
+}
+
+const closeForm = () => {
+  formVisible.value = false
+  resetForm()
+}
+
+function parseOptions(text) {
+  return String(text || '').split('\n').map(s => s.trim()).filter(Boolean).map((line, index) => {
+    const m = line.match(/^([A-Za-z])[.、）)]?\s*(.*)$/)
+    const key = m ? m[1].toUpperCase() : String.fromCharCode(65 + index)
+    const text = m ? (m[2] || line) : line
+    return { key, text }
+  })
+}
+
+const saveQuestion = async () => {
+  const title = formTitle.value.trim()
+  if (!title) {
+    uni.showToast({ title: '请输入题目内容', icon: 'none' })
+    return
+  }
+  const isSubjective = formType.value === 'subjective'
+  const data = {
+    type: formType.value,
+    subType: isSubjective ? formSubType.value : '',
+    title,
+    options: (formType.value === 'single' || formType.value === 'multi') ? parseOptions(formOptions.value) : [],
+    answer: formType.value === 'judge' ? (formAnswer.value.trim() === '对' || formAnswer.value.trim() === 'true') : formAnswer.value.trim(),
+    dimension: formDimension.value.trim() || '综合',
+    difficulty: formDifficulty.value,
+    caseText: formCaseText.value,
+    placeholder: formPlaceholder.value,
+    status: formStatus.value
+  }
+  try {
+    const questionsObj = uniCloud.importObject('questions')
+    const r = editingId.value
+      ? (await questionsObj.update({ adminToken: getAdminToken(), id: editingId.value, data })) || {}
+      : (await questionsObj.add({ adminToken: getAdminToken(), data })) || {}
+    if (r.errCode === 0) {
+      uni.showToast({ title: '已保存', icon: 'success' })
+      closeForm()
+      await loadQuestions()
+      await loadStats()
+    } else {
+      uni.showToast({ title: r.errMsg || '保存失败', icon: 'none' })
+    }
+  } catch (e) {
+    uni.showToast({ title: (e && e.errMsg) || '保存失败', icon: 'none' })
+  }
 }
 
 const handleDelete = (q) => {
   uni.showModal({
     title: '确认删除',
-    content: `确定要删除题目 ${q.id} 吗？`,
-    success: (res) => {
+    content: `确定要删除题目「${q.title}」吗？`,
+    confirmColor: '#DC2626',
+    success: async (res) => {
       if (res.confirm) {
-        questions.value = questions.value.filter(item => item.id !== q.id)
-        uni.showToast({ title: '已删除', icon: 'success' })
+        try {
+          const questionsObj = uniCloud.importObject('questions')
+          const r = (await questionsObj.remove({ adminToken: getAdminToken(), id: q.id })) || {}
+          if (r.errCode === 0) {
+            uni.showToast({ title: '已删除', icon: 'success' })
+            await loadQuestions()
+            await loadStats()
+          } else {
+            uni.showToast({ title: r.errMsg || '删除失败', icon: 'none' })
+          }
+        } catch (e) {
+          uni.showToast({ title: (e && e.errMsg) || '删除失败', icon: 'none' })
+        }
       }
     }
   })
@@ -309,6 +589,8 @@ const goToPage = (page) => {
 
 onMounted(() => {
   if (!requireAdmin()) return
+  loadQuestions()
+  loadStats()
   setTimeout(() => {
     visibleSections.value = [true, true, true, true]
   }, 100)
@@ -427,6 +709,10 @@ onMounted(() => {
 .navi-icon-file-question {
   -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z'/><polyline points='14 2 14 8 20 8'/><path d='M9 12.01h6'/><path d='M9 16.01h3'/></svg>") center/contain no-repeat;
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z'/><polyline points='14 2 14 8 20 8'/><path d='M9 12.01h6'/><path d='M9 16.01h3'/></svg>") center/contain no-repeat;
+}
+.navi-icon-book {
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z'/><path d='M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z'/></svg>") center/contain no-repeat;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z'/><path d='M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z'/></svg>") center/contain no-repeat;
 }
 .navi-icon-users {
   -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/><circle cx='9' cy='7' r='4'/><path d='M22 21v-2a4 4 0 0 0-3-3.87'/><path d='M16 3.13a4 4 0 0 1 0 7.75'/></svg>") center/contain no-repeat;
@@ -644,6 +930,40 @@ onMounted(() => {
   transition: transform 0.3s var(--qb-ease), box-shadow 0.3s var(--qb-ease);
 }
 .qb-create-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 28px -4px color-mix(in srgb, var(--rule-primary) 56%, transparent); }
+
+/* ===== Question Form ===== */
+.qb-form-card {
+  margin-bottom: 18px;
+  background: linear-gradient(135deg, var(--rule-card), var(--rule-primary-tint-3));
+  border: 1px solid color-mix(in srgb, var(--rule-border) 55%, transparent);
+  border-radius: 16px;
+  padding: 20px 22px;
+  box-shadow: 0 10px 28px -14px color-mix(in srgb, var(--rule-ink) 12%, transparent);
+}
+.qb-form-row { display: flex; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-top: 16px; }
+.qb-form-field { display: flex; flex-direction: column; gap: 8px; min-width: 180px; }
+.qb-form-field.qb-form-grow { flex: 1 1 320px; }
+.qb-form-label { font-size: 13px; color: var(--rule-muted-foreground); font-weight: 500; }
+.qb-input, .qb-textarea {
+  width: 100%;
+  border: 1px solid var(--rule-border);
+  border-radius: 10px;
+  background: var(--rule-card);
+  color: var(--rule-foreground);
+  font-size: 14px;
+  padding: 10px 12px;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.qb-input:focus, .qb-textarea:focus {
+  border-color: var(--rule-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--rule-primary) 18%, transparent);
+}
+.qb-textarea { min-height: 96px; resize: vertical; line-height: 1.6; }
+.qb-textarea-sm { min-height: 72px; }
+.qb-form-hint { font-size: 13px; color: var(--rule-muted-foreground); padding: 12px 4px; }
+.qb-form-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 18px; }
 
 /* ===== Table Card ===== */
 .qb-table-card {

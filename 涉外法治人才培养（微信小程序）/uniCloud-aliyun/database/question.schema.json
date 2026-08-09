@@ -1,0 +1,65 @@
+{
+	"bsonType": "object",
+	"required": ["type", "title"],
+	"permission": {
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"type": {
+			"bsonType": "string",
+			"enum": ["single", "multi", "judge", "subjective"],
+			"description": "题型：single 单选 / multi 多选 / judge 判断 / subjective 主观"
+		},
+		"subType": {
+			"bsonType": "string",
+			"description": "主观题子类型：case 案例分析 / essay 论述题"
+		},
+		"title": {
+			"bsonType": "string",
+			"description": "题目题干"
+		},
+		"options": {
+			"bsonType": "array",
+			"description": "选项列表 [{key, text}]"
+		},
+		"answer": {
+			"description": "答案：单选/判断 string 或 boolean，多选 array，主观题参考要点"
+		},
+		"dimension": {
+			"bsonType": "string",
+			"description": "能力维度"
+		},
+		"difficulty": {
+			"bsonType": "string",
+			"enum": ["easy", "mid", "hard"],
+			"description": "难度：easy 初级 / mid 中级 / hard 高级"
+		},
+		"caseText": {
+			"bsonType": "string",
+			"description": "主观题案例材料"
+		},
+		"placeholder": {
+			"bsonType": "string",
+			"description": "主观题作答提示"
+		},
+		"status": {
+			"bsonType": "string",
+			"enum": ["已上线", "审核中"],
+			"description": "状态"
+		},
+		"createDate": {
+			"bsonType": "timestamp",
+			"description": "创建时间"
+		},
+		"updateDate": {
+			"bsonType": "timestamp",
+			"description": "更新时间"
+		}
+	}
+}

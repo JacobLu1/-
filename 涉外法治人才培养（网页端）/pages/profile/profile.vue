@@ -265,6 +265,9 @@ export default {
     if (!requireLogin()) return
     this.userInfo = uni.getStorageSync('userInfo') || {}
   },
+  onShow() {
+    if (requireLogin()) this.loadResults()
+  },
   data() {
     return {
       userInfo: {},
@@ -323,6 +326,45 @@ export default {
     }
   },
   methods: {
+    loadResults() {
+      const token = uni.getStorageSync('token')
+      if (!token) return
+      const surveyObj = uniCloud.importObject('survey')
+      surveyObj.myResults({ token, page: 1, pageSize: 20 })
+        .then((r) => {
+          r = r || {}
+          if (r.errCode !== 0) {
+            uni.showToast({ title: r.errMsg || '测评记录加载失败', icon: 'none' })
+            return
+          }
+          this.assessmentHistory = (r.list || []).map(item => ({
+            id: item._id || item.id,
+            date: this.formatDate(item.createDate),
+            name: item.mode === 'special' ? (item.specialCategory || '专项测评') : '综合测评',
+            score: Number(item.score) || 0,
+            grade: item.level || '未评级',
+            gradeClass: this.gradeClass(Number(item.score) || 0)
+          }))
+        })
+        .catch((err) => {
+          console.error('[profile] loadResults error:', err)
+          uni.showToast({ title: (err && err.errMsg) || '测评记录加载失败', icon: 'none' })
+        })
+    },
+    formatDate(ts) {
+      if (!ts) return '-'
+      const d = new Date(ts)
+      if (isNaN(d.getTime())) return String(ts)
+      const y = d.getFullYear()
+      const m = String(d.getMonth() + 1).padStart(2, '0')
+      const day = String(d.getDate()).padStart(2, '0')
+      return `${y}-${m}-${day}`
+    },
+    gradeClass(score) {
+      if (score >= 90) return 'pc-grade-excellent'
+      if (score >= 70) return 'pc-grade-good'
+      return ''
+    },
     navigateTo(url) {
       uni.navigateTo({ url })
     },

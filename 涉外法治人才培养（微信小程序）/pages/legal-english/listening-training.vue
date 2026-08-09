@@ -36,6 +36,7 @@
           </view>
           <text class="sec-sub">按日安排，循序渐进</text>
         </view>
+        <view v-if="!weeklyTasks.length" class="lt-empty">暂无听力任务</view>
         <view class="task-grid">
           <view
             class="task-card"
@@ -68,7 +69,7 @@
             <view class="bar"></view>
             <text>听力练习操作台</text>
           </view>
-          <text class="sec-sub">当前练习 · 跨境并购谈判实录</text>
+          <text class="sec-sub">当前练习 · {{ playerTitle }}</text>
         </view>
 
         <!-- 播放器 -->
@@ -78,7 +79,7 @@
               <view class="play-ico" :class="isPlaying ? 'is-pause' : ''"></view>
             </view>
             <view class="player-info">
-              <text class="player-title">跨境并购谈判实录（第3节）</text>
+              <text class="player-title">{{ playerTitle }}</text>
               <view class="player-bar-row">
                 <view class="player-bar">
                   <view class="player-fill" :style="{ width: playerProgress + '%' }"></view>
@@ -116,7 +117,7 @@
                 >中文</text>
               </view>
             </view>
-            <text class="transcript">{{ currentTranscript }}</text>
+            <text class="transcript">{{ currentTranscript || '暂无听力原文' }}</text>
           </view>
 
           <view class="panel">
@@ -128,6 +129,7 @@
               <text class="quiz-count">{{ quizQuestions.length }}题</text>
             </view>
             <view class="quiz-list">
+              <view v-if="!quizQuestions.length" class="lt-empty">暂无习题</view>
               <view class="quiz-item" v-for="(q, qi) in quizQuestions" :key="qi">
                 <text class="quiz-q">{{ q.question }}</text>
                 <view class="quiz-opts">
@@ -147,7 +149,7 @@
                 </view>
               </view>
             </view>
-            <view class="submit-btn" hover-class="submit-hover" @click="submitAnswers">
+            <view v-if="quizQuestions.length" class="submit-btn" hover-class="submit-hover" @click="submitAnswers">
               <text>提交作答</text>
               <text class="ri-arrow-right-s-line"></text>
             </view>
@@ -164,6 +166,7 @@
           </view>
           <text class="sec-sub">查看过往练习完成情况</text>
         </view>
+        <view v-if="!historyRecords.length" class="lt-empty">暂无历史记录</view>
         <view class="history-grid">
           <view class="history-card" v-for="(r, i) in historyRecords" :key="i">
             <view class="ring" :style="ringStyle(r)">
@@ -202,36 +205,17 @@ export default {
     return {
       statusBarHeight: 0,
       isPlaying: false,
-      playerProgress: 41,
-      playerCurrentTime: '03:24',
-      playerTotalTime: '08:15',
+      playerTitle: '暂无练习内容',
+      playerProgress: 0,
+      playerCurrentTime: '00:00',
+      playerTotalTime: '--:--',
       playbackRate: '1.0x',
       currentLang: 'en',
       selectedAnswers: {},
-      weeklyTasks: [
-        { dayNum: 1, day: '周一', difficulty: 'intermediate', difficultyText: '中级', title: '合同条款听写训练', progress: 100, status: 'done', statusText: '已完成' },
-        { dayNum: 2, day: '周二', difficulty: 'advanced', difficultyText: '高级', title: '国际仲裁裁决听力', progress: 100, status: 'done', statusText: '已完成' },
-        { dayNum: 3, day: '周三', difficulty: 'advanced', difficultyText: '高级', title: '跨境并购谈判实录', progress: 60, status: 'active', statusText: '进行中' },
-        { dayNum: 4, day: '周四', difficulty: 'intermediate', difficultyText: '中级', title: '海商法条款精听', progress: 0, status: 'pending', statusText: '未开始' },
-        { dayNum: 5, day: '周五', difficulty: 'intermediate', difficultyText: '中级', title: '知识产权许可协议', progress: 0, status: 'pending', statusText: '未开始' },
-        { dayNum: 6, day: '周六', difficulty: 'advanced', difficultyText: '高级', title: 'WTO争端解决听证', progress: 0, status: 'pending', statusText: '未开始' },
-        { dayNum: 7, day: '周日', difficulty: 'beginner', difficultyText: '初级', title: '法律英语新闻听力', progress: 0, status: 'pending', statusText: '未开始' }
-      ],
-      transcripts: {
-        en: 'Pursuant to Section 4.2 of the Share Purchase Agreement, the Seller shall indemnify the Purchaser against any losses arising from any breach of representations and warranties set forth in Schedule 3. The indemnification period shall expire twenty-four (24) months following the Closing Date, except for claims based on tax matters which shall survive for sixty (60) months.',
-        zh: '根据《股权购买协议》第4.2条的规定，卖方应就附表3中所列的陈述和保证的任何违约行为所导致的任何损失向买方进行赔偿。赔偿期限应在交割日后的二十四（24）个月届满，但基于税务事项的索赔除外，该等索赔应存续六十（60）个月。'
-      },
-      quizQuestions: [
-        { question: '1. What is the indemnification period for general breaches?', options: ['A. 12个月', 'B. 24个月', 'C. 36个月', 'D. 60个月'] },
-        { question: '2. Which claims have a longer survival period?', options: ['A. 合同违约', 'B. 税务事项', 'C. 知识产权', 'D. 劳动纠纷'] },
-        { question: '3. Where are the representations and warranties detailed?', options: ['A. Schedule 1', 'B. Schedule 2', 'C. Schedule 3', 'D. Schedule 4'] }
-      ],
-      historyRecords: [
-        { accuracy: 92, level: 'high', title: '合同条款听写训练', date: '2026-07-28', duration: '15分钟' },
-        { accuracy: 85, level: 'mid', title: '国际仲裁裁决听力', date: '2026-07-27', duration: '22分钟' },
-        { accuracy: 95, level: 'high', title: '法律英语新闻听力', date: '2026-07-26', duration: '10分钟' },
-        { accuracy: 78, level: 'low', title: '海商法条款精听', date: '2026-07-25', duration: '18分钟' }
-      ]
+      weeklyTasks: [],
+      transcripts: { en: '', zh: '' },
+      quizQuestions: [],
+      historyRecords: []
     }
   },
   computed: {
@@ -268,6 +252,10 @@ export default {
       this.$set(this.selectedAnswers, qIndex, oIndex)
     },
     submitAnswers() {
+      if (!this.quizQuestions.length) {
+        uni.showToast({ title: '暂无习题', icon: 'none' })
+        return
+      }
       const count = Object.keys(this.selectedAnswers).length
       if (count < this.quizQuestions.length) {
         uni.showToast({ title: '还有题目未作答', icon: 'none' })
@@ -1026,6 +1014,16 @@ page {
 .history-meta-item .ri-calendar-line,
 .history-meta-item .ri-time-line {
   font-size: 24rpx;
+}
+
+.lt-empty {
+  padding: 40rpx 24rpx;
+  border-radius: 28rpx;
+  border: 2rpx dashed rgba(120, 160, 210, 0.35);
+  background: #f7faff;
+  color: #7A92B0;
+  font-size: 24rpx;
+  text-align: center;
 }
 
 /* ===== 底部提示 ===== */

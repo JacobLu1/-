@@ -28,7 +28,9 @@
       </view>
 
       <!-- 专项列表 -->
-      <view class="special-list reveal d2">
+      <view v-if="loading" class="special-empty">专项分类加载中...</view>
+      <view v-else-if="!specialList.length" class="special-empty">暂无可用专项题目</view>
+      <view v-else class="special-list reveal d2">
         <view 
           class="special-item" 
           v-for="(item, index) in specialList" 
@@ -60,52 +62,13 @@ export default {
   data() {
     return {
       statusBarHeight: 0,
-      specialList: [
-        {
-          name: '国际商事仲裁',
-          desc: '仲裁协议、管辖权、裁决执行等',
-          count: 15,
-          time: 30,
-          icon: 'ri-scales-3-line',
-          bg: 'linear-gradient(135deg, #5B9DF9, #2E7BE0)'
-        },
-        {
-          name: '跨境数据合规',
-          desc: '数据出境、个人信息保护、GDPR',
-          count: 12,
-          time: 25,
-          icon: 'ri-shield-check-line',
-          bg: 'linear-gradient(135deg, #8B5CF6, #6D28D9)'
-        },
-        {
-          name: '国际贸易法',
-          desc: 'WTO规则、贸易术语、信用证',
-          count: 18,
-          time: 35,
-          icon: 'ri-earth-line',
-          bg: 'linear-gradient(135deg, #06B6D4, #0891B2)'
-        },
-        {
-          name: '涉外民事诉讼',
-          desc: '管辖权、法律适用、判决执行',
-          count: 14,
-          time: 28,
-          icon: 'ri-file-list-3-line',
-          bg: 'linear-gradient(135deg, #F59E0B, #D97706)'
-        },
-        {
-          name: '国际私法',
-          desc: '冲突规范、准据法、反致制度',
-          count: 16,
-          time: 32,
-          icon: 'ri-book-open-line',
-          bg: 'linear-gradient(135deg, #22C55E, #16A34A)'
-        }
-      ]
+      loading: true,
+      specialList: []
     }
   },
   onReady() {
     this.statusBarHeight = this.getStatusBarHeight()
+    this.loadSpecialList()
   },
   methods: {
     getStatusBarHeight() {
@@ -121,6 +84,52 @@ export default {
     },
     navBack() {
       uni.navigateBack({ delta: 1 })
+    },
+    async loadSpecialList() {
+      try {
+        const questionsObj = uniCloud.importObject('questions')
+        const r = (await questionsObj.listPublic({ type: 'all', page: 1, pageSize: 200 })) || {}
+        if (r.errCode !== 0) {
+          uni.showToast({ title: r.errMsg || '专项分类加载失败', icon: 'none' })
+          return
+        }
+        const counts = {}
+        ;(r.list || []).forEach(q => {
+          const name = (q.dimension || '综合').trim()
+          if (!name) return
+          counts[name] = (counts[name] || 0) + 1
+        })
+        const icons = [
+          'ri-scales-3-line',
+          'ri-shield-check-line',
+          'ri-earth-line',
+          'ri-file-list-3-line',
+          'ri-book-open-line',
+          'ri-gavel-line',
+          'ri-global-line'
+        ]
+        const bgs = [
+          'linear-gradient(135deg, #5B9DF9, #2E7BE0)',
+          'linear-gradient(135deg, #8B5CF6, #6D28D9)',
+          'linear-gradient(135deg, #06B6D4, #0891B2)',
+          'linear-gradient(135deg, #F59E0B, #D97706)',
+          'linear-gradient(135deg, #22C55E, #16A34A)',
+          'linear-gradient(135deg, #FB7185, #E11D48)',
+          'linear-gradient(135deg, #0EA5E9, #0369A1)'
+        ]
+        this.specialList = Object.keys(counts).map((name, index) => ({
+          name,
+          desc: `共 ${counts[name]} 道题目`,
+          count: counts[name],
+          time: Math.max(10, Math.ceil(counts[name] * 2)),
+          icon: icons[index % icons.length],
+          bg: bgs[index % bgs.length]
+        }))
+      } catch (e) {
+        uni.showToast({ title: (e && e.errMsg) || '专项分类加载失败', icon: 'none' })
+      } finally {
+        this.loading = false
+      }
     },
     selectSpecial(item) {
       uni.showModal({
@@ -257,6 +266,16 @@ page { height: 100vh; }
   padding: 12rpx 36rpx 0;
   box-sizing: border-box;
   -webkit-overflow-scrolling: touch;
+}
+.special-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+  padding: 60rpx 40rpx;
+  text-align: center;
+  color: var(--muted);
+  font-size: 26rpx;
 }
 
 /* ---------- Info card ---------- */

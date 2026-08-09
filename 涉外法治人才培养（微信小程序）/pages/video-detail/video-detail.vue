@@ -79,7 +79,7 @@
 </template>
 
 <script>
-import { getVideoUrl } from '@/utils/video-config.js'
+import { resolveResourceUrl } from '@/utils/video-config.js'
 
 export default {
   data() {
@@ -90,10 +90,10 @@ export default {
       // 上线时在 video-config.js 填 VIDEO_BASE_ONLINE 云存储地址即可
       // 视频体积大，不能打进小程序包（主包上限 2MB），否则会报 MEDIA_ERR_SRC_NOT_SUPPORTED
       // 开发者工具：勾选“不校验合法域名”
-      videoSrc: getVideoUrl('video_intl_arbitration_0.mp4'),
-      videoTitle: '国际商事仲裁实务',
-      videoDuration: '32:36',
-      videoDesc: '系统讲解国际商事仲裁的受理范围、仲裁协议、程序推进、证据规则与裁决执行等核心实务问题，帮助涉外法律人才掌握国际商事仲裁全流程。',
+      videoSrc: '',
+      videoTitle: '暂无视频',
+      videoDuration: '--:--',
+      videoDesc: '请从视频列表选择真实资源',
       speedOptions: [0.5, 0.75, 1, 1.25, 1.5, 2],
       playbackRate: 1,
       isPlaying: false,
@@ -118,6 +118,9 @@ export default {
       }
     }
     this.statusBarHeight = this.getStatusBarHeight()
+    if (options && options.id) {
+      this.loadResource(options.id)
+    }
   },
   onReady() {
     // 创建 VideoContext 用于倍速等 API 控制
@@ -133,6 +136,27 @@ export default {
     }
   },
   methods: {
+    async loadResource(id) {
+      try {
+        const resourcesObj = uniCloud.importObject('resources')
+        const r = (await resourcesObj.get({ id })) || {}
+        if (r.errCode !== 0) {
+          uni.showToast({ title: r.errMsg || '视频加载失败', icon: 'none' })
+          return
+        }
+        const doc = r.doc
+        this.videoTitle = doc.title || this.videoTitle
+        this.videoDuration = doc.meta || this.videoDuration
+        this.videoDesc = doc.description || this.videoDesc
+        const resolved = resolveResourceUrl(doc.fileUrl)
+        this.videoSrc = resolved
+        if (!resolved) {
+          uni.showToast({ title: '该资源暂未配置文件地址', icon: 'none' })
+        }
+      } catch (e) {
+        uni.showToast({ title: (e && e.errMsg) || '视频加载失败', icon: 'none' })
+      }
+    },
     getStatusBarHeight() {
       try {
         return uni.getWindowInfo().statusBarHeight || 0

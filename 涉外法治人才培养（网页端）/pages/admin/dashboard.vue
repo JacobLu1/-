@@ -21,6 +21,10 @@
           <view class="navi-icon navi-icon-file-question"></view>
           <text>题库管理</text>
         </view>
+        <view class="app-nav-item" @tap="navigateTo('/pages/admin/knowledge-management')">
+          <view class="navi-icon navi-icon-book"></view>
+          <text>知识库管理</text>
+        </view>
         <view class="app-nav-item" @tap="navigateTo('/pages/admin/user-management')">
           <view class="navi-icon navi-icon-users"></view>
           <text>用户管理</text>
@@ -66,10 +70,10 @@
                 <text class="kpi-card-label">注册用户数</text>
                 <view class="kpi-card-icon"><view class="navi-icon navi-icon-users"></view></view>
               </view>
-              <text class="kpi-card-value">1,286</text>
+              <text class="kpi-card-value">{{ stats.userTotal }}</text>
               <view class="kpi-card-trend">
                 <view class="navi-icon navi-icon-arrow-up-right"></view>
-                <text>+128 较上月</text>
+                <text>普通用户 {{ stats.userCount }}</text>
               </view>
             </view>
             <view class="kpi-card">
@@ -77,10 +81,10 @@
                 <text class="kpi-card-label">累计测评次数</text>
                 <view class="kpi-card-icon"><view class="navi-icon navi-icon-clipboard-list"></view></view>
               </view>
-              <text class="kpi-card-value">3,742</text>
+              <text class="kpi-card-value">{{ stats.surveyTotal }}</text>
               <view class="kpi-card-trend">
                 <view class="navi-icon navi-icon-arrow-up-right"></view>
-                <text>+612 较上月</text>
+                <text>最高 {{ stats.maxScore }} 分</text>
               </view>
             </view>
             <view class="kpi-card">
@@ -88,10 +92,10 @@
                 <text class="kpi-card-label">平均测评得分</text>
                 <view class="kpi-card-icon"><view class="navi-icon navi-icon-trending-up"></view></view>
               </view>
-              <text class="kpi-card-value">78.6</text>
+              <text class="kpi-card-value">{{ stats.avgScore.toFixed(1) }}</text>
               <view class="kpi-card-trend">
                 <view class="navi-icon navi-icon-arrow-up-right"></view>
-                <text>+2.3分 较上月</text>
+                <text>最近7天 {{ stats.surveyWeekCount }} 次</text>
               </view>
             </view>
             <view class="kpi-card">
@@ -99,10 +103,10 @@
                 <text class="kpi-card-label">题库题目总数</text>
                 <view class="kpi-card-icon"><view class="navi-icon navi-icon-file-text"></view></view>
               </view>
-              <text class="kpi-card-value">568</text>
+              <text class="kpi-card-value">{{ stats.questionTotal }}</text>
               <view class="kpi-card-trend is-primary">
                 <view class="navi-icon navi-icon-arrow-up-right"></view>
-                <text>+24 较上月</text>
+                <text>资源 {{ stats.resourceTotal }}</text>
               </view>
             </view>
           </view>
@@ -115,53 +119,47 @@
             <view class="chart-card">
               <view class="chart-card-header">
                 <view>
-                  <text class="chart-card-title">平台测评趋势</text>
-                  <text class="chart-card-subtitle">近6个月</text>
+                  <text class="chart-card-title">最近测评得分</text>
+                  <text class="chart-card-subtitle">最近10条</text>
                 </view>
               </view>
-              <view class="ad-bar-chart" aria-label="平台测评趋势柱状图">
-                <view class="ad-bar-area">
-                  <view class="ad-bar-col"><text class="ad-bar-value">560</text><view class="ad-bar" style="height:75.5%"></view></view>
-                  <view class="ad-bar-col"><text class="ad-bar-value">620</text><view class="ad-bar" style="height:83.6%"></view></view>
-                  <view class="ad-bar-col"><text class="ad-bar-value">580</text><view class="ad-bar" style="height:78.2%"></view></view>
-                  <view class="ad-bar-col"><text class="ad-bar-value">720</text><view class="ad-bar" style="height:97%"></view></view>
-                  <view class="ad-bar-col"><text class="ad-bar-value">680</text><view class="ad-bar" style="height:91.6%"></view></view>
-                  <view class="ad-bar-col"><text class="ad-bar-value">742</text><view class="ad-bar" style="height:100%"></view></view>
-                </view>
-                <view class="ad-bar-labels">
-                  <text class="ad-bar-label">1月</text><text class="ad-bar-label">2月</text><text class="ad-bar-label">3月</text>
-                  <text class="ad-bar-label">4月</text><text class="ad-bar-label">5月</text><text class="ad-bar-label">6月</text>
-                </view>
-              </view>
+                  <view class="ad-bar-chart" aria-label="最近测评得分柱状图">
+                    <view v-if="recentBarData.length" class="ad-bar-area">
+                      <view class="ad-bar-col" v-for="(item, idx) in recentBarData" :key="idx">
+                        <text class="ad-bar-value">{{ item.score }}</text>
+                        <view class="ad-bar" :style="{height: item.height + '%'}"></view>
+                      </view>
+                    </view>
+                    <view v-else class="empty-chart">暂无测评记录</view>
+                    <view class="ad-bar-labels">
+                      <text class="ad-bar-label" v-for="(item, idx) in recentBarData" :key="idx">{{ item.label }}</text>
+                    </view>
+                  </view>
             </view>
             <!-- Right: User Type Distribution -->
             <view class="chart-card">
               <view class="chart-card-header">
                 <view>
-                  <text class="chart-card-title">用户类型分布</text>
-                  <text class="chart-card-subtitle">按角色统计</text>
+                  <text class="chart-card-title">用户角色分布</text>
+                  <text class="chart-card-subtitle">普通用户与管理员</text>
                 </view>
               </view>
-              <view class="ad-donut-wrap">
-                <view class="ad-donut">
-                  <svg viewBox="0 0 200 200" role="img" aria-label="用户类型分布环形图">
-                    <g transform="rotate(-90 100 100)">
-                      <circle cx="100" cy="100" r="80" fill="none" stroke-width="32" class="ad-seg-1" stroke-dasharray="326.73 502.65" stroke-dashoffset="0"/>
-                      <circle cx="100" cy="100" r="80" fill="none" stroke-width="32" class="ad-seg-2" stroke-dasharray="90.48 502.65" stroke-dashoffset="-326.73"/>
-                      <circle cx="100" cy="100" r="80" fill="none" stroke-width="32" class="ad-seg-3" stroke-dasharray="60.32 502.65" stroke-dashoffset="-417.21"/>
-                      <circle cx="100" cy="100" r="80" fill="none" stroke-width="32" class="ad-seg-4" stroke-dasharray="25.13 502.65" stroke-dashoffset="-477.52"/>
-                    </g>
-                    <text x="100" y="94" text-anchor="middle" font-size="13" class="ad-donut-label">总用户</text>
-                    <text x="100" y="118" text-anchor="middle" font-size="22" font-weight="700" class="ad-donut-total">1,286</text>
-                  </svg>
-                </view>
-                <view class="ad-legend">
-                  <view class="ad-legend-item"><view class="ad-legend-dot ad-dot-1"></view><text class="ad-legend-label">学生</text><text class="ad-legend-value">65%</text></view>
-                  <view class="ad-legend-item"><view class="ad-legend-dot ad-dot-2"></view><text class="ad-legend-label">研究员</text><text class="ad-legend-value">18%</text></view>
-                  <view class="ad-legend-item"><view class="ad-legend-dot ad-dot-3"></view><text class="ad-legend-label">教师</text><text class="ad-legend-value">12%</text></view>
-                  <view class="ad-legend-item"><view class="ad-legend-dot ad-dot-4"></view><text class="ad-legend-label">管理员</text><text class="ad-legend-value">5%</text></view>
-                </view>
-              </view>
+                  <view class="ad-donut-wrap">
+                    <view class="ad-donut">
+                      <svg viewBox="0 0 200 200" role="img" aria-label="用户类型分布环形图">
+                        <g transform="rotate(-90 100 100)">
+                          <circle v-for="(seg, idx) in donutSegments" :key="idx" cx="100" cy="100" r="80" fill="none" stroke-width="32" :class="seg.cls" :stroke-dasharray="seg.dashArray" :stroke-dashoffset="seg.offset"/>
+                        </g>
+                        <text x="100" y="94" text-anchor="middle" font-size="13" class="ad-donut-label">总用户</text>
+                        <text x="100" y="118" text-anchor="middle" font-size="22" font-weight="700" class="ad-donut-total">{{ stats.userTotal }}</text>
+                      </svg>
+                    </view>
+                    <view class="ad-legend">
+                      <view v-if="stats.userTotal > 0" class="ad-legend-item"><view class="ad-legend-dot ad-dot-1"></view><text class="ad-legend-label">普通用户</text><text class="ad-legend-value">{{ userPercent }}%</text></view>
+                      <view v-if="stats.userTotal > 0" class="ad-legend-item"><view class="ad-legend-dot ad-dot-2"></view><text class="ad-legend-label">管理员</text><text class="ad-legend-value">{{ adminPercent }}%</text></view>
+                      <view v-else class="ad-legend-item"><text class="ad-legend-label">暂无用户数据</text></view>
+                    </view>
+                  </view>
             </view>
           </view>
         </section>
@@ -190,53 +188,17 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td>张明</td><td>华东政法大学</td><td>国际商法</td>
-                    <td class="score-num score-high">85</td><td>2026-07-30 14:23</td>
-                    <td><text class="status-tag status-done">已完成</text></td>
-                    <td class="gap-cell">已达标</td>
+                  <tr v-if="!recentRecords.length">
+                    <td colspan="7" class="empty-cell">暂无测评记录</td>
                   </tr>
-                  <tr>
-                    <td>李芳</td><td>中国政法大学</td><td>国际投资法</td>
-                    <td class="score-num score-high">92</td><td>2026-07-30 13:45</td>
+                  <tr v-for="record in recentRecords" :key="record.id">
+                    <td>{{ record.name || record.account }}</td>
+                    <td>{{ record.account || '-' }}</td>
+                    <td>{{ record.mode === 'special' ? (record.specialCategory || '专项测评') : '综合测评' }}</td>
+                    <td :class="['score-num', scoreClass(record.score)]">{{ record.score }}</td>
+                    <td>{{ formatDateTime(record.createDate) }}</td>
                     <td><text class="status-tag status-done">已完成</text></td>
-                    <td class="gap-cell gap-excellent">已达标</td>
-                  </tr>
-                  <tr>
-                    <td>王强</td><td>西南政法大学</td><td>国际仲裁</td>
-                    <td class="score-num score-mid">71</td><td>2026-07-30 11:20</td>
-                    <td><text class="status-tag status-done">已完成</text></td>
-                    <td class="gap-cell gap-warning">-19.3%</td>
-                  </tr>
-                  <tr>
-                    <td>赵雪</td><td>外交学院</td><td>海商法</td>
-                    <td class="score-num score-high">88</td><td>2026-07-30 10:15</td>
-                    <td><text class="status-tag status-done">已完成</text></td>
-                    <td class="gap-cell gap-excellent">已达标</td>
-                  </tr>
-                  <tr>
-                    <td>陈伟</td><td>武汉大学</td><td>知识产权法</td>
-                    <td class="score-num score-mid">76</td><td>2026-07-29 16:30</td>
-                    <td><text class="status-tag status-done">已完成</text></td>
-                    <td class="gap-cell gap-warning">-10.6%</td>
-                  </tr>
-                  <tr>
-                    <td>刘洋</td><td>吉林大学</td><td>国际私法</td>
-                    <td class="score-num score-low">63</td><td>2026-07-29 15:10</td>
-                    <td><text class="status-tag status-done">已完成</text></td>
-                    <td class="gap-cell gap-critical">-25.9%</td>
-                  </tr>
-                  <tr>
-                    <td>孙琳</td><td>厦门大学</td><td>WTO法</td>
-                    <td class="score-num score-high">90</td><td>2026-07-29 14:05</td>
-                    <td><text class="status-tag status-done">已完成</text></td>
-                    <td class="gap-cell gap-excellent">已达标</td>
-                  </tr>
-                  <tr>
-                    <td>周杰</td><td>中山大学</td><td>跨境合规</td>
-                    <td class="score-num score-mid">81</td><td>2026-07-29 11:45</td>
-                    <td><text class="status-tag status-active">进行中</text></td>
-                    <td class="gap-cell">-</td>
+                    <td class="gap-cell">{{ record.level || '-' }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -254,7 +216,7 @@
               </view>
             </view>
             <view class="ad-gap-wrap-full">
-              <view class="ad-gap-list-full">
+              <view v-if="abilityGaps.length" class="ad-gap-list-full">
                 <view v-for="(item, index) in abilityGaps" :key="index" class="ad-gap-row-full">
                   <view class="ad-gap-head-full">
                     <text class="ad-gap-name-full">{{ item.name }}</text>
@@ -277,6 +239,7 @@
                   </view>
                 </view>
               </view>
+              <view v-else class="empty-chart">暂无测评数据，无法分析维度</view>
             </view>
           </view>
         </section>
@@ -287,10 +250,25 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { requireAdmin } from '@/utils/auth.js'
 
 const visibleSections = ref([false, false, false, false])
+const loading = ref(false)
+const recentRecords = ref([])
+const stats = reactive({
+  userTotal: 0,
+  userCount: 0,
+  adminCount: 0,
+  weekNewCount: 0,
+  surveyTotal: 0,
+  avgScore: 0,
+  maxScore: 0,
+  minScore: 0,
+  surveyWeekCount: 0,
+  questionTotal: 0,
+  resourceTotal: 0
+})
 
 const todayDateText = computed(() => {
   const now = new Date()
@@ -300,52 +278,123 @@ const todayDateText = computed(() => {
   return `${y}年${m}月${d}日`
 })
 
-// 能力缺口数据定义
-/**
- * 能力缺口计算公式：
- * 缺口值 = (目标得分 - 实际得分) / 目标得分 * 100
- *
- * 参数说明：
- * - actualScore: 实际得分（0-100）
- * - targetScore: 目标得分（默认85分，可根据重要性调整）
- * - weight: 权重系数（1.0-2.0，用于标识该领域的重要性）
- * - gapValue: 缺口值（目标-实际）
- * - gapPct: 缺口百分比（缺口值/目标 * 100）
- */
+const recentBarData = computed(() => {
+  const list = recentRecords.value.slice(0, 10)
+  const max = Math.max(1, ...list.map(r => Number(r.score) || 0))
+  return list.map(r => ({
+    label: (r.name || r.account || '用户').slice(0, 4),
+    score: Number(r.score) || 0,
+    height: Math.max(8, Math.round((Number(r.score) || 0) / max * 100))
+  }))
+})
 
-const abilityData = ref([
-  { name: '国际商法', actualScore: 82.3, targetScore: 85, weight: 1.0 },
-  { name: '国际投资法', actualScore: 76.8, targetScore: 85, weight: 1.2 },
-  { name: '国际仲裁', actualScore: 79.1, targetScore: 88, weight: 1.3 },
-  { name: '海商法', actualScore: 74.5, targetScore: 82, weight: 1.1 },
-  { name: '知识产权法', actualScore: 80.6, targetScore: 85, weight: 1.0 },
-  { name: 'WTO法', actualScore: 71.2, targetScore: 80, weight: 1.4 }
-])
+const donutSegments = computed(() => {
+  const total = stats.userTotal
+  if (!total) return []
+  const circumference = 502.65
+  const userLen = stats.userCount / total * circumference
+  const adminLen = stats.adminCount / total * circumference
+  return [
+    { cls: 'ad-seg-1', dashArray: `${userLen.toFixed(2)} ${circumference}`, offset: 0 },
+    { cls: 'ad-seg-2', dashArray: `${adminLen.toFixed(2)} ${circumference}`, offset: -userLen.toFixed(2) }
+  ]
+})
 
-// 计算能力缺口
+const userPercent = computed(() => stats.userTotal ? Math.round(stats.userCount / stats.userTotal * 100) : 0)
+const adminPercent = computed(() => stats.userTotal ? Math.round(stats.adminCount / stats.userTotal * 100) : 0)
+
 const abilityGaps = computed(() => {
-  return abilityData.value.map(item => {
-    const gapValue = item.targetScore - item.actualScore
-    const gapPct = (gapValue / item.targetScore) * 100
-
+  const map = {}
+  recentRecords.value.forEach(r => {
+    (r.dimensions || []).forEach(d => {
+      const name = d.name || '综合'
+      if (!map[name]) map[name] = { name, sum: 0, count: 0 }
+      map[name].sum += Number(d.score) || 0
+      map[name].count++
+    })
+  })
+  return Object.values(map).map(item => {
+    const actualScore = item.count ? item.sum / item.count : 0
+    const targetScore = 100
+    const gapPct = Math.max(0, ((targetScore - actualScore) / targetScore) * 100)
     return {
       name: item.name,
-      actualScore: item.actualScore,
-      targetScore: item.targetScore,
-      weight: item.weight,
-      gapValue: gapValue,
-      gapPct: gapPct,
-      isAchieved: gapPct <= 0 // 是否达标
+      actualScore: Number(actualScore.toFixed(1)),
+      targetScore,
+      gapPct: Number(gapPct.toFixed(1)),
+      isAchieved: gapPct <= 0
     }
   })
 })
 
-// 计算整体平均缺口
-const averageGap = computed(() => {
-  const totalWeight = abilityGaps.value.reduce((sum, item) => sum + item.weight, 0)
-  const weightedGap = abilityGaps.value.reduce((sum, item) => sum + item.gapPct * item.weight, 0)
-  return weightedGap / totalWeight
-})
+function getAdminToken() {
+  return uni.getStorageSync('adminToken')
+}
+
+function scoreClass(score) {
+  if (score >= 85) return 'score-high'
+  if (score >= 70) return 'score-mid'
+  return 'score-low'
+}
+
+function formatDateTime(ts) {
+  if (!ts) return '-'
+  const d = new Date(ts)
+  if (isNaN(d.getTime())) return String(ts)
+  const pad = n => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
+async function loadDashboard() {
+  loading.value = true
+  const adminToken = getAdminToken()
+  try {
+    const [userR, surveyR, questionR, resourceR, surveyListR] = await Promise.all([
+      uniCloud.importObject('users').stats({ adminToken }),
+      uniCloud.importObject('survey').stats({ adminToken }),
+      uniCloud.importObject('questions').stats({ adminToken }),
+      uniCloud.importObject('resources').list({ adminToken, type: 'all' }),
+      uniCloud.importObject('survey').list({ adminToken, page: 1, pageSize: 10 })
+    ])
+
+    if (userR && userR.errCode === 0) {
+      stats.userTotal = userR.total || 0
+      stats.userCount = userR.userCount || 0
+      stats.adminCount = userR.adminCount || 0
+      stats.weekNewCount = userR.weekNewCount || 0
+    }
+    if (surveyR && surveyR.errCode === 0) {
+      stats.surveyTotal = surveyR.total || 0
+      stats.avgScore = surveyR.avgScore || 0
+      stats.maxScore = surveyR.maxScore || 0
+      stats.minScore = surveyR.minScore || 0
+      stats.surveyWeekCount = surveyR.weekCount || 0
+    }
+    if (questionR && questionR.errCode === 0) {
+      stats.questionTotal = questionR.total || 0
+    }
+    if (resourceR && resourceR.errCode === 0) {
+      stats.resourceTotal = (resourceR.list || []).length
+    }
+    if (surveyListR && surveyListR.errCode === 0) {
+      recentRecords.value = (surveyListR.list || []).map(r => ({
+        id: r._id || r.id,
+        name: r.name || '',
+        account: r.account || '',
+        mode: r.mode || 'comprehensive',
+        specialCategory: r.specialCategory || '',
+        score: Number(r.score) || 0,
+        level: r.level || '',
+        dimensions: Array.isArray(r.dimensions) ? r.dimensions : [],
+        createDate: r.createDate || 0
+      }))
+    }
+  } catch (e) {
+    uni.showToast({ title: (e && e.errMsg) || '数据总览加载失败', icon: 'none' })
+  } finally {
+    loading.value = false
+  }
+}
 
 const navigateTo = (url) => {
   uni.navigateTo({ url })
@@ -366,30 +415,11 @@ const handleLogout = () => {
 
 onMounted(() => {
   if (!requireAdmin()) return
-  // Scroll reveal simulation
+  loadDashboard()
   setTimeout(() => {
     visibleSections.value = [true, true, true, true]
   }, 100)
-
-  // 模拟数据实时更新（每30秒更新一次）
-  setInterval(() => {
-    updateAbilityData()
-  }, 30000)
 })
-
-// 数据更新函数：模拟实际得分变化
-const updateAbilityData = () => {
-  abilityData.value = abilityData.value.map(item => {
-    // 模拟得分波动（±2分）
-    const fluctuation = (Math.random() - 0.5) * 4
-    const newScore = Math.max(0, Math.min(100, item.actualScore + fluctuation))
-
-    return {
-      ...item,
-      actualScore: parseFloat(newScore.toFixed(1))
-    }
-  })
-}
 </script>
 
 <style scoped>
@@ -505,6 +535,10 @@ const updateAbilityData = () => {
   -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z'/><polyline points='14 2 14 8 20 8'/><path d='M9 12.01h6'/><path d='M9 16.01h3'/></svg>") center/contain no-repeat;
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z'/><polyline points='14 2 14 8 20 8'/><path d='M9 12.01h6'/><path d='M9 16.01h3'/></svg>") center/contain no-repeat;
 }
+.navi-icon-book {
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z'/><path d='M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z'/></svg>") center/contain no-repeat;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z'/><path d='M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z'/></svg>") center/contain no-repeat;
+}
 .navi-icon-users {
   -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/><circle cx='9' cy='7' r='4'/><path d='M22 21v-2a4 4 0 0 0-3-3.87'/><path d='M16 3.13a4 4 0 0 1 0 7.75'/></svg>") center/contain no-repeat;
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/><circle cx='9' cy='7' r='4'/><path d='M22 21v-2a4 4 0 0 0-3-3.87'/><path d='M16 3.13a4 4 0 0 1 0 7.75'/></svg>") center/contain no-repeat;
@@ -578,6 +612,21 @@ const updateAbilityData = () => {
 }
 .dc-section:last-child { margin-bottom: 0; }
 .dc-section.is-visible { opacity: 1; transform: translateY(0) scale(1); }
+
+.empty-chart,
+.empty-cell {
+  color: var(--rule-muted-foreground);
+  font-size: 13px;
+  text-align: center;
+}
+.empty-chart {
+  padding: 36px 16px;
+  border: 1px dashed var(--rule-border);
+  border-radius: 12px;
+}
+.empty-cell {
+  padding: 28px 16px;
+}
 
 /* ===== KPI Cards ===== */
 .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }

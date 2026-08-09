@@ -113,6 +113,13 @@
 			}
 		},
 		{
+			"path": "pages/admin/knowledge-management",
+			"style": {
+				"navigationBarTitleText": "知识库管理",
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "pages/admin/resource-management",
 			"style": {
 				"navigationBarTitleText": "资源管理",

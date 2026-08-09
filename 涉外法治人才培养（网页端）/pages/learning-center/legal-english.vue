@@ -78,7 +78,7 @@
                     <text class="overview-title">法律英语</text>
                     <text class="overview-subtitle">涉外法律人才核心语言能力</text>
                   </view>
-                  <view class="overview-level">L3</view>
+                  <view class="overview-level">{{ overallLevel }}</view>
                 </view>
                 <view class="overview-progress-row">
                   <text class="overview-progress-label">掌握度</text>
@@ -127,6 +127,7 @@
                 </view>
               </view>
             </view>
+            <view v-if="!modules.length" class="le-empty">暂无学习模块</view>
 
             <!-- ===== Today's Vocabulary ===== -->
             <view class="doc-section-header">
@@ -155,6 +156,7 @@
                 </view>
               </view>
             </view>
+            <view v-if="!words.length" class="le-empty">暂无词汇数据</view>
 
             <!-- ===== Bottom Tip ===== -->
             <view class="le-tip">
@@ -183,29 +185,11 @@ const userInitial = computed(() => (userName.value || '用').slice(0, 1))
 /* ============================================================
    Page Data
    ============================================================ */
-const overallPercent = ref(70)
-
-const stats = ref([
-  { iconClass: 'stat-medal-icon', val: '12天', label: '连续学习' },
-  { iconClass: 'stat-bookmark-icon', val: '386词', label: '累计掌握' },
-  { iconClass: 'stat-time-icon', val: '2.5h', label: '本周学习' }
-])
-
-const modules = ref([
-  { name: '词汇积累', level: 'L2', percent: 60, iconClass: 'mod-book-icon' },
-  { name: '术语精讲', level: 'L3', percent: 45, iconClass: 'mod-file-icon' },
-  { name: '听力训练', level: 'L2', percent: 30, iconClass: 'mod-mic-icon', route: '/pages/learning-center/listening-training' },
-  { name: '实战练习', level: 'L1', percent: 20, iconClass: 'mod-chat-icon' }
-])
-
-const words = ref([
-  { en: 'Arbitration', phonetic: '/ˌɑːbɪˈtreɪʃn/', cn: '仲裁', starred: true },
-  { en: 'Jurisdiction', phonetic: '/ˌdʒʊərɪsˈdɪkʃn/', cn: '管辖权', starred: false },
-  { en: 'Force Majeure', phonetic: '/ˌfɔːs mæˈʒɜː/', cn: '不可抗力', starred: false },
-  { en: 'Breach of Contract', phonetic: '/briːtʃ əv ˈkɒntrækt/', cn: '违约', starred: false },
-  { en: 'Liability', phonetic: '/ˌlaɪəˈbɪləti/', cn: '责任', starred: false },
-  { en: 'Governing Law', phonetic: '/ˈɡʌvənɪŋ lɔː/', cn: '准据法', starred: false }
-])
+const overallPercent = ref(0)
+const overallLevel = ref('暂无')
+const stats = ref([])
+const modules = ref([])
+const words = ref([])
 
 /* ============================================================
    Computed
@@ -255,6 +239,38 @@ function toggleStar(word) {
   word.starred = !word.starred
 }
 
+async function loadEnglishResources() {
+  try {
+    const resourcesObj = uniCloud.importObject('resources')
+    const r = (await resourcesObj.listPublic({ type: 'english' })) || {}
+    if (r.errCode !== 0) {
+      uni.showToast({ title: r.errMsg || '法律英语资源加载失败', icon: 'none' })
+      return
+    }
+    const list = r.list || []
+    stats.value = [
+      { iconClass: 'stat-bookmark-icon', val: String(list.length), label: '法律英语资源' }
+    ]
+    const map = {}
+    const icons = ['mod-book-icon', 'mod-file-icon', 'mod-mic-icon', 'mod-chat-icon']
+    list.forEach((item, idx) => {
+      const name = item.cat || '未分类'
+      if (!map[name]) {
+        map[name] = {
+          name,
+          level: `L${Math.min(3, Object.keys(map).length + 1)}`,
+          percent: 0,
+          iconClass: icons[idx % icons.length],
+          route: name === '听力训练' ? '/pages/learning-center/listening-training' : ''
+        }
+      }
+    })
+    modules.value = Object.values(map)
+  } catch (e) {
+    uni.showToast({ title: (e && e.errMsg) || '法律英语资源加载失败', icon: 'none' })
+  }
+}
+
 function handleLogout() {
   uni.showModal({
     title: '确认退出',
@@ -293,6 +309,7 @@ onLoad(() => {
       userName.value = info.name
     }
   } catch (e) {}
+  loadEnglishResources()
 })
 </script>
 
@@ -772,6 +789,16 @@ onLoad(() => {
   background: var(--rule-ink-3);
   -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m9 18 6-6-6-6'/></svg>") center/contain no-repeat;
   mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m9 18 6-6-6-6'/></svg>") center/contain no-repeat;
+}
+
+.le-empty {
+  margin-top: 16px;
+  padding: 32px;
+  border: 1px dashed var(--rule-border);
+  border-radius: 12px;
+  color: var(--rule-muted-foreground);
+  font-size: 13px;
+  text-align: center;
 }
 
 /* ---- Vocabulary ---- */

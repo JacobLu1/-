@@ -143,6 +143,8 @@
               <text class="doc-section-meta">共 {{ filteredResults.length }} 条结果</text>
             </view>
 
+            <view v-if="loading" class="list-state">正在加载知识库...</view>
+            <view v-else-if="filteredResults.length === 0" class="list-state">暂无知识条目</view>
             <view class="doc-grid">
               <view
                 class="doc-card"
@@ -199,6 +201,25 @@
         </main>
       </view>
     </view>
+    <view v-if="detailVisible" class="detail-mask" @tap="closeDetail">
+      <view class="detail-modal" @tap.stop>
+        <view class="detail-head">
+          <view class="detail-head-meta">
+            <text class="detail-cat">{{ detailDoc.category }}</text>
+            <text class="detail-date">{{ detailDoc.date }}</text>
+          </view>
+          <view class="detail-close" @tap="closeDetail">×</view>
+        </view>
+        <text class="detail-title">{{ detailDoc.title }}</text>
+        <text class="detail-source">来源：{{ detailDoc.source }}</text>
+        <view class="detail-meta">
+          <text class="detail-tag" v-for="tag in (detailDoc.tags || [])" :key="tag">{{ tag }}</text>
+        </view>
+        <scroll-view class="detail-content" scroll-y="true">
+          <text>{{ detailDoc.content || detailDoc.summary || '暂无正文' }}</text>
+        </scroll-view>
+      </view>
+    </view>
   </view>
 </template>
 
@@ -242,72 +263,41 @@ const legalFields = ['国际贸易法', '国际私法', '国际仲裁', '反垄�
 const regions = ['中国', '欧盟', '美国', '英国', '新加坡', '国际']
 const docTypes = ['法律', '行政法规', '部门规章', '司法解释', '国际条约', '案例']
 
-const results = ref([
-  {
-    type: '法规', date: '2024-05-15',
-    title: '《中华人民共和国反外国制裁法》全文及解读',
-    desc: '本法旨在维护国家主权、安全和发展利益，反制外国干涉行为。本文详细解读了各条款的适用场景和实际影响。',
-    tags: ['反制裁', '国家安全', '国际关系'],
-    fields: ['国际贸易法'], region: '中国', docType: '法律',
-    category: '国际贸易法', source: '全国人大常委会'
-  },
-  {
-    type: '条约', date: '2024-04-20',
-    title: '《联合国国际货物销售合同公约》(CISG) 最新适用指南',
-    desc: 'CISG是国际商事交易中最广泛适用的国际公约之一。本指南总结了最新的适用经验和重要判例。',
-    tags: ['CISG', '国际贸易', '合同法'],
-    fields: ['国际贸易法'], region: '国际', docType: '国际条约',
-    category: '国际贸易法', source: '联合国国际贸易法委员会'
-  },
-  {
-    type: '案例', date: '2024-03-28',
-    title: 'ICC仲裁案例精选：跨境合资企业争议解决实务',
-    desc: '精选近期ICC仲裁庭处理的三起跨境合资企业争议案例，分析仲裁庭的裁判思路和策略建议。',
-    tags: ['ICC仲裁', '合资企业', '争议解决'],
-    fields: ['国际仲裁'], region: '国际', docType: '案例',
-    category: '国际仲裁', source: 'ICC国际商会'
-  },
-  {
-    type: '指南', date: '2024-03-10',
-    title: 'GDPR跨境数据传输合规指南（2024版）',
-    desc: '针对欧盟GDPR框架下的跨境数据传输机制进行系统性解读，涵盖标准合同条款(SCCs)和约束性企业规则(BCRs)的最新要求。',
-    tags: ['GDPR', '数据保护', '跨境传输'],
-    fields: ['数据保护法'], region: '欧盟', docType: '部门规章',
-    category: '涉外民商法', source: '欧盟委员会'
-  },
-  {
-    type: '法规', date: '2024-02-18',
-    title: '欧盟《数字市场法》(DMA)核心条款分析与合规要点',
-    desc: 'DMA针对"守门人"平台制定了严格的行为规范，本文梳理了核心义务条款及违规后果。',
-    tags: ['DMA', '数字市场', '反垄断'],
-    fields: ['反垄断法'], region: '欧盟', docType: '行政法规',
-    category: '国际贸易法', source: '欧盟'
-  },
-  {
-    type: '案例', date: '2024-01-25',
-    title: 'SIAC新加坡国际仲裁中心2024年度十大典型案例',
-    desc: '回顾SIAC在2024年裁决的十个具有代表性的仲裁案件，涵盖建设工程、能源、金融服务等多个领域。',
-    tags: ['SIAC', '新加坡', '仲裁案例'],
-    fields: ['国际仲裁'], region: '新加坡', docType: '案例',
-    category: '国际仲裁', source: 'SIAC'
-  },
-  {
-    type: '条约', date: '2024-06-01',
-    title: '《承认及执行外国仲裁裁决公约》（纽约公约）',
-    desc: '规定了缔约国承认和执行外国仲裁裁决的条件和程序，是国际仲裁执行的基石公约。',
-    tags: ['纽约公约', '仲裁执行', '国际法'],
-    fields: ['国际仲裁'], region: '国际', docType: '国际条约',
-    category: '国际仲裁', source: '联合国国际商事仲裁会议'
-  },
-  {
-    type: '法规', date: '2023-12-20',
-    title: '最高人民法院关于适用涉外民事关系法律适用法若干问题的解释',
-    desc: '对涉外民事关系法律适用法的具体适用问题进行了解释和明确，指导司法实践。',
-    tags: ['司法解释', '涉外民事', '法律适用'],
-    fields: ['国际私法'], region: '中国', docType: '司法解释',
-    category: '国际私法', source: '最高人民法院'
+const results = ref([])
+const loading = ref(false)
+const detailVisible = ref(false)
+const detailDoc = ref(null)
+
+async function loadDocs() {
+  loading.value = true
+  try {
+    const knowledgeObj = uniCloud.importObject('knowledge')
+    const r = (await knowledgeObj.listPublic({ category: 'all', keyword: '', page: 1, pageSize: 500 })) || {}
+    if (r.errCode === 0) {
+      results.value = (r.list || []).map(doc => ({
+        id: doc._id,
+        title: doc.title || '',
+        summary: doc.summary || '',
+        desc: doc.summary || '',
+        category: doc.category || '综合',
+        docType: doc.docType || '',
+        fields: Array.isArray(doc.fields) ? doc.fields : [],
+        regions: Array.isArray(doc.regions) ? doc.regions : [],
+        region: Array.isArray(doc.regions) && doc.regions.length ? doc.regions[0] : '',
+        tags: Array.isArray(doc.tags) ? doc.tags : [],
+        source: doc.source || '',
+        date: doc.date || ''
+      }))
+      currentPage.value = 1
+    } else {
+      uni.showToast({ title: r.errMsg || '知识库加载失败', icon: 'none' })
+    }
+  } catch (e) {
+    uni.showToast({ title: (e && e.errMsg) || '知识库加载失败', icon: 'none' })
+  } finally {
+    loading.value = false
   }
-])
+}
 
 /* ============================================================
    Computed
@@ -328,8 +318,8 @@ const filteredResults = computed(() => {
     const kw = searchKeyword.value.toLowerCase()
     list = list.filter(item =>
       item.title.toLowerCase().includes(kw) ||
-      item.desc.toLowerCase().includes(kw) ||
-      item.tags.some(t => t.toLowerCase().includes(kw))
+      (item.summary || item.desc || '').toLowerCase().includes(kw) ||
+      (item.tags || []).some(t => t.toLowerCase().includes(kw))
     )
   }
 
@@ -355,7 +345,7 @@ const filteredResults = computed(() => {
     list = list.filter(item => item.fields.some(f => selectedFields.value.includes(f)))
   }
   if (selectedRegions.value.length) {
-    list = list.filter(item => selectedRegions.value.includes(item.region))
+    list = list.filter(item => (item.regions || [item.region]).some(r => selectedRegions.value.includes(r)))
   }
   if (selectedTypes.value.length) {
     list = list.filter(item => selectedTypes.value.includes(item.docType))
@@ -456,8 +446,24 @@ function goPage(page) {
   currentPage.value = page
 }
 
-function viewDetail(item) {
-  uni.showToast({ title: '详情页开发中', icon: 'none' })
+async function viewDetail(item) {
+  try {
+    const knowledgeObj = uniCloud.importObject('knowledge')
+    const r = (await knowledgeObj.get({ id: item.id })) || {}
+    if (r.errCode === 0) {
+      detailDoc.value = r.doc
+      detailVisible.value = true
+    } else {
+      uni.showToast({ title: r.errMsg || '详情加载失败', icon: 'none' })
+    }
+  } catch (e) {
+    uni.showToast({ title: (e && e.errMsg) || '详情加载失败', icon: 'none' })
+  }
+}
+
+function closeDetail() {
+  detailVisible.value = false
+  detailDoc.value = null
 }
 
 function categoryName(item) {
@@ -468,7 +474,7 @@ function categoryName(item) {
    Lifecycle
    ============================================================ */
 onMounted(() => {
-  // Initialization
+  loadDocs()
 })
 
 onLoad(() => {
@@ -865,6 +871,120 @@ onLoad(() => {
 .doc-section-meta {
   font-size: 13px;
   color: var(--rule-muted-foreground);
+}
+
+.list-state {
+  padding: 42px 20px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--rule-muted-foreground);
+  background: var(--rule-card);
+  border: 1px solid var(--rule-border);
+  border-radius: 12px;
+}
+
+/* ---- Detail Modal ---- */
+.detail-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.detail-modal {
+  width: min(720px, 100%);
+  max-height: 82vh;
+  background: var(--rule-card);
+  border: 1px solid var(--rule-border);
+  border-radius: 12px;
+  box-shadow: var(--rule-shadow-3);
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  gap: 14px;
+}
+.detail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.detail-head-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.detail-cat {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 500;
+  background: var(--rule-primary-tint-3);
+  color: var(--rule-primary);
+}
+.detail-date {
+  font-size: 13px;
+  color: var(--rule-muted-foreground);
+}
+.detail-close {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--rule-muted-foreground);
+  cursor: pointer;
+  background: var(--rule-muted);
+}
+.detail-close:hover {
+  color: var(--rule-foreground);
+  background: var(--rule-border);
+}
+.detail-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--rule-foreground);
+  line-height: 1.4;
+}
+.detail-source {
+  font-size: 13px;
+  color: var(--rule-muted-foreground);
+}
+.detail-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.detail-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 12px;
+  background: var(--rule-muted);
+  color: var(--rule-ink-2);
+}
+.detail-content {
+  flex: 1;
+  min-height: 180px;
+  max-height: 45vh;
+  border: 1px solid var(--rule-border);
+  border-radius: 8px;
+  background: var(--rule-surface-2);
+  padding: 16px;
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--rule-foreground);
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
 }
 
 /* ---- Document Grid ---- */

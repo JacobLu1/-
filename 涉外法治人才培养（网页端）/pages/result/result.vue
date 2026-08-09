@@ -148,19 +148,10 @@ import { onLoad } from '@dcloudio/uni-app'
 import { requireLogin, getDisplayName, getLevelText } from '@/utils/auth.js'
 
 const DEFAULT_RESULT = {
-  score: 85,
-  level: '优秀',
-  dimensions: [
-    { name: '国际私法', score: 88 },
-    { name: '国际经济法', score: 82 },
-    { name: '国际公法', score: 90 },
-    { name: '涉外商事法', score: 79 }
-  ],
-  recommendations: [
-    '加强国际经济法相关条约与WTO规则的学习，重点关注反倾销与反补贴案例。',
-    '巩固涉外商事法中仲裁与诉讼程序的差异，结合典型案例进行实操训练。',
-    '持续关注国际公法前沿动态，提升涉外法律文书写作与法律分析能力。'
-  ],
+  score: 0,
+  level: '暂无',
+  dimensions: [],
+  recommendations: [],
   mode: 'comprehensive',
   specialCategory: ''
 }
@@ -240,10 +231,10 @@ onLoad(() => {
           level: p.level || '良好',
           dimensions: Array.isArray(p.dimensions) && p.dimensions.length
             ? p.dimensions
-            : DEFAULT_RESULT.dimensions,
+            : [],
           recommendations: Array.isArray(p.recommendations) && p.recommendations.length
             ? p.recommendations
-            : DEFAULT_RESULT.recommendations,
+            : [],
           mode: p.mode || 'comprehensive',
           specialCategory: p.specialCategory || ''
         }

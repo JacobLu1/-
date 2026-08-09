@@ -60,6 +60,7 @@
         </header>
 
         <main class="app-content">
+          <view v-if="!loading && !results.length" class="report-empty">暂无测评记录，完成测评后这里会展示成绩趋势和能力分布</view>
           <!-- ===== KPI Stat Cards Row ===== -->
           <view class="dc-section" aria-label="核心指标">
             <view class="kpi-grid">
@@ -71,10 +72,10 @@
                     <view class="kpi-icon kpi-icon-trend"></view>
                   </view>
                 </view>
-                <text class="kpi-card-value">12</text>
+                <text class="kpi-card-value">{{ myAssessmentCount }}</text>
                 <view class="kpi-card-trend">
                   <view class="kpi-arrow-up"></view>
-                  <text>+3 较上月</text>
+                  <text>最近 {{ results.length }} 条已加载</text>
                 </view>
               </view>
               <!-- Card 2: 我的平均得分 -->
@@ -85,10 +86,10 @@
                     <view class="kpi-icon kpi-icon-award"></view>
                   </view>
                 </view>
-                <text class="kpi-card-value">82.5</text>
+                <text class="kpi-card-value">{{ myAvgScore.toFixed(1) }}</text>
                 <view class="kpi-card-trend">
                   <view class="kpi-arrow-up"></view>
-                  <text>+4.2分 较上月</text>
+                  <text>{{ results.length ? '历史平均分' : '暂无记录' }}</text>
                 </view>
               </view>
               <!-- Card 3: 我的最高得分 -->
@@ -99,10 +100,10 @@
                     <view class="kpi-icon kpi-icon-check"></view>
                   </view>
                 </view>
-                <text class="kpi-card-value">91</text>
+                <text class="kpi-card-value">{{ myMaxScore }}</text>
                 <view class="kpi-card-trend new-record">
                   <view class="kpi-icon-star-sm"></view>
-                  <text>新纪录</text>
+                  <text>{{ results.length ? '历史最高分' : '暂无记录' }}</text>
                 </view>
               </view>
               <!-- Card 4: 我的群体排名 -->
@@ -113,10 +114,10 @@
                     <view class="kpi-icon kpi-icon-users"></view>
                   </view>
                 </view>
-                <text class="kpi-card-value">Top 15%</text>
+                <text class="kpi-card-value">{{ myRankText }}</text>
                 <view class="kpi-card-trend">
                   <view class="kpi-arrow-up"></view>
-                  <text>↑5名 较上月</text>
+                  <text>{{ results.length ? '暂不支持排名' : '暂无记录' }}</text>
                 </view>
               </view>
             </view>
@@ -130,7 +131,7 @@
                 <view class="chart-card-header">
                   <view>
                     <text class="chart-card-title">个人成绩趋势</text>
-                    <text class="chart-card-subtitle">近6次测评</text>
+                    <text class="chart-card-subtitle">最近 {{ trendData.length || 0 }} 次测评</text>
                   </view>
                   <view class="chart-filter" aria-label="筛选 月度">
                     <text>月度</text>
@@ -149,7 +150,7 @@
                 <view class="chart-card-header">
                   <view>
                     <text class="chart-card-title">能力维度分布</text>
-                    <text class="chart-card-subtitle">六项核心能力</text>
+                    <text class="chart-card-subtitle">最近一次测评维度</text>
                   </view>
                 </view>
                 <view class="chart-canvas-wrap radar-chart chart-centered">
@@ -199,6 +200,8 @@
                     <view class="dc-table-th dc-th-level">等级</view>
                   </view>
                   <view class="dc-table-tbody">
+                    <view v-if="!comparisonData.length" class="report-empty-table">暂无测评数据</view>
+                    <template v-if="comparisonData.length">
                     <view class="dc-table-tr" v-for="(row, idx) in comparisonData" :key="idx">
                       <view class="dc-table-td dc-td-dim">
                         <view class="dim-name">{{ row.label }}</view>
@@ -207,7 +210,7 @@
                           <text class="dm-sep">·</text>
                           <text class="dm-target">目标 {{ row.target }}</text>
                           <text class="dm-sep">·</text>
-                          <text class="dm-avg">均值 {{ row.avg }}</text>
+                          <text class="dm-avg">均值 {{ row.avg || '-' }}</text>
                         </view>
                       </view>
                       <view class="dc-table-td dc-td-gap">
@@ -240,6 +243,7 @@
                         </view>
                       </view>
                     </view>
+                    </template>
                   </view>
                 </view>
               </view>
@@ -257,23 +261,20 @@ export default {
   name: 'Report',
   onLoad() {
     if (!requireLogin()) return
+    this.loadResults()
   },
   data() {
     return {
+      loading: false,
+      results: [],
+      assessmentTotal: 0,
       // 基础原始数据
-      rawComparison: [
-        { label: '国际法知识',  personal: 85, avg: 76, target: 85 },
-        { label: '涉外民商法',  personal: 72, avg: 74, target: 85 },
-        { label: '国际贸易法',  personal: 78, avg: 71, target: 80 },
-        { label: '国际投资法',  personal: 65, avg: 68, target: 82 },
-        { label: '海商法',      personal: 70, avg: 65, target: 80 },
-        { label: '国际仲裁',    personal: 82, avg: 75, target: 88 }
-      ],
-      trendData: [75, 78, 74, 82, 85, 91],
-      trendLabels: ['2月', '3月', '4月', '5月', '6月', '7月'],
-      radarData: [85, 72, 78, 65, 70, 82],
-      radarLabels: ['国际法', '涉外民商法', '国际贸易法', '国际投资法', '海商法', '国际仲裁'],
-      radarTargets: [85, 85, 80, 82, 80, 88],
+      rawComparison: [],
+      trendData: [],
+      trendLabels: [],
+      radarData: [],
+      radarLabels: [],
+      radarTargets: [],
       // ===== 图表动画与交互状态 =====
       trendHover: -1,
       radarHover: -1,
@@ -306,6 +307,20 @@ export default {
       const m = String(now.getMonth() + 1).padStart(2, '0')
       const d = String(now.getDate()).padStart(2, '0')
       return `${y}年${m}月${d}日`
+    },
+    myAssessmentCount() {
+      return this.assessmentTotal || this.results.length
+    },
+    myAvgScore() {
+      const scores = this.results.map(r => Number(r.score) || 0)
+      return scores.length ? scores.reduce((sum, s) => sum + s, 0) / scores.length : 0
+    },
+    myMaxScore() {
+      const scores = this.results.map(r => Number(r.score) || 0)
+      return scores.length ? Math.max(...scores) : 0
+    },
+    myRankText() {
+      return this.results.length ? '-' : '暂无'
     },
     /**
      * 能力维度测评对比数据
@@ -461,6 +476,70 @@ export default {
         }
       })
     },
+    formatShortDate(ts) {
+      if (!ts) return ''
+      const d = new Date(ts)
+      if (isNaN(d.getTime())) return ''
+      return `${d.getMonth() + 1}-${String(d.getDate()).padStart(2, '0')}`
+    },
+    loadResults() {
+      const token = uni.getStorageSync('token')
+      if (!token) {
+        this.loading = false
+        return
+      }
+      this.loading = true
+      const surveyObj = uniCloud.importObject('survey')
+      surveyObj.myResults({ token, page: 1, pageSize: 20 })
+        .then((r) => {
+          r = r || {}
+          if (r.errCode !== 0) {
+            uni.showToast({ title: r.errMsg || '测评记录加载失败', icon: 'none' })
+            return
+          }
+          const list = r.list || []
+          this.results = list.map(item => ({
+            id: item._id || item.id,
+            score: Number(item.score) || 0,
+            level: item.level || '',
+            mode: item.mode || 'comprehensive',
+            specialCategory: item.specialCategory || '',
+            dimensions: Array.isArray(item.dimensions) ? item.dimensions : [],
+            createDate: item.createDate || 0
+          }))
+          this.assessmentTotal = r.total || list.length
+
+          const sorted = [...this.results].sort((a, b) => (a.createDate || 0) - (b.createDate || 0))
+          this.trendData = sorted.slice(-6).map(item => item.score)
+          this.trendLabels = sorted.slice(-6).map(item => this.formatShortDate(item.createDate))
+
+          const latest = this.results[0] || sorted[sorted.length - 1] || null
+          const dims = (latest && latest.dimensions) || []
+          this.rawComparison = dims.map(d => ({
+            label: d.name || '综合',
+            personal: Number(d.score) || 0,
+            avg: 0,
+            target: 100
+          }))
+          this.radarData = this.rawComparison.map(x => x.personal)
+          this.radarLabels = this.rawComparison.map(x => x.label)
+          this.radarTargets = this.rawComparison.map(x => x.target)
+
+          this.$nextTick(() => {
+            this._trendOk = false
+            this._radarOk = false
+            this.animateTrend()
+            this.animateRadar()
+          })
+        })
+        .catch((err) => {
+          console.error('[report] loadResults error:', err)
+          uni.showToast({ title: (err && err.errMsg) || '测评记录加载失败', icon: 'none' })
+        })
+        .finally(() => {
+          this.loading = false
+        })
+    },
     getCanvasSize(canvasId) {
       return new Promise((resolve) => {
         const query = uni.createSelectorQuery().in(this)
@@ -544,6 +623,15 @@ export default {
         })
 
         const data = this.trendData
+        if (!data.length) {
+          ctx.setFillStyle(mutedColor)
+          ctx.setFontSize(fontSize)
+          const emptyText = '暂无测评数据'
+          const textW = ctx.measureText ? ctx.measureText(emptyText).width : 80
+          ctx.fillText(emptyText, Math.max(2, (W - textW) / 2), H / 2)
+          ctx.draw()
+          return
+        }
         const points = data.map((v, i) => {
           const x = padLeft + i * xStep
           const y = padTop + ((maxVal - v) / (maxVal - minVal)) * plotH
@@ -662,7 +750,7 @@ export default {
         ctx.fillRect(0, 0, W, H)
 
         const levels = [20, 40, 60, 80, 100]
-        const sides = 6
+        const sides = Math.max(3, this.radarData.length || 6)
         levels.forEach(level => {
           const r = (level / 100) * R
           ctx.beginPath()
@@ -691,6 +779,16 @@ export default {
         // 动画进度：数据多边形由中心向外生长 + 淡入
         const p = Math.max(0, Math.min(1, progress))
         const data = this.radarData
+        if (!data.length) {
+          this._radarPoints = []
+          ctx.setFillStyle(mutedColor)
+          ctx.setFontSize(fontSize)
+          const emptyText = '暂无测评数据'
+          const textW = ctx.measureText ? ctx.measureText(emptyText).width : 80
+          ctx.fillText(emptyText, Math.max(2, (W - textW) / 2), H / 2)
+          ctx.draw()
+          return
+        }
         const pts = data.map((v, i) => {
           const angle = (Math.PI * 2 / sides) * i - Math.PI / 2
           const r = (Math.max(0, Math.min(100, v)) / 100) * R * p
@@ -1154,6 +1252,23 @@ export default {
 .app-topbar-title { font-size: 18px; font-weight: 600; color: var(--rule-foreground); }
 .app-topbar-meta { font-size: 13px; color: var(--rule-muted-foreground); }
 .app-content { flex: 1; padding: 32px; }
+
+.report-empty,
+.report-empty-table {
+  color: var(--rule-muted-foreground);
+  font-size: 13px;
+  text-align: center;
+}
+.report-empty {
+  padding: 18px 16px;
+  margin-bottom: 20px;
+  background: var(--rule-card);
+  border: 1px dashed var(--rule-border);
+  border-radius: 12px;
+}
+.report-empty-table {
+  padding: 28px 16px;
+}
 
 /* ============================================================
    Page-specific CSS

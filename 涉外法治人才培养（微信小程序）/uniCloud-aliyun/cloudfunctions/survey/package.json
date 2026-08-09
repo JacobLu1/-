@@ -1,0 +1,7 @@
+{
+  "name": "survey",
+  "dependencies": {},
+  "extensions": {
+    "uni-cloud-jql": {}
+  }
+}

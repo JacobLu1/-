@@ -48,6 +48,7 @@
             <text>学习模块</text>
           </view>
         </view>
+        <view v-if="!modules.length" class="res-empty">暂无学习模块</view>
         <view class="mod-grid">
           <view
             class="mod-card"
@@ -72,6 +73,36 @@
         </view>
       </view>
 
+      <!-- 法律英语资源 -->
+      <view class="sec">
+        <view class="sec-head">
+          <view class="t">
+            <view class="bar"></view>
+            <text>法律英语资源</text>
+          </view>
+          <view class="sec-more">
+            <text>{{ englishResources.length }} 项</text>
+          </view>
+        </view>
+        <view v-if="!englishResources.length" class="res-empty">暂无资源</view>
+        <view class="mod-grid">
+          <view
+            class="mod-card"
+            v-for="(res, idx) in englishResources"
+            :key="idx"
+            hover-class="mod-hover"
+            @click="onResource(res)"
+          >
+            <view class="mod-ico" :class="'mod-ico-' + ((idx % 4) + 1)">
+              <text :class="res.icon"></text>
+            </view>
+            <view class="mod-name">{{ res.title }}</view>
+            <view class="mod-lv">{{ res.level }}</view>
+            <text class="mod-desc">{{ res.description || '暂无简介' }}</text>
+          </view>
+        </view>
+      </view>
+
       <!-- 今日词汇 -->
       <view class="sec">
         <view class="sec-head">
@@ -84,7 +115,7 @@
             <text class="ri-arrow-right-s-line"></text>
           </view>
         </view>
-        <view class="word-card">
+        <view v-if="words.length" class="word-card">
           <view
             class="word-row"
             v-for="(word, idx) in words"
@@ -98,6 +129,7 @@
             <text class="word-star" :class="word.starred ? 'ri-star-fill starred' : 'ri-star-line'" @click.stop="toggleStar(word)"></text>
           </view>
         </view>
+        <view v-else class="res-empty">暂无词汇数据</view>
       </view>
 
       <!-- 底部提示 -->
@@ -110,36 +142,91 @@
 </template>
 
 <script>
+import { resolveResourceUrl } from '@/utils/video-config.js'
+
 export default {
   data() {
     return {
       statusBarHeight: 0,
-      overallPercent: 70,
-      stats: [
-        { icon: 'ri-medal-line', val: '12天', label: '连续学习' },
-        { icon: 'ri-bookmark-line', val: '386词', label: '累计掌握' },
-        { icon: 'ri-time-line', val: '2.5h', label: '本周学习' }
-      ],
-      modules: [
-        { name: '词汇积累', level: 'L2', percent: 60, icon: 'ri-book-open-line' },
-        { name: '术语精讲', level: 'L3', percent: 45, icon: 'ri-file-list-3-line' },
-        { name: '听力训练', level: 'L2', percent: 30, icon: 'ri-mic-line', url: '/pages/legal-english/listening-training' },
-        { name: '实战练习', level: 'L1', percent: 20, icon: 'ri-question-answer-line' }
-      ],
-      words: [
-        { en: 'Arbitration', phonetic: '/ˌɑːbɪˈtreɪʃn/', cn: '仲裁', starred: true },
-        { en: 'Jurisdiction', phonetic: '/ˌdʒʊərɪsˈdɪkʃn/', cn: '管辖权', starred: false },
-        { en: 'Force Majeure', phonetic: '/ˌfɔːs mæˈʒɜː/', cn: '不可抗力', starred: false },
-        { en: 'Breach of Contract', phonetic: '/briːtʃ əv ˈkɒntrækt/', cn: '违约', starred: false },
-        { en: 'Liability', phonetic: '/ˌlaɪəˈbɪləti/', cn: '责任', starred: false },
-        { en: 'Governing Law', phonetic: '/ˈɡʌvənɪŋ lɔː/', cn: '准据法', starred: false }
-      ]
+      resourceLoading: false,
+      englishResources: [],
+      overallPercent: 0,
+      stats: [],
+      modules: [],
+      words: []
     }
   },
   onLoad() {
     this.statusBarHeight = this.getStatusBarHeight()
+    this.loadEnglishResources()
   },
   methods: {
+    async loadEnglishResources() {
+      if (this.resourceLoading) return
+      this.resourceLoading = true
+      try {
+        const resourcesObj = uniCloud.importObject('resources')
+        const r = (await resourcesObj.listPublic({ type: 'english' })) || {}
+        if (r.errCode !== 0) {
+          uni.showToast({ title: r.errMsg || '资源加载失败', icon: 'none' })
+          return
+        }
+        const list = r.list || []
+        this.englishResources = list.map((d) => ({
+          id: d._id,
+          title: d.title || '未命名资源',
+          category: d.cat || '未分类',
+          level: d.meta || '',
+          fileUrl: d.fileUrl || '',
+          description: d.description || '',
+          icon: this.resourceIcon(d.cat)
+        }))
+        const catCount = {}
+        const moduleIcons = {
+          '词汇积累': 'ri-book-open-line',
+          '术语精讲': 'ri-file-list-3-line',
+          '听力训练': 'ri-mic-line',
+          '实战练习': 'ri-question-answer-line'
+        }
+        list.forEach(d => {
+          const name = d.cat || '其他'
+          catCount[name] = (catCount[name] || 0) + 1
+        })
+        this.modules = Object.keys(catCount).map((name, index) => ({
+          name,
+          level: 'L' + Math.min(index + 2, 4),
+          percent: 0,
+          icon: moduleIcons[name] || 'ri-book-line',
+          url: name === '听力训练' ? '/pages/legal-english/listening-training' : ''
+        }))
+        this.stats = [
+          { icon: 'ri-file-list-3-line', val: String(list.length), label: '英语资源' },
+          { icon: 'ri-bookmark-line', val: String(this.modules.length), label: '学习模块' }
+        ]
+      } catch (e) {
+        uni.showToast({ title: (e && e.errMsg) || '资源加载失败', icon: 'none' })
+      } finally {
+        this.resourceLoading = false
+      }
+    },
+    resourceIcon(cat) {
+      if (cat === '词汇积累') return 'ri-book-open-line'
+      if (cat === '术语精讲') return 'ri-file-list-3-line'
+      if (cat === '听力训练') return 'ri-mic-line'
+      if (cat === '实战练习') return 'ri-question-answer-line'
+      return 'ri-book-line'
+    },
+    onResource(res) {
+      const url = resolveResourceUrl(res.fileUrl)
+      if (!url) {
+        uni.showToast({ title: '该资源暂未配置文件地址', icon: 'none' })
+        return
+      }
+      uni.setClipboardData({
+        data: url,
+        success: () => uni.showToast({ title: '资源地址已复制，可在浏览器打开', icon: 'none' })
+      })
+    },
     getStatusBarHeight() {
       try {
         return uni.getWindowInfo().statusBarHeight || 0
@@ -499,6 +586,29 @@ page {
 .mod-go {
   font-size: 28rpx;
   color: #2E7BE0;
+}
+
+.mod-desc {
+  display: -webkit-box;
+  margin-top: 12rpx;
+  font-size: 22rpx;
+  line-height: 1.5;
+  color: #7A92B0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.res-empty {
+  padding: 40rpx 24rpx;
+  border-radius: 28rpx;
+  border: 2rpx dashed rgba(120, 160, 210, 0.35);
+  background: var(--glass-2);
+  color: #7A92B0;
+  font-size: 24rpx;
+  text-align: center;
 }
 
 /* ===== 今日词汇 ===== */

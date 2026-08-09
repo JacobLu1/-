@@ -64,18 +64,15 @@
         <!-- ===== 1. Header bar ===== -->
         <div class="vd-header-bar">
           <div class="vd-title-area">
-            <h1 class="vd-video-title">国际商事仲裁实务精讲</h1>
+            <h1 class="vd-video-title">{{ currentTitle }}</h1>
             <div class="vd-video-meta">
               <span class="vd-meta-item">
-                <i data-lucide="user"></i> XXX 教授
+                <i data-lucide="user"></i> {{ currentCategory }}
               </span>
               <span class="vd-meta-item">
-                <i data-lucide="eye"></i> 3,286 次播放
+                <i data-lucide="clock"></i> 总时长 {{ currentDuration }}
               </span>
-              <span class="vd-meta-item">
-                <i data-lucide="clock"></i> 总时长 45:30
-              </span>
-              <span class="vd-meta-tag">国际仲裁</span>
+              <span class="vd-meta-tag">{{ currentCategory }}</span>
             </div>
           </div>
         </div>
@@ -225,6 +222,7 @@
               <span class="vd-outline-progress">已学 {{ completedLessons }}/{{ lessons.length }} 课时</span>
             </div>
             <div class="vd-outline-list">
+              <div v-if="!lessons.length" class="vd-empty">暂无课程章节</div>
               <div v-for="(lesson, index) in lessons" 
                    :key="index" 
                    class="vd-lesson-item"
@@ -251,9 +249,7 @@
           <div class="vd-info-card">
             <h2 class="vd-info-card-title">课程简介</h2>
             <div class="vd-desc-text">
-              <p>本课程系统讲解国际商事仲裁的核心制度与实务操作，涵盖仲裁协议、仲裁庭组成、程序规则、裁决执行等关键环节。</p>
-              <p>课程结合最新国际仲裁案例，深入分析《纽约公约》适用、仲裁地选择、仲裁员回避等实务难点，帮助学员建立完整的仲裁实务知识体系。</p>
-              <p>适合有一定国际法基础、希望深入学习国际争端解决机制的法律从业者及法学研究生。</p>
+              <p>{{ currentResource.description || '暂无课程简介' }}</p>
             </div>
           </div>
           <!-- Instructor -->
@@ -262,11 +258,11 @@
             <div class="vd-instructor">
               <div class="vd-instructor-avatar">王</div>
               <div class="vd-instructor-info">
-                <div class="vd-instructor-name">王XX</div>
-                <div class="vd-instructor-title">中国XX大学 教授 / 博士生导师</div>
+                <div class="vd-instructor-name">暂无讲师数据</div>
+                <div class="vd-instructor-title">资源库暂未配置讲师信息</div>
               </div>
             </div>
-            <p class="vd-instructor-bio">王XX教授长期从事国际商事仲裁研究，曾任中国国际经济贸易仲裁委员会(CIETAC)仲裁员，主持多项国家社科基金项目，出版《国际商事仲裁实务指南》等专著 5 部，在核心期刊发表论文 40 余篇。</p>
+            <p class="vd-instructor-bio">讲师信息后续由资源管理端补充。</p>
           </div>
         </div>
 
@@ -280,7 +276,7 @@
             <div v-for="(video, index) in recommendedVideos" 
                  :key="index" 
                  class="video-card"
-                 @click="navigateTo('/pages/learning-center/video-detail')">
+                 @click="navigateTo('/pages/learning-center/video-detail?id=' + video.id)">
               <div class="video-thumb">
                 <div class="video-thumb-gradient" :style="{background: video.gradient}"></div>
                 <div class="video-play-overlay">
@@ -300,6 +296,7 @@
                 </div>
               </div>
             </div>
+            <div v-if="!recommendedVideos.length" class="vd-empty">暂无推荐视频</div>
           </div>
         </section>
 
@@ -312,7 +309,7 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { onLoad, onShow, onHide, onUnload } from '@dcloudio/uni-app'
 import { requireLogin, getDisplayName, getLevelText } from '@/utils/auth.js'
-import { getVideoUrl } from '@/utils/video-config.js'
+import { resolveResourceUrl } from '@/utils/video-config.js'
 
 // 用户信息
 const userName = ref(getDisplayName())
@@ -326,23 +323,19 @@ const todayDateText = computed(() => {
   return `${y}年${m}月${d}日`
 })
 
-// 课程数据
-const lessons = ref([
-  { title: '课程导论与仲裁概述', duration: '05:20', done: true },
-  { title: '国际商事仲裁程序框架', duration: '08:15', done: true },
-  { title: '仲裁协议的效力认定', duration: '07:30', done: false },
-  { title: '仲裁庭的组成与管辖权', duration: '09:45', done: false },
-  { title: '仲裁裁决的执行与救济', duration: '08:10', done: false },
-  { title: '典型案例研讨与答疑', duration: '06:30', done: false }
-])
+// 课程数据：由当前 resource 生成，不再写死章节
+const lessons = ref([])
 
 // ==================== 播放器状态 ====================
 const playerCardRef = ref(null)
-// 视频地址由 utils/video-config.js 统一提供：
-// 本地开发走相对路径 /backend/video/，上线时在 video-config.js 填 VIDEO_BASE_ONLINE 云存储地址
-const videoSrc = getVideoUrl('video_intl_arbitration_0.mp4')
+const currentResource = ref(null)
+const currentTitle = ref('视频学习详情')
+const currentCategory = ref('涉外法治')
+const currentDuration = ref('--:--')
+// 视频地址必须由 resource.fileUrl 提供，不配置时不再回退到默认示例视频
+const videoSrc = ref('')
 // 进度记忆存储 key
-const PROGRESS_KEY = 'vd_progress_video_intl_arbitration_0'
+let progressKey = 'vd_progress_'
 
 const isPlaying = ref(false)
 const isBuffering = ref(false)
@@ -362,16 +355,11 @@ const speedOptions = [0.5, 0.75, 1, 1.25, 1.5, 2]
 
 const visibleSections = ref([false, false, false])
 
-// 推荐视频数据
-const recommendedVideos = ref([
-  { title: 'WTO争端解决机制解析', duration: '38:15', instructor: '李明远教授', gradient: 'linear-gradient(135deg, #CCFBF1, #99F6E4)' },
-  { title: '跨境投资法律风险防控', duration: '52:00', instructor: '张晓燕教授', gradient: 'linear-gradient(135deg, #EDE9FE, #DDD6FE)' },
-  { title: '国际海商法典型案例', duration: '41:20', instructor: '陈志强教授', gradient: 'linear-gradient(135deg, #FEF3C7, #FDE68A)' },
-  { title: '国际合同起草实务指南', duration: '33:45', instructor: '刘文涛教授', gradient: 'linear-gradient(135deg, #DBEAFE, #BFDBFE)' }
-])
+// 推荐视频：由资源库真实视频生成
+const recommendedVideos = ref([])
 
 // 计算属性
-const activeLesson = ref(2)
+const activeLesson = ref(0)
 
 const completedLessons = computed(() => {
   return lessons.value.filter(l => l.done).length
@@ -507,7 +495,7 @@ const onProgress = () => {
 // 彻底清除已保存的播放进度（本页面不持久化进度，页面关闭/离开时清除，保证下次从 0:00 开始）
 const clearProgress = () => {
   try {
-    uni.removeStorageSync(PROGRESS_KEY)
+    uni.removeStorageSync(progressKey)
   } catch (e) {}
 }
 
@@ -804,7 +792,7 @@ onUnload(() => {
   clearProgress()
 })
 
-onLoad(() => {
+onLoad(async (options) => {
   // 登录鉴权：未登录跳转登录页
   if (!requireLogin()) return
   try {
@@ -813,7 +801,67 @@ onLoad(() => {
       userName.value = info.name
     }
   } catch (e) {}
+  if (options && options.id) {
+    await loadResource(options.id)
+    await loadRecommended(options.id)
+  }
 })
+
+async function loadResource(id) {
+  try {
+    const resourcesObj = uniCloud.importObject('resources')
+    const r = (await resourcesObj.get({ id })) || {}
+    if (r.errCode !== 0) {
+      uni.showToast({ title: r.errMsg || '资源加载失败', icon: 'none' })
+      return
+    }
+    const doc = r.doc
+    currentResource.value = doc
+    currentTitle.value = doc.title || '未命名视频'
+    currentCategory.value = doc.cat || '未分类'
+    currentDuration.value = doc.meta || '--:--'
+    lessons.value = [{
+      title: doc.title || '本课视频',
+      duration: doc.meta || '--:--',
+      done: false
+    }]
+    activeLesson.value = 0
+    const resolved = resolveResourceUrl(doc.fileUrl)
+    videoSrc.value = resolved
+    if (!resolved) {
+      videoError.value = '该资源暂未配置文件地址'
+    }
+    progressKey = `vd_progress_${id}`
+  } catch (e) {
+    uni.showToast({ title: (e && e.errMsg) || '资源加载失败', icon: 'none' })
+  }
+}
+
+async function loadRecommended(currentId) {
+  try {
+    const resourcesObj = uniCloud.importObject('resources')
+    const r = (await resourcesObj.listPublic({ type: 'video' })) || {}
+    if (r.errCode !== 0) return
+    const gradients = [
+      'linear-gradient(135deg, #CCFBF1, #99F6E4)',
+      'linear-gradient(135deg, #EDE9FE, #DDD6FE)',
+      'linear-gradient(135deg, #FEF3C7, #FDE68A)',
+      'linear-gradient(135deg, #DBEAFE, #BFDBFE)'
+    ]
+    recommendedVideos.value = (r.list || [])
+      .filter(d => d._id !== currentId)
+      .slice(0, 4)
+      .map((doc, idx) => ({
+        id: doc._id,
+        title: doc.title,
+        duration: doc.meta || '--:--',
+        instructor: doc.description || '',
+        gradient: gradients[idx % gradients.length]
+      }))
+  } catch (e) {
+    console.error('[video-detail] recommended load error:', e)
+  }
+}
 </script>
 
 <style scoped>
@@ -1565,6 +1613,15 @@ onLoad(() => {
 .vd-outline-progress {
   font-size: 12px;
   color: var(--rule-muted-foreground);
+}
+
+.vd-empty {
+  padding: 28px 16px;
+  border: 1px dashed var(--rule-border);
+  border-radius: 12px;
+  color: var(--rule-muted-foreground);
+  font-size: 13px;
+  text-align: center;
 }
 
 .vd-outline-list {

@@ -8,7 +8,7 @@
         <text class="search-ico ri-search-line"></text>
         <input class="search-input" type="text" placeholder="搜索课程、法规、案例" placeholder-class="search-placeholder" />
       </view>
-      <view class="avatar-btn" hover-class="avatar-hover" @click="navTo('/pages/profile/profile')">陆</view>
+      <view class="avatar-btn" hover-class="avatar-hover" @click="navTo('/pages/profile/profile')">{{ avatarText }}</view>
     </view>
 
     <!-- 外部滚动区：整个页面随内容一起滚动（与 data.vue 保持一致） -->
@@ -25,18 +25,18 @@
         <view class="deco2 ri-sparkling-2-line"></view>
 
         <view class="greet">
-          <text>你好，陆知远</text>
+          <text>你好，{{ displayName }}</text>
           <text class="wave ri-emotion-happy-line"></text>
         </view>
         <view class="sub">今天也要为涉外法治精进加油</view>
 
         <view class="today">
           <view class="mins">
-            <text class="num">45</text>
+            <text class="num">{{ todayMinutes }}</text>
             <text class="unit"> 分钟</text>
-            <text class="target"> / 目标 60 分钟</text>
+            <text class="target"> / 目标 {{ todayTarget }} 分钟</text>
           </view>
-          <view class="goal">75%</view>
+          <view class="goal">{{ todayPercent }}%</view>
         </view>
         <view class="pbar">
           <view class="pbar-inner" :style="{ width: progressWidth + '%' }"></view>
@@ -81,6 +81,7 @@
             </view>
           </view>
         </scroll-view>
+        <view v-if="!videoList.length" class="vcard-empty">暂无视频资源</view>
       </view>
 
       <!-- 4) 能力技能提升 -->
@@ -124,6 +125,7 @@
             </view>
           </view>
         </view>
+        <view v-if="!skillList.length" class="index-empty">暂无能力数据</view>
       </view>
 
       <!-- 5) 为你推荐 -->
@@ -139,7 +141,7 @@
           </view>
         </view>
         <view class="rec-list">
-          <view class="rcard" v-for="(rec, idx) in recList" :key="idx" hover-class="rcard-hover">
+          <view class="rcard" v-for="(rec, idx) in recList" :key="idx" hover-class="rcard-hover" @click="openRec(rec)">
             <view class="rthumb" :class="'rthumb-' + (idx + 1)">
               <text class="rthumb-ico" :class="rec.icon"></text>
             </view>
@@ -154,6 +156,7 @@
             <view class="rchev ri-arrow-right-s-line"></view>
           </view>
         </view>
+        <view v-if="!recList.length" class="index-empty">暂无推荐资源</view>
       </view>
     </scroll-view>
 
@@ -179,7 +182,12 @@ export default {
   data() {
     return {
       progressWidth: 0,
+      todayMinutes: '--',
+      todayTarget: '--',
+      todayPercent: '--',
       statusBarHeight: 0,
+      displayName: '用户',
+      avatarText: '用',
       // AI 悬浮按钮拖动状态
       fabLeft: 0,
       fabTop: 0,
@@ -193,38 +201,10 @@ export default {
       fabMoved: false,
       fabMoving: false,
       fabOnLeft: false,
-      videoList: [
-        { title: '国际商事仲裁实务', duration: '24:18', progress: 75 },
-        { title: '跨境合规与出口管制', duration: '31:05', progress: 40 },
-        { title: 'WTO争端解决机制', duration: '18:42', progress: 90 },
-        { title: '涉外合同起草要点', duration: '27:33', progress: 15 },
-        { title: '法律英语写作进阶', duration: '22:09', progress: 60 }
-      ],
-      skillList: [
-        { name: '法律检索', level: 'L4', percent: 82, icon: 'ri-search-line' },
-        { name: '案例分析', level: 'L3', percent: 68, icon: 'ri-file-text-line' },
-        { name: '法律文书写作', level: 'L3', percent: 75, icon: 'ri-edit-2-line' },
-        { name: '跨文化谈判', level: 'L2', percent: 54, icon: 'ri-briefcase-4-line' },
-        { name: '庭审辩论', level: 'L2', percent: 61, icon: 'ri-scales-3-line' },
-        { name: '法律英语', level: 'L3', percent: 70, icon: 'ri-earth-line', url: '/pages/legal-english/legal-english' }
-      ],
-      recList: [
-        { 
-          title: '《承认与执行外国判决的新发展》', 
-          tag1: '国际私法', tag2: '进阶', tagColor: 'violet', 
-          duration: '阅读 · 18 分钟', icon: 'ri-book-open-line' 
-        },
-        { 
-          title: 'CISG适用案例精讲', 
-          tag1: '国际商法', tag2: '实战', tagColor: 'amber', 
-          duration: '视频 · 32 分钟', icon: 'ri-video-line' 
-        },
-        { 
-          title: '数据跨境流动合规指南', 
-          tag1: '数据合规', tag2: '进阶', tagColor: 'violet', 
-          duration: '阅读 · 25 分钟', icon: 'ri-earth-line' 
-        }
-      ]
+      resourceLoading: false,
+      videoList: [],
+      skillList: [],
+      recList: []
     }
   },
   onReady() {
@@ -239,11 +219,20 @@ export default {
     this.fabLeft = this.winW - 36 * pr - this.fabW
     this.fabTop = this.winH - 200 * pr - this.fabW
     this.fabOnLeft = this.fabLeft + this.fabW / 2 < this.winW / 2
-    setTimeout(() => {
-      this.progressWidth = 75
-    }, 200)
+  },
+  onShow() {
+    this.loadUserInfo()
+    this.loadVideos()
+    this.loadRecommendations()
   },
   methods: {
+    loadUserInfo() {
+      const app = getApp()
+      const user = (app && app.globalData && app.globalData.userInfo) || uni.getStorageSync('userInfo') || {}
+      const name = (user && (user.name || user.account)) || '用户'
+      this.displayName = String(name).trim() || '用户'
+      this.avatarText = (this.displayName || '用').slice(0, 1).toUpperCase()
+    },
     getStatusBarHeight() {
       try {
         return uni.getWindowInfo().statusBarHeight || 0
@@ -253,6 +242,54 @@ export default {
         } catch (err) {
           return 0
         }
+      }
+    },
+    async loadVideos() {
+      if (this.resourceLoading) return
+      this.resourceLoading = true
+      try {
+        const resourcesObj = uniCloud.importObject('resources')
+        const r = (await resourcesObj.listPublic({ type: 'video' })) || {}
+        if (r.errCode !== 0) {
+          uni.showToast({ title: r.errMsg || '视频加载失败', icon: 'none' })
+          return
+        }
+        this.videoList = (r.list || []).map((d) => ({
+          id: d._id,
+          title: d.title || '未命名视频',
+          duration: d.meta || '--:--',
+          progress: 0,
+          fileUrl: d.fileUrl || '',
+          description: d.description || ''
+        }))
+      } catch (e) {
+        uni.showToast({ title: (e && e.errMsg) || '视频加载失败', icon: 'none' })
+      } finally {
+        this.resourceLoading = false
+      }
+    },
+    async loadRecommendations() {
+      try {
+        const resourcesObj = uniCloud.importObject('resources')
+        const r = (await resourcesObj.listPublic({ type: 'all' })) || {}
+        if (r.errCode !== 0) {
+          uni.showToast({ title: r.errMsg || '推荐资源加载失败', icon: 'none' })
+          return
+        }
+        this.recList = (r.list || []).slice(0, 3).map((d, index) => ({
+          id: d._id,
+          type: d.type,
+          title: d.title || '未命名资源',
+          tag1: d.cat || (d.type === 'video' ? '视频资源' : '英语资源'),
+          tag2: d.type === 'video' ? '视频' : '学习',
+          tagColor: index % 2 ? 'amber' : 'violet',
+          duration: d.meta || (d.type === 'video' ? '视频' : '阅读'),
+          icon: d.type === 'video' ? 'ri-video-line' : 'ri-book-open-line',
+          fileUrl: d.fileUrl || '',
+          description: d.description || ''
+        }))
+      } catch (e) {
+        uni.showToast({ title: (e && e.errMsg) || '推荐资源加载失败', icon: 'none' })
       }
     },
     scrollToVideos() {
@@ -275,13 +312,22 @@ export default {
         }
       })
     },
+    openRec(rec) {
+      if (rec.type === 'video' && rec.id) {
+        uni.navigateTo({
+          url: '/pages/video-detail/video-detail?id=' + encodeURIComponent(rec.id) + '&title=' + encodeURIComponent(rec.title || '')
+        })
+      } else if (rec.type === 'english') {
+        uni.navigateTo({ url: '/pages/legal-english/legal-english' })
+      }
+    },
     // 点击视频卡片 -> 进入视频学习详情页（带防连点，避免路由竞争）
     openVideo(video) {
       if (this._navLocking) return
       this._navLocking = true
       setTimeout(() => { this._navLocking = false }, 600)
       uni.navigateTo({
-        url: '/pages/video-detail/video-detail?title=' + encodeURIComponent(video.title) + '&duration=' + encodeURIComponent(video.duration)
+        url: '/pages/video-detail/video-detail?id=' + encodeURIComponent(video.id || '') + '&title=' + encodeURIComponent(video.title || '') + '&duration=' + encodeURIComponent(video.duration || '')
       })
     },
     // 点击技能卡片 -> 有对应学习页则进入（带防连点，避免路由竞争）
@@ -733,6 +779,19 @@ page {
 .vcard-hover {
   transform: scale(0.97);
 }
+.vcard-empty {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 312rpx;
+  min-height: 220rpx;
+  border-radius: var(--r-md);
+  border: 2rpx dashed rgba(120, 160, 210, 0.35);
+  background: var(--glass-2);
+  color: var(--muted);
+  font-size: 26rpx;
+  white-space: normal;
+}
 .vthumb {
   position: relative;
   height: 150rpx;
@@ -816,6 +875,12 @@ page {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 24rpx;
+}
+.index-empty {
+  padding: 32rpx 8rpx;
+  text-align: center;
+  font-size: 24rpx;
+  color: var(--muted);
 }
 .scard {
   position: relative;

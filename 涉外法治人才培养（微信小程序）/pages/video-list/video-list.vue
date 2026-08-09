@@ -37,6 +37,8 @@
       </view>
     </scroll-view>
 
+    <view v-if="!videoList.length" class="vl-empty">暂无视频资源</view>
+
     <!-- 底部提示 -->
     <view class="vl-tip">
       <text class="vl-tip-ico ri-arrow-right-s-line"></text>
@@ -50,17 +52,13 @@ export default {
   data() {
     return {
       statusBarHeight: 0,
-      videoList: [
-        { title: '国际商事仲裁实务', duration: '24:18', progress: 75 },
-        { title: '跨境合规与出口管制', duration: '31:05', progress: 40 },
-        { title: 'WTO争端解决机制', duration: '18:42', progress: 90 },
-        { title: '涉外合同起草要点', duration: '27:33', progress: 15 },
-        { title: '法律英语写作进阶', duration: '22:09', progress: 60 }
-      ]
+      resourceLoading: false,
+      videoList: []
     }
   },
   onLoad() {
     this.statusBarHeight = this.getStatusBarHeight()
+    this.loadVideos()
   },
   methods: {
     getStatusBarHeight() {
@@ -81,13 +79,37 @@ export default {
         }
       })
     },
+    async loadVideos() {
+      if (this.resourceLoading) return
+      this.resourceLoading = true
+      try {
+        const resourcesObj = uniCloud.importObject('resources')
+        const r = (await resourcesObj.listPublic({ type: 'video' })) || {}
+        if (r.errCode !== 0) {
+          uni.showToast({ title: r.errMsg || '视频加载失败', icon: 'none' })
+          return
+        }
+        this.videoList = (r.list || []).map((d) => ({
+          id: d._id,
+          title: d.title || '未命名视频',
+          duration: d.meta || '--:--',
+          progress: 0,
+          fileUrl: d.fileUrl || '',
+          description: d.description || ''
+        }))
+      } catch (e) {
+        uni.showToast({ title: (e && e.errMsg) || '视频加载失败', icon: 'none' })
+      } finally {
+        this.resourceLoading = false
+      }
+    },
     // 选择视频 -> 进入视频学习详情页（带防连点，避免路由竞争）
     openVideo(video) {
       if (this._navLocking) return
       this._navLocking = true
       setTimeout(() => { this._navLocking = false }, 600)
       uni.navigateTo({
-        url: '/pages/video-detail/video-detail?title=' + encodeURIComponent(video.title) + '&duration=' + encodeURIComponent(video.duration)
+        url: '/pages/video-detail/video-detail?id=' + encodeURIComponent(video.id || '') + '&title=' + encodeURIComponent(video.title || '') + '&duration=' + encodeURIComponent(video.duration || '')
       })
     }
   }
@@ -280,6 +302,17 @@ page {
 }
 
 /* ===== 底部提示 ===== */
+.vl-empty {
+  padding: 48rpx 32rpx;
+  margin: 0 32rpx 24rpx;
+  border-radius: 28rpx;
+  background: var(--glass-2);
+  border: 2rpx dashed rgba(120, 160, 210, 0.35);
+  color: var(--muted);
+  font-size: 26rpx;
+  text-align: center;
+}
+
 .vl-tip {
   margin: 8rpx 0 40rpx;
   display: flex;

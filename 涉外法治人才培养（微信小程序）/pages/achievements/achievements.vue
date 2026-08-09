@@ -11,6 +11,7 @@
     </view>
 
     <scroll-view scroll-y class="screen" scroll-with-animation>
+      <view v-if="!achievements.length" class="ach-empty">暂无成就</view>
       <view class="ach-grid">
         <view
           class="ach-badge"
@@ -35,12 +36,7 @@ export default {
   data() {
     return {
       statusBarHeight: 0,
-      achievements: [
-        { name: '仲裁新锐', date: '2024.03', ico: 'ri-scales-3-line', bg: 'linear-gradient(135deg, #5B9DF9, #2E7BE0)' },
-        { name: '合规达人', date: '2024.05', ico: 'ri-shield-check-line', bg: 'linear-gradient(135deg, #8B5CF6, #6D28D9)' },
-        { name: '双语法律人', date: '2024.06', ico: 'ri-earth-line', bg: 'linear-gradient(135deg, #06B6D4, #0891B2)' },
-        { name: '连续打卡30天', date: '2024.07', ico: 'ri-calendar-line', bg: 'linear-gradient(135deg, #F59E0B, #D97706)' }
-      ]
+      achievements: []
     }
   },
   onReady() {
@@ -144,6 +140,12 @@ page { height: 100vh; overflow: hidden; }
   -webkit-overflow-scrolling: touch;
 }
 
+.ach-empty {
+  padding: 80rpx 40rpx;
+  text-align: center;
+  font-size: 26rpx;
+  color: var(--muted);
+}
 .ach-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
