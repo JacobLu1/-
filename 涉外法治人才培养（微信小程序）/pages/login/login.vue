@@ -183,7 +183,7 @@ export default {
         return
       }
       // 调用 users 云对象（与网页端共用同一服务空间）
-      const usersObj = uniCloud.importObject('users')
+    const usersObj = uniCloud.importObject('users', { customUI: true })
       usersObj.login({ account: this.phone, password: this.password, role: 'user' })
         .then((r) => {
           r = r || {}

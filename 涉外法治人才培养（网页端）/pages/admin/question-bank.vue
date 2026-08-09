@@ -413,7 +413,7 @@ function toRow(doc) {
 
 async function loadQuestions() {
   try {
-    const questionsObj = uniCloud.importObject('questions')
+    const questionsObj = uniCloud.importObject('questions', { customUI: true })
     const r = (await questionsObj.list({ adminToken: getAdminToken(), type: 'all', page: 1, pageSize: 200 })) || {}
     if (r.errCode === 0) {
       questions.value = (r.list || []).map(toRow)
@@ -427,7 +427,7 @@ async function loadQuestions() {
 
 async function loadStats() {
   try {
-    const questionsObj = uniCloud.importObject('questions')
+    const questionsObj = uniCloud.importObject('questions', { customUI: true })
     const r = (await questionsObj.stats({ adminToken: getAdminToken() })) || {}
     if (r.errCode === 0) {
       statsData.total = r.total || 0
@@ -533,7 +533,7 @@ const saveQuestion = async () => {
     status: formStatus.value
   }
   try {
-    const questionsObj = uniCloud.importObject('questions')
+    const questionsObj = uniCloud.importObject('questions', { customUI: true })
     const r = editingId.value
       ? (await questionsObj.update({ adminToken: getAdminToken(), id: editingId.value, data })) || {}
       : (await questionsObj.add({ adminToken: getAdminToken(), data })) || {}
@@ -558,7 +558,7 @@ const handleDelete = (q) => {
     success: async (res) => {
       if (res.confirm) {
         try {
-          const questionsObj = uniCloud.importObject('questions')
+    const questionsObj = uniCloud.importObject('questions', { customUI: true })
           const r = (await questionsObj.remove({ adminToken: getAdminToken(), id: q.id })) || {}
           if (r.errCode === 0) {
             uni.showToast({ title: '已删除', icon: 'success' })

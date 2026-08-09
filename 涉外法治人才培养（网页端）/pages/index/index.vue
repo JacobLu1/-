@@ -83,7 +83,7 @@
           <view id="reveal-2" :class="['feature-text', 'reveal', visibleSet.has('reveal-2') ? 'visible' : '']" style="--reveal-delay: 0.00s"
           >
             <view class="feature-eyebrow">
-              <text class="eyebrow-icon">↝</text>
+              <text class="eyebrow-icon">📊</text>
               <text class="eyebrow-text">数据分析</text>
             </view>
             <text class="feature-heading">智能数据分析</text>
@@ -150,7 +150,7 @@
         <view id="reveal-4" :class="['section-head', 'reveal', visibleSet.has('reveal-4') ? 'visible' : '']" style="--reveal-delay: 0.00s"
         >
           <view class="feature-eyebrow">
-            <text class="eyebrow-icon">⚡</text>
+            <text class="eyebrow-icon">📚</text>
             <text class="eyebrow-text">资源与工具</text>
           </view>
           <text class="feature-heading">权威法律库与智能助手</text>
@@ -160,7 +160,7 @@
           <view id="reveal-5" :class="['dual-card', 'reveal', visibleSet.has('reveal-5') ? 'visible' : '']" style="--reveal-delay: 0.10s"
           >
             <view class="icon-badge">
-              <text class="badge-icon">⚖</text>
+              <text class="badge-icon">📖</text>
             </view>
             <text class="card-title">权威法律库</text>
             <text class="card-desc">汇聚国际公约、双边协定、涉外法律法规与典型案例，提供条目检索、条款对照与版本溯源，为测评与学习提供权威法源支撑。</text>
@@ -169,7 +169,7 @@
           <view id="reveal-6" :class="['dual-card', 'reveal', visibleSet.has('reveal-6') ? 'visible' : '']" style="--reveal-delay: 0.25s"
           >
             <view class="icon-badge">
-              <text class="badge-icon">◉</text>
+              <text class="badge-icon">🤖</text>
             </view>
             <text class="card-title">AI智能助手</text>
             <text class="card-desc">7×24小时在线法律咨询，支持测评答疑、条文解读与学习路径推荐。结合测评结果智能匹配提升建议，让专业指导随时可达。</text>
@@ -292,7 +292,7 @@ const overview = reactive({
 
 async function loadOverview() {
   try {
-    const usersObj = uniCloud.importObject('users')
+    const usersObj = uniCloud.importObject('users', { customUI: true })
     const r = (await usersObj.overview()) || {}
     if (r.errCode === 0) {
       overview.questionCount = r.questionCount || 0

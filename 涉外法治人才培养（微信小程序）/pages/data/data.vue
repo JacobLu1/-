@@ -227,7 +227,7 @@ export default {
         return
       }
       try {
-        const surveyObj = uniCloud.importObject('survey')
+    const surveyObj = uniCloud.importObject('survey', { customUI: true })
         const r = await surveyObj.myResults({ token, page: 1, pageSize: 50 })
         if (r.errCode !== 0) {
           uni.showToast({ title: r.errMsg || '测评记录加载失败', icon: 'none' })

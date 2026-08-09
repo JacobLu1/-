@@ -165,7 +165,7 @@ export default {
       if (this.resourceLoading) return
       this.resourceLoading = true
       try {
-        const resourcesObj = uniCloud.importObject('resources')
+    const resourcesObj = uniCloud.importObject('resources', { customUI: true })
         const r = (await resourcesObj.listPublic({ type: 'english' })) || {}
         if (r.errCode !== 0) {
           uni.showToast({ title: r.errMsg || '资源加载失败', icon: 'none' })

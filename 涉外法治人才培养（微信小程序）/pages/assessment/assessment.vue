@@ -262,7 +262,7 @@ export default {
   methods: {
     async loadQuestions() {
       try {
-        const questionsObj = uniCloud.importObject('questions')
+    const questionsObj = uniCloud.importObject('questions', { customUI: true })
         const r = (await questionsObj.listPublic({ type: 'all', page: 1, pageSize: 200 })) || {}
         if (r.errCode !== 0) {
           uni.showToast({ title: r.errMsg || '题目加载失败', icon: 'none' })
@@ -494,7 +494,7 @@ export default {
         return false
       }
       try {
-        const surveyObj = uniCloud.importObject('survey')
+        const surveyObj = uniCloud.importObject('survey', { customUI: true })
         const r = await surveyObj.saveResult({ token, result })
         if (r && r.errCode !== 0) {
           uni.showToast({ title: r.errMsg || '测评结果上传失败', icon: 'none' })

@@ -251,7 +251,7 @@ export default {
       const token = uni.getStorageSync('token')
       if (!token) return
       try {
-        const surveyObj = uniCloud.importObject('survey')
+    const surveyObj = uniCloud.importObject('survey', { customUI: true })
         const r = await surveyObj.myResults({ token, page: 1, pageSize: 100 })
         if (r.errCode !== 0) return
         const list = r.list || []

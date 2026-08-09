@@ -390,7 +390,7 @@ function toEnglishItem(doc) {
 
 async function loadAll() {
   try {
-    const resourcesObj = uniCloud.importObject('resources')
+    const resourcesObj = uniCloud.importObject('resources', { customUI: true })
     const r = (await resourcesObj.list({ adminToken: getAdminToken(), type: 'all' })) || {}
     if (r.errCode === 0) {
       videos.value = (r.list || []).filter(d => d.type === 'video').map(toVideoItem)
@@ -464,7 +464,7 @@ const doUpload = async () => {
 
   let r
   try {
-    const resourcesObj = uniCloud.importObject('resources')
+    const resourcesObj = uniCloud.importObject('resources', { customUI: true })
     r = (await resourcesObj.add({ adminToken: getAdminToken(), type: uploadType.value, data: { ...payload, date } })) || {}
   } catch (e) {
     uni.showToast({ title: (e && e.errMsg) || '上传失败', icon: 'none' })
@@ -535,7 +535,7 @@ const handleEdit = (item) => {
                         data.statusClass = data.status === '已上线' ? 'qb-diff-easy' : 'qb-diff-mid'
                       }
                       try {
-                        const resourcesObj = uniCloud.importObject('resources')
+    const resourcesObj = uniCloud.importObject('resources', { customUI: true })
                         const r = (await resourcesObj.update({ adminToken: getAdminToken(), id: item.id, data })) || {}
                         if (r.errCode === 0) {
                           item.title = title
@@ -572,7 +572,7 @@ const handleDelete = (type, item) => {
     success: async (res) => {
       if (!res.confirm) return
       try {
-        const resourcesObj = uniCloud.importObject('resources')
+    const resourcesObj = uniCloud.importObject('resources', { customUI: true })
         const r = (await resourcesObj.remove({ adminToken: getAdminToken(), id: item.id })) || {}
         if (r.errCode === 0) {
           if (type === 'video') {
