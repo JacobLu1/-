@@ -1,0 +1,76 @@
+{
+	"bsonType": "object",
+	"required": ["account", "password", "role"],
+	"permission": {
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"account": {
+			"bsonType": "string",
+			"description": "登录账号（网页端账号 / 小程序端手机号）"
+		},
+		"salt": {
+			"bsonType": "string",
+			"description": "密码加盐"
+		},
+		"password": {
+			"bsonType": "string",
+			"description": "密码 sha256(salt) 哈希值"
+		},
+		"name": {
+			"bsonType": "string",
+			"description": "用户姓名"
+		},
+		"role": {
+			"bsonType": "string",
+			"enum": ["user", "admin"],
+			"description": "角色：user 普通用户 / admin 管理员"
+		},
+		"level": {
+			"bsonType": "string",
+			"description": "等级，如 Lv.5"
+		},
+		"levelText": {
+			"bsonType": "string",
+			"description": "等级描述"
+		},
+		"phone": {
+			"bsonType": "string",
+			"description": "手机号"
+		},
+		"email": {
+			"bsonType": "string",
+			"description": "邮箱（选填，绑定后账号安全显示已绑定）"
+		},
+		"gender": {
+			"bsonType": "string",
+			"description": "性别（选填）"
+		},
+		"region": {
+			"bsonType": "string",
+			"description": "所在地区（选填）"
+		},
+		"position": {
+			"bsonType": "string",
+			"description": "职业/职位（选填）"
+		},
+		"token": {
+			"bsonType": "string",
+			"description": "当前登录 token，空表示未登录"
+		},
+		"createDate": {
+			"bsonType": "timestamp",
+			"description": "注册时间"
+		},
+		"lastLoginDate": {
+			"bsonType": "timestamp",
+			"description": "最后登录时间"
+		}
+	}
+}

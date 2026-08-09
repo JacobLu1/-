@@ -1,0 +1,69 @@
+{
+	"bsonType": "object",
+	"required": ["type", "title"],
+	"permission": {
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"type": {
+			"bsonType": "string",
+			"enum": ["video", "english"],
+			"description": "资源类型：video 视频 / english 法律英语"
+		},
+		"title": {
+			"bsonType": "string",
+			"description": "资源标题"
+		},
+		"cover": {
+			"bsonType": "string",
+			"description": "封面图 URL"
+		},
+		"fileUrl": {
+			"bsonType": "string",
+			"description": "资源文件地址：视频/音频完整 URL 或文件名"
+		},
+		"description": {
+			"bsonType": "string",
+			"description": "资源简介"
+		},
+		"cat": {
+			"bsonType": "string",
+			"description": "分类（视频）或类型（法律英语）"
+		},
+		"tagClass": {
+			"bsonType": "string",
+			"description": "分类徽标样式类"
+		},
+		"meta": {
+			"bsonType": "string",
+			"description": "视频时长 或 法律英语难度文字"
+		},
+		"diffClass": {
+			"bsonType": "string",
+			"description": "难度徽标样式类"
+		},
+		"date": {
+			"bsonType": "string",
+			"description": "上传日期"
+		},
+		"status": {
+			"bsonType": "string",
+			"enum": ["已上线", "审核中"],
+			"description": "状态"
+		},
+		"statusClass": {
+			"bsonType": "string",
+			"description": "状态徽标样式类"
+		},
+		"createDate": {
+			"bsonType": "timestamp",
+			"description": "创建时间"
+		}
+	}
+}

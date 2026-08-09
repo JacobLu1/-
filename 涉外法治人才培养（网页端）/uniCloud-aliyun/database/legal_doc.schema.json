@@ -1,0 +1,73 @@
+{
+	"bsonType": "object",
+	"required": ["title", "category"],
+	"permission": {
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"title": {
+			"bsonType": "string",
+			"description": "文献标题"
+		},
+		"category": {
+			"bsonType": "string",
+			"enum": ["国际公法", "国际私法", "涉外民商法", "国际贸易法", "国际投资法", "海商法", "国际仲裁", "综合"],
+			"description": "知识库分类"
+		},
+		"docType": {
+			"bsonType": "string",
+			"description": "文档类型：法律、行政法规、部门规章、司法解释、国际条约、案例、指南等"
+		},
+		"summary": {
+			"bsonType": "string",
+			"description": "摘要，用于列表展示"
+		},
+		"content": {
+			"bsonType": "string",
+			"description": "正文内容，可包含换行和 Markdown 文本"
+		},
+		"fields": {
+			"bsonType": "array",
+			"description": "涉外法治领域标签，如 国际贸易法、国际私法"
+		},
+		"regions": {
+			"bsonType": "array",
+			"description": "国家/地区，如 中国、欧盟、国际"
+		},
+		"tags": {
+			"bsonType": "array",
+			"description": "关键词标签"
+		},
+		"source": {
+			"bsonType": "string",
+			"description": "来源机构或出处"
+		},
+		"date": {
+			"bsonType": "string",
+			"description": "发布日期，格式 YYYY-MM-DD"
+		},
+		"fileUrl": {
+			"bsonType": "string",
+			"description": "附件/原文 URL，可留空"
+		},
+		"status": {
+			"bsonType": "string",
+			"enum": ["已上线", "审核中"],
+			"description": "状态"
+		},
+		"createDate": {
+			"bsonType": "timestamp",
+			"description": "创建时间"
+		},
+		"updateDate": {
+			"bsonType": "timestamp",
+			"description": "更新时间"
+		}
+	}
+}

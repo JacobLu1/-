@@ -1,0 +1,143 @@
+{
+	"pages": [
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "首页",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/login/login",
+			"style": {
+				"navigationBarTitleText": "登录",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/register/register",
+			"style": {
+				"navigationBarTitleText": "注册",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/profile/profile",
+			"style": {
+				"navigationBarTitleText": "个人中心",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/survey/survey",
+			"style": {
+				"navigationBarTitleText": "问卷测评",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/special-select/special-select",
+			"style": {
+				"navigationBarTitleText": "专项测评",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/result/result",
+			"style": {
+				"navigationBarTitleText": "测评结果",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/ai-assistant/ai-assistant",
+			"style": {
+				"navigationBarTitleText": "AI助手",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/report/report",
+			"style": {
+				"navigationBarTitleText": "评估报告",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/legal-db/legal-db",
+			"style": {
+				"navigationBarTitleText": "法律库",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/learning-center/learning-center",
+			"style": {
+				"navigationBarTitleText": "学习中心",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/learning-center/listening-training",
+			"style": {
+				"navigationBarTitleText": "每周法律英语听力实训",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/learning-center/video-detail",
+			"style": {
+				"navigationBarTitleText": "视频学习详情",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/learning-center/legal-english",
+			"style": {
+				"navigationBarTitleText": "法律英语综合训练",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/admin/dashboard",
+			"style": {
+				"navigationBarTitleText": "数据总览",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/admin/question-bank",
+			"style": {
+				"navigationBarTitleText": "题库管理",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/admin/knowledge-management",
+			"style": {
+				"navigationBarTitleText": "知识库管理",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/admin/resource-management",
+			"style": {
+				"navigationBarTitleText": "资源管理",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/admin/user-management",
+			"style": {
+				"navigationBarTitleText": "用户管理",
+				"navigationStyle": "custom"
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "涉外法治测评平台",
+		"navigationBarBackgroundColor": "#FFFFFF",
+		"backgroundColor": "#F7F8FA"
+	}
+}

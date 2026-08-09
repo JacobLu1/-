@@ -1,0 +1,143 @@
+{
+	"pages": [
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "学习中心",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/video-detail/video-detail",
+			"style": {
+				"navigationBarTitleText": "视频学习",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/video-list/video-list",
+			"style": {
+				"navigationBarTitleText": "全部视频",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/legal-english/legal-english",
+			"style": {
+				"navigationBarTitleText": "法律英语",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/legal-english/listening-training",
+			"style": {
+				"navigationBarTitleText": "听力实训",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/assessment/assessment",
+			"style": {
+				"navigationBarTitleText": "问卷测评",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/assessment-start/assessment-start",
+			"style": {
+				"navigationBarTitleText": "问卷测评",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/data/data",
+			"style": {
+				"navigationBarTitleText": "数据中心",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/profile/profile",
+			"style": {
+				"navigationBarTitleText": "个人中心",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/ai-assistant/ai-assistant",
+			"style": {
+				"navigationBarTitleText": "AI助手",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/achievements/achievements",
+			"style": {
+				"navigationBarTitleText": "全部成就",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/special-assessment/special-assessment",
+			"style": {
+				"navigationBarTitleText": "专项测评",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/assessment-report/assessment-report",
+			"style": {
+				"navigationBarTitleText": "成绩报告",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/login/login",
+			"style": {
+				"navigationBarTitleText": "登录",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/register/register",
+			"style": {
+				"navigationBarTitleText": "注册",
+				"navigationStyle": "custom"
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "涉外法治人才培养",
+		"navigationBarBackgroundColor": "#faf8ff",
+		"backgroundColor": "#faf8ff",
+		"backgroundColorContent": "#faf8ff"
+	},
+	"tabBar": {
+		"color": "#7A92B0",
+		"selectedColor": "#2E7BE0",
+		"backgroundColor": "#FFFFFF",
+		"borderStyle": "white",
+		"list": [
+			{
+				"pagePath": "pages/assessment-start/assessment-start",
+				"text": "问卷测评",
+				"iconPath": "static/tab/learn.png",
+				"selectedIconPath": "static/tab/learn-active.png"
+			},
+			{
+				"pagePath": "pages/data/data",
+				"text": "数据中心",
+				"iconPath": "static/tab/data.png",
+				"selectedIconPath": "static/tab/data-active.png"
+			},
+			{
+				"pagePath": "pages/index/index",
+				"text": "学习中心",
+				"iconPath": "static/tab/profile.png",
+				"selectedIconPath": "static/tab/profile-active.png"
+			}
+		]
+	},
+	"uniIdRouter": {}
+}
