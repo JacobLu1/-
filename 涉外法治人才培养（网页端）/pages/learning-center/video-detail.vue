@@ -82,47 +82,61 @@
           <!-- Left: Video player card -->
           <div class="vd-player-card" :class="{'is-fullscreen': isFullscreen}" ref="playerCardRef">
             <div class="vd-player-wrap" @click="onPlayerAreaClick">
-              <video
-                class="vd-video-element"
-                :src="videoSrc"
-                :controls="false"
-                preload="metadata"
-                playsinline
-                webkit-playsinline
-                @timeupdate="onTimeUpdate"
-                @loadedmetadata="onLoadedMeta"
-                @play="onPlay"
-                @pause="onPause"
-                @ended="onEnded"
-                @waiting="onWaiting"
-                @playing="onPlaying"
-                @seeked="onSeeked"
-                @progress="onProgress"
-                @volumechange="onVolumeChange"
-                @error="onVideoError"
-              ></video>
+              <template v-if="!isEmbedVideo">
+                <video
+                  class="vd-video-element"
+                  :src="videoSrc"
+                  :controls="false"
+                  preload="metadata"
+                  playsinline
+                  webkit-playsinline
+                  @timeupdate="onTimeUpdate"
+                  @loadedmetadata="onLoadedMeta"
+                  @play="onPlay"
+                  @pause="onPause"
+                  @ended="onEnded"
+                  @waiting="onWaiting"
+                  @playing="onPlaying"
+                  @seeked="onSeeked"
+                  @progress="onProgress"
+                  @volumechange="onVolumeChange"
+                  @error="onVideoError"
+                ></video>
 
-              <!-- 缓冲加载动画 -->
-              <div v-if="isBuffering" class="vd-buffering" aria-hidden="true">
-                <div class="vd-spinner"></div>
-              </div>
+                <!-- 缓冲加载动画 -->
+                <div v-if="isBuffering" class="vd-buffering" aria-hidden="true">
+                  <div class="vd-spinner"></div>
+                </div>
 
-              <!-- 加载失败提示 -->
-              <div v-if="videoError" class="vd-error">
-                <p class="vd-error-title">视频加载失败</p>
-                <p class="vd-error-sub">{{ videoError }}</p>
-                <button class="vd-retry-btn" type="button" @click.stop="retryLoad">重试</button>
-              </div>
+                <!-- 加载失败提示 -->
+                <div v-if="videoError" class="vd-error">
+                  <p class="vd-error-title">视频加载失败</p>
+                  <p class="vd-error-sub">{{ videoError }}</p>
+                  <button class="vd-retry-btn" type="button" @click.stop="retryLoad">重试</button>
+                </div>
 
-              <!-- 中央播放按钮 -->
-              <div v-if="!isPlaying && !isBuffering && !videoError" class="vd-play-circle" @click="togglePlay">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                  <polygon points="6 3 20 12 6 21 6 3"></polygon>
-                </svg>
-              </div>
+                <!-- 中央播放按钮 -->
+                <div v-if="!isPlaying && !isBuffering && !videoError" class="vd-play-circle" @click="togglePlay">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="6 3 20 12 6 21 6 3"></polygon>
+                  </svg>
+                </div>
+              </template>
+
+              <!-- B站官方嵌入播放器 -->
+              <iframe
+                v-else
+                class="vd-embed-player"
+                :src="bilibiliEmbedUrl"
+                title="bilibili video player"
+                frameborder="0"
+                scrolling="no"
+                allowfullscreen
+                allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+              ></iframe>
             </div>
 
-            <div class="vd-player-controls">
+            <div v-if="!isEmbedVideo" class="vd-player-controls">
               <button class="vd-ctrl-btn" type="button" aria-label="播放/暂停" @click="togglePlay">
                 <svg v-if="!isPlaying" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                   <polygon points="6 3 20 12 6 21 6 3"></polygon>
@@ -249,7 +263,7 @@
           <div class="vd-info-card">
             <h2 class="vd-info-card-title">课程简介</h2>
             <div class="vd-desc-text">
-              <p>{{ currentResource.description || '暂无课程简介' }}</p>
+              <p>{{ (currentResource && currentResource.description) || '暂无课程简介' }}</p>
             </div>
           </div>
           <!-- Instructor -->
@@ -334,6 +348,8 @@ const currentCategory = ref('涉外法治')
 const currentDuration = ref('--:--')
 // 视频地址必须由 resource.fileUrl 提供，不配置时不再回退到默认示例视频
 const videoSrc = ref('')
+const bilibiliEmbedUrl = ref('')
+const isEmbedVideo = computed(() => !!bilibiliEmbedUrl.value)
 // 进度记忆存储 key
 let progressKey = 'vd_progress_'
 
@@ -389,6 +405,20 @@ const hoverTimeFormatted = computed(() => {
 })
 
 const volumePct = computed(() => Math.round((isMuted.value ? 0 : volume.value) * 100))
+
+// B站支持：播放页地址或官方嵌入地址统一转为 iframe 可加载地址
+const buildBilibiliEmbedUrl = (fileUrl) => {
+  if (!fileUrl) return ''
+  const value = String(fileUrl).trim()
+  if (/player\.bilibili\.com\/player\.html/i.test(value)) {
+    return /^https?:\/\//i.test(value) ? value : `https://${value}`
+  }
+  const bvid = value.match(/BV[0-9A-Za-z]{8,}/)
+  if (!bvid) return ''
+  const pageMatch = value.match(/[?&]p=(\d+)/)
+  const page = pageMatch ? pageMatch[1] : '1'
+  return `https://player.bilibili.com/player.html?bvid=${bvid[0]}&page=${page}&high_quality=1&danmaku=0`
+}
 
 // ==================== 播放器核心逻辑 ====================
 
@@ -826,10 +856,17 @@ async function loadResource(id) {
       done: false
     }]
     activeLesson.value = 0
-    const resolved = resolveResourceUrl(doc.fileUrl)
-    videoSrc.value = resolved
-    if (!resolved) {
-      videoError.value = '该资源暂未配置文件地址'
+    videoError.value = ''
+    const embedUrl = buildBilibiliEmbedUrl(doc.fileUrl)
+    bilibiliEmbedUrl.value = embedUrl
+    if (embedUrl) {
+      videoSrc.value = ''
+    } else {
+      const resolved = resolveResourceUrl(doc.fileUrl)
+      videoSrc.value = resolved
+      if (!resolved) {
+        videoError.value = '该资源暂未配置文件地址'
+      }
     }
     progressKey = `vd_progress_${id}`
   } catch (e) {
@@ -1236,6 +1273,16 @@ async function loadRecommended(currentId) {
   object-fit: contain;
   background: #0F172A;
   display: block;
+}
+
+.vd-embed-player {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+  background: #0F172A;
 }
 
 /* 缓冲加载动画 */

@@ -6,7 +6,8 @@ unpackage/
 .hbuilderx/
 
 # 视频文件（大文件不走 Git，交接时单独传输）
-**/backend/video/
+**/backend/video/*
+!**/backend/video/.gitkeep
 
 # 云函数密钥配置（不提交到 git）
 **/uniCloud-aliyun/cloudfunctions/aiChat/config.local.json

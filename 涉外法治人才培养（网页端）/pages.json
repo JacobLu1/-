@@ -92,6 +92,13 @@
 			}
 		},
 		{
+			"path": "pages/learning-center/video-list",
+			"style": {
+				"navigationBarTitleText": "全部视频",
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "pages/learning-center/legal-english",
 			"style": {
 				"navigationBarTitleText": "法律英语综合训练",

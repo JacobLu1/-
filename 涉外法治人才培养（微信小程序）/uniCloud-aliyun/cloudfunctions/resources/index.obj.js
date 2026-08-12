@@ -92,13 +92,16 @@ module.exports = {
       return { errCode: 'PARAM_IS_NULL', errMsg: 'id 不能为空' }
     }
 
-    const allow = ['title', 'cat', 'tagClass', 'meta', 'diffClass', 'cover', 'fileUrl', 'description', 'status', 'statusClass']
+    const allow = ['title', 'cat', 'tagClass', 'meta', 'diffClass', 'cover', 'fileUrl', 'description', 'date', 'status', 'statusClass']
     const patch = {}
     for (const key of allow) {
       if (data[key] !== undefined) patch[key] = data[key]
     }
     if (patch.title !== undefined && !String(patch.title).trim()) {
       return { errCode: 'PARAM_ERROR', errMsg: '资源标题不能为空' }
+    }
+    if (patch.status !== undefined && !['已上线', '审核中'].includes(patch.status)) {
+      return { errCode: 'PARAM_ERROR', errMsg: '资源状态不合法' }
     }
 
     await db.collection('resource').doc(id).update(patch)

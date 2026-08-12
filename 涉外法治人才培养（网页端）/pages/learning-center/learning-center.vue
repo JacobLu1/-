@@ -96,15 +96,15 @@
                   <text class="lc-section-subtitle">精选涉外法治视频课程，随学随看</text>
                 </view>
               </view>
-              <view class="more-videos-btn" @tap="showMoreVideos">
+              <view v-if="videos.length" class="more-videos-btn" @tap="showMoreVideos">
                 <text>更多视频</text>
                 <view class="chev-r-sm"></view>
               </view>
             </view>
             <view class="video-grid">
-              <view class="video-card" v-for="(video, vIdx) in videos" :key="vIdx" @tap="playVideo(video)">
+              <view class="video-card" v-for="(video, vIdx) in latestVideos" :key="vIdx" @tap="playVideo(video)">
                 <view class="video-thumb">
-                  <view class="video-thumb-gradient" :style="{ background: video.gradient }"></view>
+                  <view class="video-thumb-gradient" :style="videoThumbStyle(video)"></view>
                   <view class="video-play-overlay">
                     <view class="video-play-btn">
                       <view class="play-icon"></view>
@@ -202,6 +202,10 @@
                   <text class="lc-section-title">为你推荐</text>
                   <text class="lc-section-subtitle">基于你的学习记录和测评结果，个性化推荐</text>
                 </view>
+              </view>
+              <view v-if="recommendations.length" class="more-videos-btn" @tap="refreshRecommendations">
+                <view class="refresh-icon"></view>
+                <text>刷新</text>
               </view>
             </view>
             <view class="rec-grid">
@@ -443,6 +447,7 @@ const videoGradients = [
 ]
 
 const videos = ref([])
+const latestVideos = computed(() => videos.value.slice(0, 4))
 const englishResources = ref([])
 const resourceLoading = ref(false)
 
@@ -458,6 +463,18 @@ function mapVideo(doc, index) {
     description: doc.description || '',
     gradient: videoGradients[index % videoGradients.length]
   }
+}
+
+function videoThumbStyle(video) {
+  if (video.cover) {
+    return {
+      backgroundImage: `linear-gradient(rgba(15,23,42,.06), rgba(15,23,42,.38)), url("${video.cover}")`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat'
+    }
+  }
+  return { background: video.gradient }
 }
 
 function mapEnglish(doc) {
@@ -483,36 +500,18 @@ async function loadResources() {
       return
     }
     const list = r.list || []
-    videos.value = list.filter(d => d.type === 'video').map(mapVideo)
+    const videoList = list
+      .filter(d => d.type === 'video')
+      .sort((a, b) => (b.createDate || 0) - (a.createDate || 0))
+    videos.value = videoList.map(mapVideo)
     englishResources.value = list.filter(d => d.type === 'english').map(mapEnglish)
     STAT_CONFIG.courses.suffix = ''
     STAT_CONFIG.courses.to = videos.value.length
     statRaw.courses = videos.value.length
 
-    const recs = []
-    videos.value.forEach(v => {
-      recs.push({
-        tag: v.category,
-        tagClass: 'rec-tag-adv',
-        title: v.title,
-        reason: `视频 · ${v.duration}`,
-        level: 1,
-        levelLabel: '视频',
-        url: `/pages/learning-center/video-detail?id=${v.id}`
-      })
-    })
-    englishResources.value.forEach(r => {
-      recs.push({
-        tag: r.category,
-        tagClass: 'rec-tag-adv',
-        title: r.title,
-        reason: r.description || '法律英语资源',
-        level: 1,
-        levelLabel: '资源',
-        fileUrl: r.fileUrl
-      })
-    })
-    recommendations.value = recs.slice(0, 6)
+    recommendationPool.value = videos.value.map(toRecommendation)
+    currentRecommendationIds.value = recommendationPool.value.slice(0, 4).map(r => r.id)
+    recommendations.value = recommendationPool.value.slice(0, 4)
 
     const ovr = await loadOverviewWithCache()
     if (ovr && ovr.errCode === 0) {
@@ -583,7 +582,7 @@ function goToListeningTraining() {
 }
 
 function showMoreVideos() {
-  uni.showToast({ title: '更多视频功能开发中', icon: 'none' })
+  uni.navigateTo({ url: '/pages/learning-center/video-list' })
 }
 
 /* ============================================================
@@ -597,6 +596,52 @@ function goToLegalEnglish() {
    Recommendations Data
    ============================================================ */
 const recommendations = ref([])
+const recommendationPool = ref([])
+const currentRecommendationIds = ref([])
+
+function toRecommendation(video) {
+  return {
+    id: video.id,
+    tag: video.category,
+    tagClass: 'rec-tag-adv',
+    title: video.title,
+    reason: `视频 · ${video.duration}`,
+    level: 1,
+    levelLabel: '视频',
+    url: `/pages/learning-center/video-detail?id=${video.id}`
+  }
+}
+
+function shuffleRecommendations(list) {
+  const result = list.slice()
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    const tmp = result[i]
+    result[i] = result[j]
+    result[j] = tmp
+  }
+  return result
+}
+
+function refreshRecommendations() {
+  const pool = recommendationPool.value
+  if (!pool.length) return
+  const currentIds = new Set(currentRecommendationIds.value)
+  const otherItems = shuffleRecommendations(pool.filter(item => !currentIds.has(item.id)))
+  let picked = []
+
+  if (otherItems.length >= 4) {
+    picked = otherItems.slice(0, 4)
+  } else {
+    picked = otherItems
+    const pickedIds = new Set(picked.map(item => item.id))
+    const fillItems = shuffleRecommendations(pool.filter(item => !pickedIds.has(item.id)))
+    picked = picked.concat(fillItems.slice(0, Math.max(0, 4 - picked.length)))
+  }
+
+  currentRecommendationIds.value = picked.map(item => item.id)
+  recommendations.value = picked
+}
 
 function startLearning(rec) {
   if (rec.url) {
@@ -1283,6 +1328,12 @@ onLoad(() => {
 .more-videos-btn:hover {
   color: var(--rule-primary-hover);
   text-decoration: underline;
+}
+.refresh-icon {
+  width: 15px; height: 15px;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8'/><path d='M21 3v5h-5'/><path d='M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16'/><path d='M3 21v-5h5'/></svg>") center/contain no-repeat;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8'/><path d='M21 3v5h-5'/><path d='M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16'/><path d='M3 21v-5h5'/></svg>") center/contain no-repeat;
 }
 .chev-r-sm {
   width: 15px; height: 15px;

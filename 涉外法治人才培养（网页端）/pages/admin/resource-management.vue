@@ -157,8 +157,14 @@
                 <input class="rm-input" v-model="uploadUrl" placeholder="完整 URL 或文件名，如 video_intl_arbitration_0.mp4" />
               </view>
               <view class="rm-form-field">
-                <text class="rm-form-label">封面 URL</text>
-                <input class="rm-input" v-model="uploadCover" placeholder="可留空" />
+                <text class="rm-form-label">封面 URL（学习中心显示）</text>
+                <input class="rm-input" v-model="uploadCover" placeholder="填写封面图 URL，可留空" />
+              </view>
+            </view>
+            <view class="rm-upload-row">
+              <view class="rm-form-field rm-form-field-grow">
+                <text class="rm-form-label">{{ uploadType === 'video' ? '视频分类' : '资源类型' }}</text>
+                <input class="rm-input" v-model="uploadCategory" :placeholder="uploadType === 'video' ? '如 国际仲裁 / WTO法 / 跨境投资 / 海商法' : '如 词汇积累 / 术语精讲 / 听力训练 / 实战练习'" />
               </view>
             </view>
             <view class="rm-upload-row">
@@ -237,7 +243,7 @@
                     <td><text class="qb-diff-tag" :class="v.statusClass">{{ v.status }}</text></td>
                     <td>
                       <view class="qb-actions">
-                        <view class="qb-action-btn qb-action-edit" @tap="handleEdit(v)">
+                        <view class="qb-action-btn qb-action-edit" @tap="openEdit(v)">
                           <view class="navi-icon navi-icon-pencil"></view>
                           <text>编辑</text>
                         </view>
@@ -303,7 +309,7 @@
                     <td><text class="qb-diff-tag" :class="e.statusClass">{{ e.status }}</text></td>
                     <td>
                       <view class="qb-actions">
-                        <view class="qb-action-btn qb-action-edit" @tap="handleEdit(e)">
+                        <view class="qb-action-btn qb-action-edit" @tap="openEdit(e)">
                           <view class="navi-icon navi-icon-pencil"></view>
                           <text>编辑</text>
                         </view>
@@ -320,13 +326,80 @@
           </view>
         </section>
 
+        <!-- ===== 编辑资源弹窗 ===== -->
+        <view v-if="editVisible" class="rm-modal-mask" @tap.self="closeEdit">
+          <view class="rm-modal">
+            <view class="rm-modal-header">
+              <view>
+                <text class="rm-modal-title">编辑{{ editType === 'video' ? '视频' : '法律英语' }}资源</text>
+                <text class="rm-modal-subtitle">保存后立即同步到学习中心</text>
+              </view>
+              <view class="rm-modal-close" @tap="closeEdit">×</view>
+            </view>
+            <view class="rm-modal-body">
+              <view class="rm-upload-row">
+                <view class="rm-form-field rm-form-field-grow">
+                  <text class="rm-form-label">资源标题</text>
+                  <input class="rm-input" v-model="editForm.title" placeholder="请输入资源标题" />
+                </view>
+                <view class="rm-form-field">
+                  <text class="rm-form-label">{{ editType === 'video' ? '分类' : '类型' }}</text>
+                  <input class="rm-input" v-model="editForm.cat" placeholder="如 国际仲裁 / 听力训练" />
+                </view>
+              </view>
+              <view class="rm-upload-row">
+                <view class="rm-form-field">
+                  <text class="rm-form-label">{{ editType === 'video' ? '时长' : '难度' }}</text>
+                  <input class="rm-input" v-model="editForm.meta" placeholder="如 45:30 或 中级" />
+                </view>
+                <view class="rm-form-field rm-form-field-grow">
+                  <text class="rm-form-label">资源地址 / 文件名</text>
+                  <input class="rm-input" v-model="editForm.fileUrl" placeholder="完整 URL 或文件名" />
+                </view>
+              </view>
+              <view class="rm-upload-row">
+                <view class="rm-form-field rm-form-field-grow">
+                  <text class="rm-form-label">封面 URL</text>
+                  <input class="rm-input" v-model="editForm.cover" placeholder="可留空" />
+                </view>
+                <view class="rm-form-field">
+                  <text class="rm-form-label">上传日期</text>
+                  <input class="rm-input" v-model="editForm.date" placeholder="如 2026-08-12" />
+                </view>
+              </view>
+              <view class="rm-upload-row">
+                <view class="rm-form-field rm-form-field-grow">
+                  <text class="rm-form-label">资源简介</text>
+                  <textarea class="rm-textarea" v-model="editForm.description" placeholder="请输入资源简介"></textarea>
+                </view>
+              </view>
+              <view class="rm-modal-options">
+                <view class="rm-form-field">
+                  <text class="rm-form-label">审核状态</text>
+                  <view class="qb-pills">
+                    <view class="qb-pill" :class="{ 'is-active': editForm.status === '审核中' }" @tap="editForm.status = '审核中'; syncStatusClass()">审核中</view>
+                    <view class="qb-pill" :class="{ 'is-active': editForm.status === '已上线' }" @tap="editForm.status = '已上线'; syncStatusClass()">已上线</view>
+                  </view>
+                </view>
+              </view>
+            </view>
+            <view class="rm-modal-foot">
+              <view class="rm-modal-cancel" @tap="closeEdit">取消</view>
+              <view class="qb-create-btn" :class="{ 'is-disabled': editSaving }" @tap="saveEdit">
+                <view class="navi-icon navi-icon-check"></view>
+                <text>{{ editSaving ? '保存中...' : '保存修改' }}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+
       </main>
     </view>
   </view>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { requireAdmin } from '@/utils/auth.js'
 
 const visibleSections = ref([false, false, false, false])
@@ -344,7 +417,29 @@ const uploadTitle = ref('')
 const uploadMeta = ref('')
 const uploadUrl = ref('')
 const uploadCover = ref('')
+const uploadCategory = ref('')
 const uploadDescription = ref('')
+
+/* ===== 编辑弹窗 ===== */
+const editVisible = ref(false)
+const editSaving = ref(false)
+const editType = ref('video')
+const editTarget = ref(null)
+const editForm = reactive({
+  id: '',
+  type: 'video',
+  title: '',
+  cat: '',
+  tagClass: 'qb-type-case',
+  meta: '',
+  diffClass: 'qb-diff-mid',
+  fileUrl: '',
+  cover: '',
+  description: '',
+  date: '',
+  status: '审核中',
+  statusClass: 'qb-diff-mid'
+})
 
 /* ===== 视频资源 ===== */
 const videoSearch = ref('')
@@ -382,10 +477,10 @@ function getAdminToken() {
 
 // 云文档 → 页面表格行
 function toVideoItem(doc) {
-  return { id: doc._id, title: doc.title, category: doc.cat, tagClass: doc.tagClass, duration: doc.meta, date: doc.date, status: doc.status, statusClass: doc.statusClass, fileUrl: doc.fileUrl || '', cover: doc.cover || '', description: doc.description || '' }
+  return { id: doc._id, title: doc.title, category: doc.cat, tagClass: doc.tagClass, duration: doc.meta, meta: doc.meta || '', diffClass: doc.diffClass || '', date: doc.date, status: doc.status, statusClass: doc.statusClass, fileUrl: doc.fileUrl || '', cover: doc.cover || '', description: doc.description || '' }
 }
 function toEnglishItem(doc) {
-  return { id: doc._id, title: doc.title, type: doc.cat, typeClass: doc.tagClass, diffLabel: doc.meta, diffClass: doc.diffClass, date: doc.date, status: doc.status, statusClass: doc.statusClass, fileUrl: doc.fileUrl || '', cover: doc.cover || '', description: doc.description || '' }
+  return { id: doc._id, title: doc.title, type: doc.cat, typeClass: doc.tagClass, diffLabel: doc.meta, meta: doc.meta || '', diffClass: doc.diffClass || '', date: doc.date, status: doc.status, statusClass: doc.statusClass, fileUrl: doc.fileUrl || '', cover: doc.cover || '', description: doc.description || '' }
 }
 
 async function loadAll() {
@@ -434,7 +529,7 @@ const doUpload = async () => {
   if (uploadType.value === 'video') {
     payload = {
       title,
-      cat: '待分类',
+      cat: uploadCategory.value.trim() || '待分类',
       tagClass: 'qb-type-case',
       meta: meta || '--:--',
       diffClass: '',
@@ -447,7 +542,7 @@ const doUpload = async () => {
   } else if (uploadType.value === 'english') {
     payload = {
       title,
-      cat: '待分类',
+      cat: uploadCategory.value.trim() || '待分类',
       tagClass: 'qb-type-case',
       meta: '待定',
       diffClass: 'qb-diff-mid',
@@ -477,91 +572,111 @@ const doUpload = async () => {
 
   // 本地即时插入（保持原体验），成功后重新拉取云端保持一致
   if (uploadType.value === 'video') {
-    videos.value.unshift({ id: r.id, title, category: '待分类', tagClass: 'qb-type-case', duration: meta || '--:--', date, status: '审核中', statusClass: 'qb-diff-mid', fileUrl: uploadUrl.value.trim(), cover: uploadCover.value.trim(), description: uploadDescription.value.trim() })
+    videos.value.unshift({ id: r.id, title, category: uploadCategory.value.trim() || '待分类', tagClass: 'qb-type-case', duration: meta || '--:--', date, status: '审核中', statusClass: 'qb-diff-mid', fileUrl: uploadUrl.value.trim(), cover: uploadCover.value.trim(), description: uploadDescription.value.trim() })
   } else {
-    englishResources.value.unshift({ id: r.id, title, type: '待分类', typeClass: 'qb-type-case', diffLabel: '待定', diffClass: 'qb-diff-mid', date, status: '审核中', statusClass: 'qb-diff-mid', fileUrl: uploadUrl.value.trim(), cover: uploadCover.value.trim(), description: uploadDescription.value.trim() })
+    englishResources.value.unshift({ id: r.id, title, type: uploadCategory.value.trim() || '待分类', typeClass: 'qb-type-case', diffLabel: '待定', diffClass: 'qb-diff-mid', date, status: '审核中', statusClass: 'qb-diff-mid', fileUrl: uploadUrl.value.trim(), cover: uploadCover.value.trim(), description: uploadDescription.value.trim() })
   }
 
   uploadTitle.value = ''
   uploadMeta.value = ''
   uploadUrl.value = ''
   uploadCover.value = ''
+  uploadCategory.value = ''
   uploadDescription.value = ''
   uni.showToast({ title: '保存成功，等待审核', icon: 'success' })
 }
 
-const handleEdit = (item) => {
-  uni.showModal({
-    title: '编辑资源',
-    editable: true,
-    content: item.title,
-    placeholderText: '请输入标题',
-    success: (r1) => {
-      if (!r1.confirm) return
-      const title = (r1.content || '').trim()
-      uni.showModal({
-        title: '编辑分类',
-        editable: true,
-        content: item.category || item.type || '',
-        placeholderText: '请输入分类',
-        success: (r2) => {
-          if (!r2.confirm) return
-          const cat = (r2.content || '').trim()
-          uni.showModal({
-            title: '编辑资源地址',
-            editable: true,
-            content: item.fileUrl || '',
-            placeholderText: '完整 URL 或文件名',
-            success: (rUrl) => {
-              if (!rUrl.confirm) return
-              const fileUrl = (rUrl.content || '').trim()
-              uni.showModal({
-                title: '编辑资源简介',
-                editable: true,
-                content: item.description || '',
-                placeholderText: '请输入简介',
-                success: (rDesc) => {
-                  if (!rDesc.confirm) return
-                  const description = (rDesc.content || '').trim()
-                  uni.showModal({
-                    title: '编辑资源',
-                    content: `当前状态：${item.status}。是否切换为「${item.status === '已上线' ? '审核中' : '已上线'}」？`,
-                    confirmText: '切换状态',
-                    cancelText: '仅保存信息',
-                    success: async (r3) => {
-                      const data = { title, cat, fileUrl, description, status: item.status, statusClass: item.statusClass }
-                      if (r3.confirm) {
-                        data.status = item.status === '已上线' ? '审核中' : '已上线'
-                        data.statusClass = data.status === '已上线' ? 'qb-diff-easy' : 'qb-diff-mid'
-                      }
-                      try {
+const openEdit = (item) => {
+  const isVideo = item.category !== undefined
+  editType.value = isVideo ? 'video' : 'english'
+  editTarget.value = item
+  editForm.id = item.id
+  editForm.type = editType.value
+  editForm.title = item.title || ''
+  editForm.cat = isVideo ? (item.category || '') : (item.type || '')
+  editForm.tagClass = item.tagClass || item.typeClass || 'qb-type-case'
+  editForm.meta = isVideo ? (item.duration || item.meta || '') : (item.diffLabel || item.meta || '')
+  editForm.diffClass = item.diffClass || 'qb-diff-mid'
+  editForm.fileUrl = item.fileUrl || ''
+  editForm.cover = item.cover || ''
+  editForm.description = item.description || ''
+  editForm.date = item.date || ''
+  editForm.status = item.status || '审核中'
+  editForm.statusClass = item.statusClass || (editForm.status === '已上线' ? 'qb-diff-easy' : 'qb-diff-mid')
+  editVisible.value = true
+}
+
+const closeEdit = () => {
+  if (editSaving.value) return
+  editVisible.value = false
+  editTarget.value = null
+}
+
+const syncStatusClass = () => {
+  editForm.statusClass = editForm.status === '已上线' ? 'qb-diff-easy' : 'qb-diff-mid'
+}
+
+const saveEdit = async () => {
+  const title = editForm.title.trim()
+  if (!title) {
+    uni.showToast({ title: '请输入资源标题', icon: 'none' })
+    return
+  }
+
+  const data = {
+    title,
+    cat: editForm.cat.trim() || '待分类',
+    tagClass: editForm.tagClass || 'qb-type-case',
+    meta: editForm.meta.trim(),
+    diffClass: editForm.diffClass || 'qb-diff-mid',
+    fileUrl: editForm.fileUrl.trim(),
+    cover: editForm.cover.trim(),
+    description: editForm.description.trim(),
+    date: editForm.date.trim(),
+    status: editForm.status,
+    statusClass: editForm.statusClass
+  }
+
+  editSaving.value = true
+  try {
     const resourcesObj = uniCloud.importObject('resources', { customUI: true })
-                        const r = (await resourcesObj.update({ adminToken: getAdminToken(), id: item.id, data })) || {}
-                        if (r.errCode === 0) {
-                          item.title = title
-                          item.fileUrl = fileUrl
-                          item.description = description
-                          item.status = data.status
-                          item.statusClass = data.statusClass
-                          if (item.category !== undefined) item.category = cat
-                          else item.type = cat
-                          uni.showToast({ title: '已保存', icon: 'success' })
-                        } else {
-                          uni.showToast({ title: r.errMsg || '保存失败', icon: 'none' })
-                        }
-                      } catch (e) {
-                        uni.showToast({ title: (e && e.errMsg) || '保存失败', icon: 'none' })
-                      }
-                    }
-                  })
-                }
-              })
-            }
-          })
-        }
-      })
+    const r = (await resourcesObj.update({ adminToken: getAdminToken(), id: editForm.id, data })) || {}
+    if (r.errCode !== 0) {
+      uni.showToast({ title: r.errMsg || '保存失败', icon: 'none' })
+      return
     }
-  })
+
+    const target = editTarget.value
+    if (target) {
+      target.title = data.title
+      target.cat = data.cat
+      target.tagClass = data.tagClass
+      target.meta = data.meta
+      target.diffClass = data.diffClass
+      target.fileUrl = data.fileUrl
+      target.cover = data.cover
+      target.description = data.description
+      target.date = data.date
+      target.status = data.status
+      target.statusClass = data.statusClass
+      if (target.category !== undefined) {
+        target.category = data.cat
+        target.duration = data.meta
+      } else {
+        target.type = data.cat
+        target.typeClass = data.tagClass
+        target.diffLabel = data.meta
+      }
+    }
+
+    editVisible.value = false
+    editTarget.value = null
+    uni.showToast({ title: '已保存', icon: 'success' })
+  } catch (e) {
+    uni.showToast({ title: (e && e.errMsg) || '保存失败', icon: 'none' })
+  } finally {
+    editSaving.value = false
+  }
 }
 
 const handleDelete = (type, item) => {
@@ -754,6 +869,11 @@ onMounted(() => {
 .navi-icon-upload-cloud {
   -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242'/><path d='M12 12v9'/><path d='m16 16-4-4-4 4'/></svg>") center/contain no-repeat;
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242'/><path d='M12 12v9'/><path d='m16 16-4-4-4 4'/></svg>") center/contain no-repeat;
+}
+.navi-icon-check {
+  width: 16px; height: 16px;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M20 6 9 17l-5-5'/></svg>") center/contain no-repeat;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M20 6 9 17l-5-5'/></svg>") center/contain no-repeat;
 }
 .navi-icon-pencil {
   width: 14px; height: 14px;
@@ -1020,6 +1140,77 @@ onMounted(() => {
   display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
 }
 .rm-upload-tip { font-size: 12px; color: var(--rule-muted-foreground); }
+
+/* ===== Edit Modal ===== */
+.rm-modal-mask {
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(15, 23, 42, .46);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px; box-sizing: border-box;
+  animation: rm-fade-in .2s var(--qb-ease);
+}
+.rm-modal {
+  width: min(760px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  background: var(--rule-card);
+  border: 1px solid var(--rule-border);
+  border-radius: 16px;
+  box-shadow: var(--rule-shadow-3);
+  animation: rm-pop-in .24s var(--qb-ease);
+}
+.rm-modal-header {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+  padding: 22px 24px; border-bottom: 1px solid var(--rule-border);
+}
+.rm-modal-title { display: block; font-size: 17px; font-weight: 700; color: var(--rule-foreground); }
+.rm-modal-subtitle { display: block; margin-top: 4px; font-size: 12px; color: var(--rule-muted-foreground); }
+.rm-modal-close {
+  width: 32px; height: 32px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 8px; cursor: pointer;
+  color: var(--rule-muted-foreground); font-size: 22px; line-height: 1;
+  background: var(--rule-muted); transition: background .2s ease, color .2s ease;
+}
+.rm-modal-close:hover { background: var(--state-error-tint); color: var(--state-error); }
+.rm-modal-body {
+  padding: 22px 24px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+.rm-modal-body .rm-upload-row { align-items: flex-end; }
+.rm-textarea {
+  width: 100%; min-height: 88px; padding: 10px 14px;
+  border-radius: var(--rule-radius-medium);
+  border: 1px solid var(--rule-border); background: var(--rule-card);
+  color: var(--rule-foreground); font-size: 14px; line-height: 1.55;
+  font-family: inherit; outline: none; box-sizing: border-box;
+  resize: vertical; transition: border-color .2s ease, box-shadow .2s ease;
+}
+.rm-textarea::placeholder { color: var(--rule-muted-foreground); }
+.rm-textarea:focus { border-color: var(--rule-primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--rule-primary) 18%, transparent); }
+.rm-modal-options { display: flex; }
+.rm-modal-foot {
+  display: flex; align-items: center; justify-content: flex-end; gap: 12px;
+  padding: 18px 24px; border-top: 1px solid var(--rule-border);
+}
+.rm-modal-cancel {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 88px; padding: 10px 18px;
+  border: 1px solid var(--rule-border); border-radius: var(--rule-radius-full);
+  color: var(--rule-ink-2); font-size: 14px; font-weight: 600; cursor: pointer;
+  background: var(--rule-card); transition: border-color .2s ease, background .2s ease, color .2s ease;
+}
+.rm-modal-cancel:hover { border-color: var(--rule-ink-3); background: var(--rule-muted); color: var(--rule-foreground); }
+.qb-create-btn.is-disabled { opacity: .65; pointer-events: none; }
+
+@keyframes rm-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes rm-pop-in {
+  from { opacity: 0; transform: translateY(12px) scale(.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
 
 /* ===== Responsive ===== */
 @media (max-width: 1024px) {
