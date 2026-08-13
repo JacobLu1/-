@@ -147,7 +147,7 @@ export default {
       }
 
       this.submitText = '提交中...'
-    const usersObj = uniCloud.importObject('users', { customUI: true })
+      const usersObj = uniCloud.importObject('users', { customUI: true })
       usersObj.register({ account, password, name: this.name.trim(), phone })
         .then((r) => {
           r = r || {}

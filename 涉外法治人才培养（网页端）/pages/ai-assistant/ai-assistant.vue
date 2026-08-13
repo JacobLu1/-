@@ -120,7 +120,9 @@
                   </view>
                   <view class="bubble bubble-ai">
                     <text v-if="msg.title" class="bubble-title">{{ msg.title }}</text>
-                    <text class="bubble-text">{{ msg.content }}</text>
+                    <!-- AI 真实回答：Markdown 渲染（标题加粗、要点列表、提示块） -->
+                    <rich-text v-if="msg.html" class="bubble-md" :nodes="msg.html"></rich-text>
+                    <text v-else class="bubble-text">{{ msg.content }}</text>
                     <view v-if="msg.points && msg.points.length" class="bubble-points">
                       <view class="bp-item" v-for="(point, pIdx) in msg.points" :key="pIdx">
                         <text class="bp-label">{{ pIdx + 1 }}. {{ point.label }}：</text>{{ point.text }}
@@ -154,10 +156,13 @@
             <!-- Chat Footer: Suggested Questions + Input -->
             <view class="chat-footer">
               <view class="suggested-questions" role="group" aria-label="推荐问题">
-                <text class="chip" :class="{ disabled: isLoading }" @tap="sendSuggestion('涉外婚姻的法律适用问题有哪些？')">涉外婚姻的法律适用</text>
-                <text class="chip" :class="{ disabled: isLoading }" @tap="sendSuggestion('国际货物买卖合同的核心要点？')">国际货物买卖合同要点</text>
-                <text class="chip" :class="{ disabled: isLoading }" @tap="sendSuggestion('外国仲裁裁决的承认与执行条件？')">外国仲裁裁决的承认与执行</text>
-                <text class="chip" :class="{ disabled: isLoading }" @tap="sendSuggestion('涉外民事诉讼的管辖规则？')">涉外民事诉讼管辖</text>
+                <text
+                  v-for="(q, idx) in suggestedQuestions"
+                  :key="idx"
+                  class="chip"
+                  :class="{ disabled: isLoading }"
+                  @tap="sendSuggestion(q.question)"
+                >{{ q.label }}</text>
               </view>
               <view class="input-area">
                 <label for="chat-input-field" class="sr-only">输入您的问题</label>
@@ -227,6 +232,119 @@ const AI_RESPONSES = [
 ]
 
 /* ============================================================
+   Markdown → HTML（AI 回答排版）
+   支持：标题(#)、加粗(**)、斜体(*)、行内代码(`)、
+        无序列表(-)、有序列表(1.)、引用(>)、代码块(```)、换行
+   生成的 HTML 带内联样式，与虚拟数据的 title/points/tip 视觉一致
+   ============================================================ */
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+}
+
+function markdownToHtml(md) {
+  if (!md) return ''
+  const lines = String(md).split('\n')
+  let html = ''
+  let i = 0
+  let inCode = false
+  let codeBuf = []
+
+  while (i < lines.length) {
+    let line = lines[i]
+
+    // 代码块开始/结束
+    if (/^\s*```/.test(line)) {
+      if (inCode) {
+        html += '<pre style="background:rgba(0,0,0,.05);border-radius:6px;padding:8px 12px;margin:6px 0;white-space:pre-wrap;word-break:break-word;">' + escapeHtml(codeBuf.join('\n')) + '</pre>'
+        codeBuf = []
+        inCode = false
+      } else {
+        inCode = true
+      }
+      i++
+      continue
+    }
+    if (inCode) {
+      codeBuf.push(line)
+      i++
+      continue
+    }
+
+    // 标题：收集相邻标题行，合成一段
+    const headMatch = line.match(/^(#{1,3})\s+(.+)$/)
+    if (headMatch) {
+      const level = headMatch[1].length
+      const text = headMatch[2]
+      const size = level === 1 ? '17px' : level === 2 ? '16px' : '15px'
+      html += '<p style="font-size:' + size + ';font-weight:700;color:var(--rule-foreground);margin:10px 0 4px;">' + inlineMd(text) + '</p>'
+      i++
+      continue
+    }
+
+    // 引用
+    if (/^&gt;\s*/.test(line)) {
+      let quoteLines = []
+      while (i < lines.length && /^&gt;\s*/.test(lines[i])) {
+        quoteLines.push(lines[i].replace(/^&gt;\s*/, ''))
+        i++
+      }
+      html += '<blockquote style="background:var(--state-success-tint);border-left:3px solid var(--state-success);border-radius:0 8px 8px 0;padding:8px 12px;margin:8px 0;color:#047857;font-size:13px;line-height:1.55;">' + quoteLines.map(inlineMd).join('<br/>') + '</blockquote>'
+      continue
+    }
+
+    // 无序列表：收集相邻列表项
+    if (/^[-*]\s+/.test(line)) {
+      let items = []
+      while (i < lines.length && /^[-*]\s+/.test(lines[i])) {
+        items.push('<li style="color:var(--rule-ink-2);line-height:1.6;">' + inlineMd(lines[i].replace(/^[-*]\s+/, '')) + '</li>')
+        i++
+      }
+      html += '<ul style="padding-left:18px;margin:6px 0;list-style:disc;">' + items.join('') + '</ul>'
+      continue
+    }
+
+    // 有序列表
+    if (/^\d+[.、]\s+/.test(line)) {
+      let items = []
+      while (i < lines.length && /^\d+[.、]\s+/.test(lines[i])) {
+        items.push('<li style="color:var(--rule-ink-2);line-height:1.6;">' + inlineMd(lines[i].replace(/^\d+[.、]\s+/, '')) + '</li>')
+        i++
+      }
+      html += '<ol style="padding-left:18px;margin:6px 0;list-style:decimal;">' + items.join('') + '</ol>'
+      continue
+    }
+
+    // 空行
+    if (!line.trim()) {
+      html += '<div style="height:6px;"></div>'
+      i++
+      continue
+    }
+
+    // 普通段落
+    html += '<p style="margin:6px 0;color:var(--rule-foreground);line-height:1.7;word-break:break-word;">' + inlineMd(line.trim()) + '</p>'
+    i++
+  }
+
+  if (inCode && codeBuf.length) {
+    html += '<pre style="background:rgba(0,0,0,.05);border-radius:6px;padding:8px 12px;margin:6px 0;white-space:pre-wrap;word-break:break-word;">' + escapeHtml(codeBuf.join('\n')) + '</pre>'
+  }
+
+  return html
+}
+
+// 行内样式：加粗/斜体/行内代码
+function inlineMd(text) {
+  return escapeHtml(text)
+    .replace(/\*\*(.+?)\*\*/g, '<strong style="font-weight:700;">$1</strong>')
+    .replace(/(^|[^*])\*([^*]+)\*(?!\*)/g, '$1<em style="font-style:italic;">$2</em>')
+    .replace(/`([^`]+)`/g, '<code style="background:rgba(0,0,0,.06);border-radius:4px;padding:1px 5px;font-size:13px;">$1</code>')
+}
+
+/* ============================================================
    Reactive State
    ============================================================ */
 const inputText = ref('')
@@ -234,6 +352,36 @@ const currentChat = ref(0)
 const scrollIntoView = ref('')
 const messages = ref([])
 const responseIndex = ref(0)
+
+// 建议问题池：每次进入页面随机抽取一批展示
+const SUGGEST_POOL = [
+  { label: '涉外婚姻的法律适用', question: '涉外婚姻的法律适用问题有哪些？' },
+  { label: '国际货物买卖合同要点', question: '国际货物买卖合同的核心要点？' },
+  { label: '外国仲裁裁决承认执行', question: '外国仲裁裁决的承认与执行条件？' },
+  { label: '涉外民事诉讼管辖', question: '涉外民事诉讼的管辖规则？' },
+  { label: 'WTO争端解决流程', question: '解释WTO争端解决流程' },
+  { label: '涉外合同起草要点', question: '起草涉外合同要注意哪些要点？' },
+  { label: '数据跨境合规', question: '企业数据跨境传输需要满足哪些合规要求？' },
+  { label: '出口管制合规', question: '中国企业如何应对美国出口管制与经济制裁？' },
+  { label: '不可抗力条款', question: '涉外合同中的不可抗力条款如何约定？' },
+  { label: '法律英语术语辨析', question: '辨析几个常见的法律英语术语' },
+  { label: '提单法律性质', question: '海运提单的法律性质与风险防范？' },
+  { label: '国际投资仲裁', question: '外国投资者如何提起国际投资仲裁？' },
+  { label: '涉外判决承认执行', question: '外国法院判决在我国如何申请承认与执行？' },
+  { label: '管辖协议效力', question: '涉外合同中争议解决条款怎么约定才有效？' }
+]
+const suggestedQuestions = ref([])
+
+function shuffleSuggestions() {
+  const pool = SUGGEST_POOL.slice()
+  const picked = []
+  const count = Math.min(4, pool.length)
+  for (let i = 0; i < count; i++) {
+    const idx = Math.floor(Math.random() * pool.length)
+    picked.push(pool.splice(idx, 1)[0])
+  }
+  suggestedQuestions.value = picked
+}
 
 const chatHistory = ref([
   { title: '关于信用证的法律适用', messages: [] },
@@ -363,6 +511,7 @@ async function simulateAIResponse(userText) {
       messages.value.push({
         role: 'ai',
         content: res.content,
+        html: markdownToHtml(res.content),
         time: formatTime(now),
         liked: false
       })
@@ -467,6 +616,8 @@ function formatTime(date) {
 onMounted(() => {
   // Initialize with welcome state
   scrollIntoView.value = 'msg-welcome'
+  // 每次进入页面随机换一批建议问题
+  shuffleSuggestions()
 })
 
 onLoad(() => {

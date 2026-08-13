@@ -229,58 +229,23 @@
             </div>
           </div>
 
-          <!-- Right: Course outline card -->
-          <div class="vd-outline-card">
+          <!-- Right: Course intro card -->
+          <div class="vd-outline-card" :style="outlineCardStyle">
             <div class="vd-outline-header">
-              <span class="vd-outline-title">课程大纲</span>
-              <span class="vd-outline-progress">已学 {{ completedLessons }}/{{ lessons.length }} 课时</span>
+              <span class="vd-outline-title">
+                课程简介
+                <span v-if="aiIntro" class="vd-ai-badge">AI 生成</span>
+              </span>
             </div>
-            <div class="vd-outline-list">
-              <div v-if="!lessons.length" class="vd-empty">暂无课程章节</div>
-              <div v-for="(lesson, index) in lessons" 
-                   :key="index" 
-                   class="vd-lesson-item"
-                   :class="{'is-done': lesson.done, 'is-active': activeLesson === index}"
-                   @click="selectLesson(index)">
-                <div class="vd-lesson-check">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                </div>
-                <span class="vd-lesson-num">{{ index + 1 }}</span>
-                <div class="vd-lesson-info">
-                  <div class="vd-lesson-name">{{ lesson.title }}</div>
-                </div>
-                <span class="vd-lesson-duration">{{ lesson.duration }}</span>
-              </div>
+            <div class="vd-outline-list vd-intro-body">
+              <rich-text v-if="aiIntro" class="vd-intro-html" :nodes="aiIntroHtml"></rich-text>
+              <p v-else-if="aiGenerating" class="vd-intro-text vd-ai-loading">AI 正在根据课程内容生成简介…</p>
+              <p v-else class="vd-intro-text">{{ (currentResource && currentResource.description) || '暂无课程简介' }}</p>
             </div>
           </div>
         </div>
 
-        <!-- ===== 3. Info grid: course intro + instructor ===== -->
-        <div class="vd-info-grid vd-reveal" :class="{'is-visible': visibleSections[1]}">
-          <!-- Course intro -->
-          <div class="vd-info-card">
-            <h2 class="vd-info-card-title">课程简介</h2>
-            <div class="vd-desc-text">
-              <p>{{ (currentResource && currentResource.description) || '暂无课程简介' }}</p>
-            </div>
-          </div>
-          <!-- Instructor -->
-          <div class="vd-info-card">
-            <h2 class="vd-info-card-title">讲师介绍</h2>
-            <div class="vd-instructor">
-              <div class="vd-instructor-avatar">王</div>
-              <div class="vd-instructor-info">
-                <div class="vd-instructor-name">暂无讲师数据</div>
-                <div class="vd-instructor-title">资源库暂未配置讲师信息</div>
-              </div>
-            </div>
-            <p class="vd-instructor-bio">讲师信息后续由资源管理端补充。</p>
-          </div>
-        </div>
-
-        <!-- ===== 4. Related recommended videos ===== -->
+        <!-- ===== 3. Related recommended videos ===== -->
         <section class="vd-reveal" :class="{'is-visible': visibleSections[2]}" aria-label="相关推荐">
           <div class="doc-section-header">
             <h2 class="doc-section-title">相关推荐</h2>
@@ -337,11 +302,94 @@ const todayDateText = computed(() => {
   return `${y}年${m}月${d}日`
 })
 
-// 课程数据：由当前 resource 生成，不再写死章节
-const lessons = ref([])
+// ==================== AI 课程简介 ====================
+const aiIntro = ref('')
+const aiIntroHtml = ref('')
+const aiGenerating = ref(false)
+
+// ==================== Markdown → HTML（课程简介排版） ====================
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+}
+
+function inlineMd(text) {
+  return escapeHtml(text)
+    .replace(/\*\*(.+?)\*\*/g, '<strong style="font-weight:700;">$1</strong>')
+    .replace(/(^|[^*])\*([^*]+)\*(?!\*)/g, '$1<em style="font-style:italic;">$2</em>')
+    .replace(/`([^`]+)`/g, '<code style="background:rgba(0,0,0,.06);border-radius:4px;padding:1px 5px;font-size:13px;">$1</code>')
+}
+
+function markdownToHtml(md) {
+  if (!md) return ''
+  const lines = String(md).split('\n')
+  let html = ''
+  let i = 0
+
+  while (i < lines.length) {
+    let line = lines[i]
+
+    // 标题：## 课程概述 等
+    const headMatch = line.match(/^(#{1,3})\s+(.+)$/)
+    if (headMatch) {
+      const level = headMatch[1].length
+      const text = headMatch[2]
+      const size = level === 1 ? '17px' : level === 2 ? '16px' : '15px'
+      html += '<p style="font-size:' + size + ';font-weight:700;color:var(--rule-foreground);margin:12px 0 6px;">' + inlineMd(text) + '</p>'
+      i++
+      continue
+    }
+
+    // 无序列表：收集相邻列表项
+    if (/^[-*]\s+/.test(line)) {
+      let items = []
+      while (i < lines.length && /^[-*]\s+/.test(lines[i])) {
+        items.push('<li style="color:var(--rule-ink-2);line-height:1.7;">' + inlineMd(lines[i].replace(/^[-*]\s+/, '')) + '</li>')
+        i++
+      }
+      html += '<ul style="padding-left:18px;margin:6px 0;list-style:disc;">' + items.join('') + '</ul>'
+      continue
+    }
+
+    // 有序列表
+    if (/^\d+[.、]\s+/.test(line)) {
+      let items = []
+      while (i < lines.length && /^\d+[.、]\s+/.test(lines[i])) {
+        items.push('<li style="color:var(--rule-ink-2);line-height:1.7;">' + inlineMd(lines[i].replace(/^\d+[.、]\s+/, '')) + '</li>')
+        i++
+      }
+      html += '<ol style="padding-left:18px;margin:6px 0;list-style:decimal;">' + items.join('') + '</ol>'
+      continue
+    }
+
+    // 空行
+    if (!line.trim()) {
+      html += '<div style="height:6px;"></div>'
+      i++
+      continue
+    }
+
+    // 普通段落
+    html += '<p style="margin:6px 0;color:var(--rule-foreground);line-height:1.7;word-break:break-word;">' + inlineMd(line.trim()) + '</p>'
+    i++
+  }
+
+  return html
+}
 
 // ==================== 播放器状态 ====================
 const playerCardRef = ref(null)
+const outlineCardStyle = ref({})
+
+// 简介卡片高度以播放器卡片为上限：内容超高时卡片内部滚动，播放器保持自身高度不被撑高
+function syncOutlineHeight() {
+  const el = playerCardRef.value
+  if (!el) return
+  outlineCardStyle.value = { maxHeight: el.offsetHeight + 'px' }
+}
+
 const currentResource = ref(null)
 const currentTitle = ref('视频学习详情')
 const currentCategory = ref('涉外法治')
@@ -369,17 +417,10 @@ const isFullscreen = ref(false)
 const videoError = ref('')
 const speedOptions = [0.5, 0.75, 1, 1.25, 1.5, 2]
 
-const visibleSections = ref([false, false, false])
-
 // 推荐视频：由资源库真实视频生成
 const recommendedVideos = ref([])
 
-// 计算属性
-const activeLesson = ref(0)
-
-const completedLessons = computed(() => {
-  return lessons.value.filter(l => l.done).length
-})
+const visibleSections = ref([false, false, false])
 
 // 秒数格式化为 mm:ss 或 h:mm:ss
 const formatTime = (sec) => {
@@ -727,14 +768,6 @@ const onKeydown = (e) => {
   }
 }
 
-const selectLesson = (index) => {
-  if (lessons.value[index].done) {
-    return
-  }
-  lessons.value[index].done = true
-  activeLesson.value = index
-}
-
 const navigateTo = (url) => {
   uni.navigateTo({ url })
 }
@@ -780,6 +813,13 @@ onMounted(() => {
   }, 100)
 
   if (typeof window !== 'undefined') {
+    // 简介卡片最高不超过播放器高度（随窗口尺寸/字体加载联动）
+    syncOutlineHeight()
+    setTimeout(syncOutlineHeight, 300)
+    window.addEventListener('resize', syncOutlineHeight)
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(syncOutlineHeight).catch(() => {})
+    }
     window.addEventListener('mouseup', handleGlobalMouseUp)
     window.addEventListener('keydown', onKeydown)
     document.addEventListener('fullscreenchange', onFullscreenChange)
@@ -791,6 +831,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   clearProgress()
   if (typeof window !== 'undefined') {
+    window.removeEventListener('resize', syncOutlineHeight)
     window.removeEventListener('mouseup', handleGlobalMouseUp)
     window.removeEventListener('keydown', onKeydown)
     document.removeEventListener('fullscreenchange', onFullscreenChange)
@@ -850,12 +891,6 @@ async function loadResource(id) {
     currentTitle.value = doc.title || '未命名视频'
     currentCategory.value = doc.cat || '未分类'
     currentDuration.value = doc.meta || '--:--'
-    lessons.value = [{
-      title: doc.title || '本课视频',
-      duration: doc.meta || '--:--',
-      done: false
-    }]
-    activeLesson.value = 0
     videoError.value = ''
     const embedUrl = buildBilibiliEmbedUrl(doc.fileUrl)
     bilibiliEmbedUrl.value = embedUrl
@@ -869,8 +904,47 @@ async function loadResource(id) {
       }
     }
     progressKey = `vd_progress_${id}`
+    // 使用 AI 根据课程信息生成简介与讲师介绍（带本地缓存，避免重复调用）
+    generateAiVideoIntro(id, doc)
   } catch (e) {
     uni.showToast({ title: (e && e.errMsg) || '资源加载失败', icon: 'none' })
+  }
+}
+
+// 调用 AI 生成课程简介；同视频缓存到本地，命中则直接使用
+// 缓存 key 带版本号：AI 简介格式升级时 +1，旧缓存自动作废重新生成
+const AI_INTRO_CACHE_VERSION = 3
+async function generateAiVideoIntro(id, doc) {
+  const cacheKey = `vd_ai_intro_v${AI_INTRO_CACHE_VERSION}_${id}`
+  try {
+    const cached = uni.getStorageSync(cacheKey)
+    if (cached && cached.intro) {
+      aiIntro.value = cached.intro
+      aiIntroHtml.value = markdownToHtml(cached.intro)
+      return
+    }
+  } catch (e) {}
+
+  aiGenerating.value = true
+  try {
+    const aiChat = uniCloud.importObject('aiChat', { customUI: true })
+    const r = await aiChat.generateVideoIntro({
+      title: doc.title,
+      category: doc.cat,
+      description: doc.description || '',
+      meta: doc.meta || ''
+    })
+    if (r.errCode === 0) {
+      aiIntro.value = r.intro
+      aiIntroHtml.value = markdownToHtml(r.intro)
+      try {
+        uni.setStorageSync(cacheKey, { intro: r.intro })
+      } catch (e) {}
+    }
+  } catch (e) {
+    console.error('[video-detail] AI intro generate error:', e)
+  } finally {
+    aiGenerating.value = false
   }
 }
 
@@ -1236,6 +1310,8 @@ async function loadRecommended(currentId) {
   grid-template-columns: 2fr 1fr;
   gap: 24px;
   margin-bottom: 32px;
+  /* 禁止网格拉伸：简介卡片内容增高时，播放器保持自身高度不被撑高 */
+  align-items: start;
 }
 
 /* === Player card === */
@@ -1356,8 +1432,8 @@ async function loadRecommended(currentId) {
 .vd-play-circle {
   position: relative;
   z-index: 2;
-  width: 72px;
-  height: 72px;
+  width: 84px;
+  height: 84px;
   border-radius: 50%;
   background: rgba(255,255,255,0.9);
   display: flex;
@@ -1373,8 +1449,8 @@ async function loadRecommended(currentId) {
 }
 
 .vd-play-circle svg {
-  width: 32px;
-  height: 32px;
+  width: 38px;
+  height: 38px;
   color: var(--rule-primary);
   margin-left: 4px;
 }
@@ -1383,7 +1459,7 @@ async function loadRecommended(currentId) {
   padding: 16px 20px;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 18px;
   border-top: 1px solid var(--rule-border);
   flex-wrap: wrap;
 }
@@ -1415,8 +1491,8 @@ async function loadRecommended(currentId) {
 }
 
 .vd-ctrl-btn {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: var(--rule-muted);
   border: none;
@@ -1435,16 +1511,16 @@ async function loadRecommended(currentId) {
 }
 
 .vd-ctrl-btn svg {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   margin-left: 2px;
 }
 
 .vd-progress-bar {
   flex: 1;
-  height: 6px;
+  height: 8px;
   background: var(--rule-muted);
-  border-radius: 3px;
+  border-radius: 4px;
   position: relative;
   cursor: pointer;
 }
@@ -1478,7 +1554,7 @@ async function loadRecommended(currentId) {
 }
 
 .vd-progress-time {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--rule-muted-foreground);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -1495,8 +1571,8 @@ async function loadRecommended(currentId) {
 .vd-volume-track {
   width: 0;
   opacity: 0;
-  height: 6px;
-  border-radius: 3px;
+  height: 8px;
+  border-radius: 4px;
   background: var(--rule-muted);
   position: relative;
   cursor: pointer;
@@ -1506,7 +1582,7 @@ async function loadRecommended(currentId) {
 
 .vd-volume-ctrl:hover .vd-volume-track,
 .vd-volume-ctrl:focus-within .vd-volume-track {
-  width: 80px;
+  width: 90px;
   opacity: 1;
 }
 
@@ -1523,13 +1599,14 @@ async function loadRecommended(currentId) {
 }
 
 .vd-speed-btn {
-  height: 32px;
-  padding: 0 10px;
-  border-radius: 6px;
+  height: 40px;
+  min-width: 56px;
+  padding: 0 14px;
+  border-radius: 8px;
   border: 1px solid var(--rule-border);
   background: var(--rule-card);
   color: var(--rule-ink-2);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   font-variant-numeric: tabular-nums;
@@ -1640,7 +1717,9 @@ async function loadRecommended(currentId) {
   border-radius: 12px;
   display: flex;
   flex-direction: column;
-  max-height: 500px;
+  /* 与播放器卡片等高（网格拉伸），内容超高时内部滚动 */
+  min-height: 0;
+  height: 100%;
 }
 
 .vd-outline-header {
@@ -1677,166 +1756,50 @@ async function loadRecommended(currentId) {
   padding: 8px;
 }
 
-.vd-lesson-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.15s ease;
+/* 课程简介内容（原课程大纲位置） */
+.vd-intro-body {
+  padding: 12px 20px 20px;
+  overflow-y: auto;
 }
 
-.vd-lesson-item:hover {
-  background: var(--rule-muted);
+.vd-intro-text {
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--rule-ink-2);
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
-.vd-lesson-item.is-active {
-  background: var(--rule-primary-tint-3);
-}
-
-.vd-lesson-item.is-done .vd-lesson-check {
-  background: var(--state-success);
-  border-color: var(--state-success);
-}
-
-.vd-lesson-item.is-done .vd-lesson-check svg {
-  opacity: 1;
-}
-
-.vd-lesson-check {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 2px solid var(--rule-border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: all 0.2s ease;
-}
-
-.vd-lesson-check svg {
-  width: 12px;
-  height: 12px;
-  color: #fff;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.vd-lesson-num {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--rule-muted-foreground);
-  width: 24px;
-  flex-shrink: 0;
-  font-variant-numeric: tabular-nums;
-}
-
-.vd-lesson-item.is-active .vd-lesson-num {
-  color: var(--rule-primary);
-}
-
-.vd-lesson-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.vd-lesson-name {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--rule-foreground);
-  line-height: 1.4;
-}
-
-.vd-lesson-item.is-done .vd-lesson-name {
-  color: var(--rule-muted-foreground);
-}
-
-.vd-lesson-duration {
-  font-size: 11px;
-  color: var(--rule-muted-foreground);
-  font-variant-numeric: tabular-nums;
-  flex-shrink: 0;
-}
-
-/* === Info grid: intro + instructor === */
-.vd-info-grid {
-  display: grid;
-  grid-template-columns: 3fr 2fr;
-  gap: 24px;
-  margin-bottom: 32px;
-}
-
-.vd-info-card {
-  background: var(--rule-card);
-  border: 1px solid var(--rule-border);
-  border-radius: 12px;
-  padding: 24px;
-}
-
-.vd-info-card-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--rule-foreground);
-  margin-bottom: 16px;
-}
-
-.vd-desc-text {
+/* AI 生成的富文本简介 */
+.vd-intro-html {
+  display: block;
   font-size: 14px;
   line-height: 1.7;
   color: var(--rule-ink-2);
+  word-break: break-word;
 }
 
-.vd-desc-text p {
-  margin: 0 0 12px;
-}
-
-.vd-desc-text p:last-child {
-  margin-bottom: 0;
-}
-
-.vd-instructor {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 16px;
-}
-
-.vd-instructor-avatar {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--rule-primary), var(--rule-primary-tint-2));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  font-weight: 700;
-  color: #fff;
+/* AI 生成标记 */
+.vd-ai-badge {
+  font-size: 11px;
+  font-weight: 500;
+  background: var(--state-info-tint);
+  color: var(--state-info);
+  padding: 2px 8px;
+  border-radius: 9999px;
   flex-shrink: 0;
 }
 
-.vd-instructor-info {
-  flex: 1;
+/* AI 生成加载提示 */
+.vd-ai-loading {
+  color: var(--rule-muted-foreground) !important;
+  animation: vdAiPulse 1.4s ease-in-out infinite;
 }
 
-.vd-instructor-name {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--rule-foreground);
-  margin-bottom: 2px;
-}
-
-.vd-instructor-title {
-  font-size: 13px;
-  color: var(--rule-muted-foreground);
-}
-
-.vd-instructor-bio {
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--rule-ink-2);
-  margin: 0;
+@keyframes vdAiPulse {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 1; }
 }
 
 /* === Section header (aligned with legal-db) === */
@@ -1989,10 +1952,6 @@ async function loadRecommended(currentId) {
     grid-template-columns: 1fr;
   }
   
-  .vd-info-grid {
-    grid-template-columns: 1fr;
-  }
-  
   .vd-rec-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -2064,11 +2023,6 @@ async function loadRecommended(currentId) {
   }
   
   .vd-progress-fill {
-    transition: none;
-  }
-  
-  .vd-lesson-check,
-  .vd-lesson-check svg {
     transition: none;
   }
 }

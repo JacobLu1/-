@@ -687,7 +687,7 @@ const handleDelete = (type, item) => {
     success: async (res) => {
       if (!res.confirm) return
       try {
-    const resourcesObj = uniCloud.importObject('resources', { customUI: true })
+        const resourcesObj = uniCloud.importObject('resources', { customUI: true })
         const r = (await resourcesObj.remove({ adminToken: getAdminToken(), id: item.id })) || {}
         if (r.errCode === 0) {
           if (type === 'video') {

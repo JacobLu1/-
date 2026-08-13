@@ -38,6 +38,7 @@
         <view class="bubble">
           <block v-if="m.isTyping">
             <text class="dot"></text><text class="dot"></text><text class="dot"></text>
+            <text class="think-tip">思考中{{ m.elapsed ? ' · ' + m.elapsed + 's' : '' }}</text>
           </block>
           <rich-text v-else :nodes="m.html"></rich-text>
         </view>
@@ -59,18 +60,14 @@
     <!-- Composer: suggested prompts + input -->
     <view class="composer">
       <scroll-view scroll-x enable-flex class="suggest-row" role="list" aria-label="建议提问" show-scrollbar="false">
-        <view class="suggest" hover-class="sg-hover" @click="askQuestion('解释WTO争端解决流程')">
-          解释WTO争端解决流程
-        </view>
-        <view class="suggest" hover-class="sg-hover" @click="askQuestion('起草涉外合同要点')">
-          起草涉外合同要点
-        </view>
-        <view class="suggest" hover-class="sg-hover" @click="askQuestion('中美合规差异对比')">
-          中美合规差异对比
-        </view>
-        <view class="suggest" hover-class="sg-hover" @click="askQuestion('法律英语术语辨析')">
-          法律英语术语辨析
-        </view>
+        <view
+          v-for="(q, idx) in suggestedQuestions"
+          :key="idx"
+          class="suggest"
+          hover-class="sg-hover"
+          :aria-label="'提问：' + q"
+          @click="askQuestion(q)"
+        >{{ q }}</view>
       </scroll-view>
       <view class="input-bar">
         <view class="sr-only">输入你的问题</view>
@@ -114,43 +111,11 @@ export default {
       reduceMotion: false,
 
       displayName: '用户',
-      SEED_USER_Q: '请解释国际商事仲裁中管辖权异议的处理流程。',
-      ANSWERS: [
-        {
-          keys: ['管辖权', '异议', '仲裁庭', '自裁'],
-          text: '国际商事仲裁中<strong>管辖权异议</strong>的处理流程：①当事人应在仲裁庭首次开庭前提出（部分规则要求不晚于提交实体答辩时）；②适用<strong>仲裁庭自裁管辖权原则</strong>（Kompetenz-Kompetenz），仲裁庭可自行裁定自身管辖权；③异议被驳回后，多数仲裁地法允许事后向法院申请司法审查（如<strong>SIAC</strong>规则下需经法院确认）；④裁决作出后，可依<strong>《纽约公约》</strong>第5条以"无管辖权"为由申请拒绝承认与执行。',
-          follow: '查看相关案例'
-        },
-        {
-          keys: ['WTO', '争端'],
-          text: '<strong>WTO争端解决</strong>大致分四步：①<strong>协商</strong>（必经程序，至少60天）；②<strong>专家组审理</strong>（DSU第6条，约6个月出报告）；③<strong>上诉机构复审</strong>（仅法律审，60-90天）；④<strong>DSB通过并监督执行</strong>。败诉方未合理执行的，胜诉方可申请报复授权。近年因上诉机构停摆，多方诉诸MPIA仲裁作为替代。',
-          follow: '查看争端时间线'
-        },
-        {
-          keys: ['合同', '起草'],
-          text: '起草涉外合同要把握三层要点：①<strong>准据法与管辖</strong>——明示选择适用法与争议解决条款（仲裁地、机构、语言）；②<strong>核心条款</strong>——标的、对价、交付、违约责任、不可抗力；③<strong>跨境合规</strong>——出口管制、制裁筛查、数据跨境与税务。建议附中英对照版本并约定效力优先顺序。',
-          follow: '下载合同模板'
-        },
-        {
-          keys: ['合规', '差异', '中美'],
-          text: '中美合规差异集中在三块：①<strong>数据合规</strong>——中国《数据安全法》《个人信息保护法》强调重要数据出境评估，美国偏行业自律加州法（CCPA）；②<strong>出口管制</strong>——中国《出口管制法》与美国EAR均管辖域外行为，企业需做双重筛查；③<strong>反垄断申报</strong>——中美门槛与管辖标准不同，跨境并购常需双报。',
-          follow: '合规自查清单'
-        },
-        {
-          keys: ['英语', '术语', '辨析', '对照'],
-          text: '涉外法治高频术语辨析：①<strong>Jurisdiction</strong>（管辖权）vs <strong>Governing Law</strong>（准据法）——前者指争端由谁审理，后者指实体适用哪国法；②<strong>Arbitration</strong> vs <strong>Litigation</strong>——仲裁一裁终局、保密、可跨国执行（《纽约公约》），诉讼公开且可上诉；③<strong>Force Majeure</strong> 不可抗力 vs <strong>Hardship</strong> 艰难情形——前者免责，后者触发重新协商。',
-          follow: '术语对照表'
-        },
-        {
-          keys: ['案例', '时间线', '模板', '清单', '解析'],
-          text: '为你整理三则典型涉外法治案例：①<strong>ICC仲裁管辖权异议案</strong>——仲裁庭依自裁原则裁定管辖，后经法院确认；②<strong>中美贸易争端DS542</strong>——WTO专家组就技术转让争议作出裁决；③<strong>SIAC裁决在华承认执行案</strong>——法院依《纽约公约》第5条审查公共政策例外。需要哪一则展开？',
-          follow: '解析案例一'
-        }
-      ],
-      FALLBACK: {
-        text: '这是个很好的问题。建议从<strong>法律依据</strong>、<strong>适用范围</strong>与<strong>实务要点</strong>三个层面展开。如果你能告诉我具体场景（如合同类型、争议阶段），我可以给出更有针对性的解析，或帮你起草相关文书要点。',
-        follow: '换个角度问'
-      }
+      // 建议问题：每次进入页面随机换一批
+      suggestedQuestions: [],
+      // AI 思考中：typingId 标识当前思考气泡，thinkTimer 秒表
+      typingId: null,
+      thinkTimer: null
     }
   },
   computed: {
@@ -163,11 +128,17 @@ export default {
   },
   onShow() {
     this.loadUserInfo()
+    // 每次进入页面随机换一批建议问题
+    this.randomSuggestions()
   },
   onReady() {
     // 顶部安全区适配：动态获取系统状态栏高度
     this.statusBarHeight = this.getStatusBarHeight()
     this.renderSeed()
+  },
+  onUnload() {
+    // 退出页面时清理思考计时器，避免定时器泄漏
+    this.stopThinkTimer()
   },
   methods: {
     loadUserInfo() {
@@ -187,6 +158,30 @@ export default {
       }
     },
     navBack() { uni.navigateBack({ delta: 1 }) },
+    // 从建议问题池中随机抽取一批（每次进入页面调用）
+    randomSuggestions() {
+      const pool = [
+        '解释WTO争端解决流程',
+        '起草涉外合同要注意哪些要点？',
+        '中美合规差异对比',
+        '法律英语术语辨析',
+        '外国仲裁裁决的承认与执行条件？',
+        '涉外民事诉讼的管辖规则？',
+        '企业数据跨境传输需要满足哪些合规要求？',
+        '涉外合同中的不可抗力条款如何约定？',
+        '外国法院判决在我国如何申请承认与执行？',
+        '国际货物买卖合同的核心要点？',
+        '海运提单的法律性质与风险防范？',
+        '外国投资者如何提起国际投资仲裁？'
+      ]
+      const picked = []
+      const count = Math.min(4, pool.length)
+      for (let i = 0; i < count; i++) {
+        const idx = Math.floor(Math.random() * pool.length)
+        picked.push(pool.splice(idx, 1)[0])
+      }
+      this.suggestedQuestions = picked
+    },
     onInput(e) { this.inputText = e.detail.value },
     toggleMic() {
       this.recording = !this.recording
@@ -205,16 +200,104 @@ export default {
         return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
       })
     },
-    matchAnswer(q) {
-      const lower = q.toLowerCase()
-      for (let i = 0; i < this.ANSWERS.length; i++) {
-        const a = this.ANSWERS[i]
-        for (let j = 0; j < a.keys.length; j++) {
-          const k = a.keys[j]
-          if (q.indexOf(k) !== -1 || lower.indexOf(k.toLowerCase()) !== -1) return a
+    // 行内样式：加粗/斜体/行内代码（颜色用具体值，rich-text 不解析 CSS 变量）
+    inlineMd(text) {
+      return this.escapeHtml(text)
+        .replace(/\*\*(.+?)\*\*/g, '<strong style="font-weight:700;color:#2E7BE0;">$1</strong>')
+        .replace(/(^|[^*])\*([^*]+)\*(?!\*)/g, '$1<em style="font-style:italic;">$2</em>')
+        .replace(/`([^`]+)`/g, '<code style="background:rgba(0,0,0,.06);border-radius:4px;padding:1px 5px;font-size:13px;">$1</code>')
+    },
+    // Markdown → HTML（AI 回答排版）：标题/加粗/斜体/代码/列表/引用
+    markdownToHtml(md) {
+      if (!md) return ''
+      const lines = String(md).split('\n')
+      let html = ''
+      let i = 0
+      let inCode = false
+      let codeBuf = []
+
+      while (i < lines.length) {
+        let line = lines[i]
+
+        // 代码块开始/结束
+        if (/^\s*```/.test(line)) {
+          if (inCode) {
+            html += '<pre style="background:rgba(0,0,0,.05);border-radius:6px;padding:8px 12px;margin:6px 0;white-space:pre-wrap;word-break:break-word;">' + this.escapeHtml(codeBuf.join('\n')) + '</pre>'
+            codeBuf = []
+            inCode = false
+          } else {
+            inCode = true
+          }
+          i++
+          continue
         }
+        if (inCode) {
+          codeBuf.push(line)
+          i++
+          continue
+        }
+
+        // 标题：## 课程概述 等
+        const headMatch = line.match(/^(#{1,3})\s+(.+)$/)
+        if (headMatch) {
+          const level = headMatch[1].length
+          const text = headMatch[2]
+          const size = level === 1 ? '17px' : level === 2 ? '16px' : '15px'
+          html += '<p style="font-size:' + size + ';font-weight:700;color:#16314F;margin:10px 0 4px;">' + this.inlineMd(text) + '</p>'
+          i++
+          continue
+        }
+
+        // 引用块
+        if (/^>\s*/.test(line)) {
+          let quoteLines = []
+          while (i < lines.length && /^>\s*/.test(lines[i])) {
+            quoteLines.push(lines[i].replace(/^>\s*/, ''))
+            i++
+          }
+          html += '<blockquote style="background:rgba(34,197,94,.10);border-left:3px solid #22C55E;border-radius:0 8px 8px 0;padding:8px 12px;margin:8px 0;color:#047857;font-size:13px;line-height:1.55;">' + quoteLines.map(function (l) { return this.inlineMd(l) }.bind(this)).join('<br/>') + '</blockquote>'
+          continue
+        }
+
+        // 无序列表：收集相邻列表项
+        if (/^[-*]\s+/.test(line)) {
+          let items = []
+          while (i < lines.length && /^[-*]\s+/.test(lines[i])) {
+            items.push('<li style="color:#355580;line-height:1.6;">' + this.inlineMd(lines[i].replace(/^[-*]\s+/, '')) + '</li>')
+            i++
+          }
+          html += '<ul style="padding-left:18px;margin:6px 0;list-style:disc;">' + items.join('') + '</ul>'
+          continue
+        }
+
+        // 有序列表
+        if (/^\d+[.、]\s+/.test(line)) {
+          let items = []
+          while (i < lines.length && /^\d+[.、]\s+/.test(lines[i])) {
+            items.push('<li style="color:#355580;line-height:1.6;">' + this.inlineMd(lines[i].replace(/^\d+[.、]\s+/, '')) + '</li>')
+            i++
+          }
+          html += '<ol style="padding-left:18px;margin:6px 0;list-style:decimal;">' + items.join('') + '</ol>'
+          continue
+        }
+
+        // 空行
+        if (!line.trim()) {
+          html += '<div style="height:6px;"></div>'
+          i++
+          continue
+        }
+
+        // 普通段落
+        html += '<p style="margin:6px 0;color:#16314F;line-height:1.7;word-break:break-word;">' + this.inlineMd(line.trim()) + '</p>'
+        i++
       }
-      return this.FALLBACK
+
+      if (inCode && codeBuf.length) {
+        html += '<pre style="background:rgba(0,0,0,.05);border-radius:6px;padding:8px 12px;margin:6px 0;white-space:pre-wrap;word-break:break-word;">' + this.escapeHtml(codeBuf.join('\n')) + '</pre>'
+      }
+
+      return html
     },
     scrollBottom() {
       // 关键：先置空再赋值，强制触发 scroll-into-view（同值不会重新滚动）
@@ -231,43 +314,71 @@ export default {
         id: this.mid++,
         role: role,
         html: html,
+        raw: opts.raw || '',
         delay: this.reduceMotion ? 0 : (delay || 0),
-        isTyping: !!opts.isTyping
+        isTyping: !!opts.isTyping,
+        elapsed: 0
       }
       this.messages.push(msg)
       this.scrollBottom()
       return msg
     },
-    addFollowChip(text) {
-      this.followChips = [{ text: text }]
-      this.scrollBottom()
-    },
-    showTyping() {
+    // 思考中：显示三点动画 + 实时秒数
+    showThinking() {
       const msg = this.addMsg('ai', '', 0, { isTyping: true })
       this.typingId = msg.id
+      const self = this
+      this.stopThinkTimer()
+      this.thinkTimer = setInterval(function () {
+        const m = self.messages.find(function (x) { return x.id === self.typingId })
+        if (m) m.elapsed = (m.elapsed || 0) + 1
+      }, 1000)
     },
-    hideTyping() {
+    hideThinking() {
+      this.stopThinkTimer()
       if (this.typingId) {
         const idx = this.messages.findIndex(m => m.id === this.typingId)
         if (idx >= 0) this.messages.splice(idx, 1)
         this.typingId = null
       }
     },
-    askQuestion(q) {
+    stopThinkTimer() {
+      if (this.thinkTimer) {
+        clearInterval(this.thinkTimer)
+        this.thinkTimer = null
+      }
+    },
+    async askQuestion(q) {
       const question = (q || this.inputText || '').trim()
       if (!question) return
       this.followChips = []
-      this.addMsg('user', this.escapeHtml(question), 0)
+      this.addMsg('user', this.escapeHtml(question), 0, { raw: question })
       this.inputText = ''
-      this.showTyping()
-      const delay = this.reduceMotion ? 220 : 1300
-      const self = this
-      setTimeout(function () {
-        self.hideTyping()
-        const ans = self.matchAnswer(question)
-        self.addMsg('ai', ans.text, 0)
-        if (ans.follow) self.addFollowChip(ans.follow)
-      }, delay)
+      this.showThinking()
+
+      // 收集最近对话作为上下文（排除思考中的气泡）
+      const history = this.messages
+        .filter(function (m) { return !m.isTyping && (m.role === 'user' || m.role === 'ai') })
+        .map(function (m) {
+          return { role: m.role === 'user' ? 'user' : 'assistant', content: m.raw || '' }
+        })
+
+      try {
+        // customUI: true 关闭 uniCloud 调用云对象时自动弹出的 loading 遮罩
+        const aiChat = uniCloud.importObject('aiChat', { customUI: true })
+        const res = await aiChat.chat({ messages: history })
+        this.hideThinking()
+        if (res && res.errCode === 0) {
+          const text = res.content || ''
+          this.addMsg('ai', this.markdownToHtml(text), 0, { raw: text })
+        } else {
+          this.addMsg('ai', this.escapeHtml((res && res.errMsg) || 'AI 服务暂时不可用，请稍后重试'), 0)
+        }
+      } catch (e) {
+        console.error('aiChat error:', e)
+        this.hideThinking()
+        this.addMsg('ai', this.escapeHtml('AI 服务连接失败，请稍后重试'), 0)
+      }
     },
     renderSeed() {
       this.messages = []
@@ -275,15 +386,7 @@ export default {
       this.mid = 1
       this.$nextTick(() => {
         const d = this.reduceMotion ? 0 : 0.08
-        this.addMsg('ai', this.greeting, d)
-        setTimeout(() => {
-          this.addMsg('user', this.escapeHtml(this.SEED_USER_Q), this.reduceMotion ? 0 : 0.28)
-          setTimeout(() => {
-            const ans = this.matchAnswer(this.SEED_USER_Q)
-            this.addMsg('ai', ans.text, this.reduceMotion ? 0 : 0.5)
-            if (ans.follow) this.addFollowChip(ans.follow)
-          }, this.reduceMotion ? 0 : 220)
-        }, this.reduceMotion ? 0 : 200)
+        this.addMsg('ai', this.escapeHtml(this.greeting), d, { raw: this.greeting })
       })
     }
   }
@@ -491,6 +594,12 @@ page { height: 100vh; overflow: hidden; }
 }
 .msg.typing .dot:nth-child(2) { animation-delay: .2s; }
 .msg.typing .dot:nth-child(3) { animation-delay: .4s; }
+.think-tip {
+  font-size: 22rpx;
+  color: var(--muted);
+  margin-left: 8rpx;
+  white-space: nowrap;
+}
 @keyframes typingBounce {
   0%, 60%, 100% { transform: translateY(0); opacity: .4; }
   30% { transform: translateY(-12rpx); opacity: 1; }

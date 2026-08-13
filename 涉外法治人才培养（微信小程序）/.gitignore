@@ -2,3 +2,6 @@ node_modules/
 unpackage/
 .hbuilderx/
 .DS_Store
+
+# AI 云函数本地密钥（含智谱 API Key，禁止提交）
+**/aiChat/config.local.json

@@ -144,10 +144,10 @@
                     <text class="pc-settings-label">绑定邮箱</text>
                   </view>
                   <view class="pc-settings-right">
-                    <text class="pc-settings-status is-ok">
-                      {{ emailBound }}
+                    <view class="pc-settings-status is-ok">
+                      <text>{{ emailBound }}</text>
                       <view class="pc-icon-check-sm"></view>
-                    </text>
+                    </view>
                   </view>
                 </view>
                 <view class="pc-settings-item">
@@ -158,10 +158,10 @@
                     <text class="pc-settings-label">消息通知</text>
                   </view>
                   <view class="pc-settings-right">
-                    <text class="pc-settings-status is-ok">
-                      已开启
+                    <view class="pc-settings-status is-ok">
+                      <text>已开启</text>
                       <view class="pc-icon-check-sm"></view>
-                    </text>
+                    </view>
                   </view>
                 </view>
                 <view class="pc-settings-item" @tap="handlePrivacy">
@@ -397,7 +397,7 @@ export default {
         return
       }
       this.saving = true
-    const usersObj = uniCloud.importObject('users', { customUI: true })
+      const usersObj = uniCloud.importObject('users', { customUI: true })
       usersObj.updateProfile({ token, data: { ...this.editForm } })
         .then((r) => {
           r = r || {}
@@ -442,7 +442,7 @@ export default {
         return
       }
       this.savingPwd = true
-    const usersObj = uniCloud.importObject('users', { customUI: true })
+      const usersObj = uniCloud.importObject('users', { customUI: true })
       usersObj.changePassword({ token, oldPassword, newPassword })
         .then((r) => {
           r = r || {}

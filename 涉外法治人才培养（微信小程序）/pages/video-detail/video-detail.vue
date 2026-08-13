@@ -71,8 +71,11 @@
       <view class="vd-section">
         <view class="vd-sec-head">
           <text class="vd-sec-title">课程简介</text>
+          <text v-if="aiIntro" class="vd-ai-badge">AI 生成</text>
         </view>
-        <text class="vd-desc">{{ videoDesc }}</text>
+        <rich-text v-if="aiIntro" class="vd-desc" :nodes="aiIntroHtml"></rich-text>
+        <text v-else-if="aiGenerating" class="vd-desc vd-ai-loading">AI 正在根据课程内容生成简介…</text>
+        <text v-else class="vd-desc">{{ videoDesc }}</text>
       </view>
     </scroll-view>
   </view>
@@ -98,7 +101,11 @@ export default {
       playbackRate: 1,
       isPlaying: false,
       // 是否已点击开始播放（未开始时显示开始按钮，不自动播放）
-      started: false
+      started: false,
+      // AI 生成的课程简介（Markdown 渲染后的 HTML / 原始 Markdown）
+      aiIntro: '',
+      aiIntroHtml: '',
+      aiGenerating: false
     }
   },
   onLoad(options) {
@@ -153,9 +160,118 @@ export default {
         if (!resolved) {
           uni.showToast({ title: '该资源暂未配置文件地址', icon: 'none' })
         }
+        // 使用 AI 根据课程信息生成简介（带本地缓存，避免重复调用）
+        this.generateAiVideoIntro(id, doc)
       } catch (e) {
         uni.showToast({ title: (e && e.errMsg) || '视频加载失败', icon: 'none' })
       }
+    },
+    // 转义 HTML 特殊字符，防止 AI 内容破坏页面结构
+    escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      })
+    },
+    // 行内样式：加粗/斜体/行内代码（颜色用具体值，rich-text 不解析 CSS 变量）
+    inlineMd(text) {
+      return this.escapeHtml(text)
+        .replace(/\*\*(.+?)\*\*/g, '<strong style="font-weight:700;color:#2E7BE0;">$1</strong>')
+        .replace(/(^|[^*])\*([^*]+)\*(?!\*)/g, '$1<em style="font-style:italic;">$2</em>')
+        .replace(/`([^`]+)`/g, '<code style="background:rgba(0,0,0,.06);border-radius:4px;padding:1px 5px;font-size:13px;">$1</code>')
+    },
+    // Markdown → HTML（课程简介排版）：标题/加粗/列表
+    markdownToHtml(md) {
+      if (!md) return ''
+      const lines = String(md).split('\n')
+      let html = ''
+      let i = 0
+
+      while (i < lines.length) {
+        let line = lines[i]
+
+        // 标题：## 课程概述 等
+        const headMatch = line.match(/^(#{1,3})\s+(.+)$/)
+        if (headMatch) {
+          const level = headMatch[1].length
+          const text = headMatch[2]
+          const size = level === 1 ? '17px' : level === 2 ? '16px' : '15px'
+          html += '<p style="font-size:' + size + ';font-weight:700;color:#1B2233;margin:12px 0 6px;">' + this.inlineMd(text) + '</p>'
+          i++
+          continue
+        }
+
+        // 无序列表：收集相邻列表项
+        if (/^[-*]\s+/.test(line)) {
+          let items = []
+          while (i < lines.length && /^[-*]\s+/.test(lines[i])) {
+            items.push('<li style="color:#4A5265;line-height:1.7;">' + this.inlineMd(lines[i].replace(/^[-*]\s+/, '')) + '</li>')
+            i++
+          }
+          html += '<ul style="padding-left:18px;margin:6px 0;list-style:disc;">' + items.join('') + '</ul>'
+          continue
+        }
+
+        // 有序列表
+        if (/^\d+[.、]\s+/.test(line)) {
+          let items = []
+          while (i < lines.length && /^\d+[.、]\s+/.test(lines[i])) {
+            items.push('<li style="color:#4A5265;line-height:1.7;">' + this.inlineMd(lines[i].replace(/^\d+[.、]\s+/, '')) + '</li>')
+            i++
+          }
+          html += '<ol style="padding-left:18px;margin:6px 0;list-style:decimal;">' + items.join('') + '</ol>'
+          continue
+        }
+
+        // 空行
+        if (!line.trim()) {
+          html += '<div style="height:6px;"></div>'
+          i++
+          continue
+        }
+
+        // 普通段落
+        html += '<p style="margin:6px 0;color:#4A5265;line-height:1.7;word-break:break-word;">' + this.inlineMd(line.trim()) + '</p>'
+        i++
+      }
+
+      return html
+    },
+    // 调用 AI 生成课程简介；同视频缓存到本地，命中则直接使用
+    // 缓存 key 带版本号：AI 简介格式升级时 +1，旧缓存自动作废重新生成
+    generateAiVideoIntro(id, doc) {
+      const cacheKey = 'vd_ai_intro_v3_' + id
+      try {
+        const cached = uni.getStorageSync(cacheKey)
+        if (cached && cached.intro) {
+          this.aiIntro = cached.intro
+          this.aiIntroHtml = this.markdownToHtml(cached.intro)
+          return
+        }
+      } catch (e) {}
+      this.aiGenerating = true
+      const self = this
+      uniCloud.importObject('aiChat', { customUI: true })
+        .generateVideoIntro({
+          title: doc.title,
+          category: doc.cat || '',
+          description: doc.description || '',
+          meta: doc.meta || ''
+        })
+        .then(function (r) {
+          if (r && r.errCode === 0 && r.intro) {
+            self.aiIntro = r.intro
+            self.aiIntroHtml = self.markdownToHtml(r.intro)
+            try {
+              uni.setStorageSync(cacheKey, { intro: r.intro })
+            } catch (e) {}
+          }
+        })
+        .catch(function (e) {
+          console.error('[video-detail] AI intro generate error:', e)
+        })
+        .finally(function () {
+          self.aiGenerating = false
+        })
     },
     getStatusBarHeight() {
       try {
@@ -405,5 +521,20 @@ export default {
   font-size: 28rpx;
   line-height: 1.8;
   color: #4a5265;
+}
+
+.vd-ai-badge {
+  font-size: 20rpx;
+  font-weight: 500;
+  color: #2E7BE0;
+  background: #EFF6FF;
+  padding: 4rpx 14rpx;
+  border-radius: 999rpx;
+  flex-shrink: 0;
+}
+
+.vd-ai-loading {
+  color: #8a94a6;
+  font-style: italic;
 }
 </style>

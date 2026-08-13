@@ -463,7 +463,7 @@ export default {
 
       // 提交到 users 云对象（网页端 + 小程序端共用同一服务空间）
       this.submitButtonText = '身份核验中...'
-    const usersObj = uniCloud.importObject('users', { customUI: true })
+      const usersObj = uniCloud.importObject('users', { customUI: true })
       usersObj.login({ account: this.account, password: this.password, role: this.activeRole })
         .then((r) => {
           r = r || {}

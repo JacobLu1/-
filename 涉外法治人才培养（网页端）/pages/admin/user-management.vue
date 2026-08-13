@@ -345,7 +345,7 @@ function handleCreateUser() {
               if (!r3.confirm) return
               const password = r3.content || ''
               try {
-    const usersObj = uniCloud.importObject('users', { customUI: true })
+                const usersObj = uniCloud.importObject('users', { customUI: true })
                 const r = await usersObj.register({ account, password, name })
                 if (!r || r.errCode === 0) {
                   uni.showToast({ title: '创建成功', icon: 'success' })
@@ -384,7 +384,7 @@ function handleEdit(u) {
           const data = { name }
           if (r2.confirm) data.role = u.role === 'admin' ? 'user' : 'admin'
           try {
-    const usersObj = uniCloud.importObject('users', { customUI: true })
+            const usersObj = uniCloud.importObject('users', { customUI: true })
             const r = await usersObj.update({ adminToken: getAdminToken(), userId: u._id, data })
             if (!r || r.errCode === 0) {
               uni.showToast({ title: '已保存', icon: 'success' })
@@ -411,7 +411,7 @@ function handleDelete(u) {
     success: async (res) => {
       if (!res.confirm) return
       try {
-    const usersObj = uniCloud.importObject('users', { customUI: true })
+        const usersObj = uniCloud.importObject('users', { customUI: true })
         const r = await usersObj.remove({ adminToken: getAdminToken(), userId: u._id })
         if (!r || r.errCode === 0) {
           uni.showToast({ title: '已删除', icon: 'success' })
