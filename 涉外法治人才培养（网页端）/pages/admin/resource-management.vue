@@ -177,12 +177,27 @@
 
             <view v-if="uploadType === 'video'" class="rm-upload-row">
               <view class="rm-form-field rm-form-field-grow">
-                <text class="rm-form-label">视频地址 / 文件名</text>
-                <input class="rm-input" v-model="uploadUrl" placeholder="云存储 MP4 地址或文件名" />
+                <text class="rm-form-label">视频文件</text>
+                <view class="rm-file-row">
+                  <view class="rm-file-btn" @tap="chooseVideoFile">
+                    <view class="navi-icon navi-icon-upload-cloud"></view>
+                    <text>{{ uploadingVideo ? '上传中...' : '选择视频文件' }}</text>
+                  </view>
+                  <text v-if="uploadVideoName" class="rm-file-name">{{ uploadVideoName }}</text>
+                </view>
+                <text class="rm-form-label rm-form-label-soft">视频地址（选择文件后自动填入，也可手动填写）</text>
+                <input class="rm-input" v-model="uploadUrl" placeholder="云存储 MP4 地址" />
               </view>
               <view class="rm-form-field">
-                <text class="rm-form-label">封面 URL</text>
-                <input class="rm-input" v-model="uploadCover" placeholder="可留空" />
+                <text class="rm-form-label">封面图</text>
+                <view class="rm-file-row">
+                  <view class="rm-file-btn rm-file-btn-sm" @tap="chooseCoverFile">
+                    <view class="navi-icon navi-icon-upload-cloud"></view>
+                    <text>{{ uploadingCover ? '上传中...' : '选择封面图' }}</text>
+                  </view>
+                  <text v-if="uploadCoverName" class="rm-file-name">{{ uploadCoverName }}</text>
+                </view>
+                <input class="rm-input" v-model="uploadCover" placeholder="封面 URL，可留空" />
               </view>
             </view>
 
@@ -204,19 +219,48 @@
               </view>
               <view class="rm-form-field">
                 <text class="rm-form-label">PDF / 原文链接</text>
+                <view class="rm-file-row">
+                  <view class="rm-file-btn rm-file-btn-sm" @tap="choosePdfFile">
+                    <view class="navi-icon navi-icon-upload-cloud"></view>
+                    <text>{{ uploadingPdf ? '上传中...' : '选择 PDF 文件' }}</text>
+                  </view>
+                  <text v-if="uploadPdfName" class="rm-file-name">{{ uploadPdfName }}</text>
+                </view>
                 <input class="rm-input" v-model="uploadUrl" placeholder="可留空" />
-                <text class="rm-form-label">封面 URL</text>
+                <text class="rm-form-label">封面图</text>
+                <view class="rm-file-row">
+                  <view class="rm-file-btn rm-file-btn-sm" @tap="chooseCoverFile">
+                    <view class="navi-icon navi-icon-upload-cloud"></view>
+                    <text>{{ uploadingCover ? '上传中...' : '选择封面图' }}</text>
+                  </view>
+                  <text v-if="uploadCoverName" class="rm-file-name">{{ uploadCoverName }}</text>
+                </view>
                 <input class="rm-input" v-model="uploadCover" placeholder="可留空" />
               </view>
             </view>
 
             <view v-if="uploadType === 'listening'" class="rm-upload-row">
               <view class="rm-form-field rm-form-field-grow">
-                <text class="rm-form-label">音频地址</text>
-                <input class="rm-input" v-model="uploadAudioUrl" placeholder="填写云存储音频 URL" />
+                <text class="rm-form-label">音频文件</text>
+                <view class="rm-file-row">
+                  <view class="rm-file-btn" @tap="chooseAudioFile">
+                    <view class="navi-icon navi-icon-upload-cloud"></view>
+                    <text>{{ uploadingAudio ? '上传中...' : '选择音频文件' }}</text>
+                  </view>
+                  <text v-if="uploadAudioName" class="rm-file-name">{{ uploadAudioName }}</text>
+                </view>
+                <text class="rm-form-label rm-form-label-soft">音频地址（选择文件后自动填入，也可手动填写）</text>
+                <input class="rm-input" v-model="uploadAudioUrl" placeholder="云存储音频 URL" />
               </view>
               <view class="rm-form-field">
-                <text class="rm-form-label">封面 URL</text>
+                <text class="rm-form-label">封面图</text>
+                <view class="rm-file-row">
+                  <view class="rm-file-btn rm-file-btn-sm" @tap="chooseCoverFile">
+                    <view class="navi-icon navi-icon-upload-cloud"></view>
+                    <text>{{ uploadingCover ? '上传中...' : '选择封面图' }}</text>
+                  </view>
+                  <text v-if="uploadCoverName" class="rm-file-name">{{ uploadCoverName }}</text>
+                </view>
                 <input class="rm-input" v-model="uploadCover" placeholder="可留空" />
               </view>
             </view>
@@ -377,8 +421,15 @@
                   <input class="rm-input" v-model="editForm.fileUrl" placeholder="填写云存储公开 URL" />
                 </view>
                 <view class="rm-form-field">
-                  <text class="rm-form-label">封面 URL</text>
-                  <input class="rm-input" v-model="editForm.cover" placeholder="可留空" />
+                  <text class="rm-form-label">封面图</text>
+                  <view class="rm-file-row">
+                    <view class="rm-file-btn rm-file-btn-sm" @tap="chooseCoverFile">
+                      <view class="navi-icon navi-icon-upload-cloud"></view>
+                      <text>{{ uploadingCover ? '上传中...' : '选择封面图' }}</text>
+                    </view>
+                    <text v-if="uploadCoverName" class="rm-file-name">{{ uploadCoverName }}</text>
+                  </view>
+                  <input class="rm-input" v-model="editForm.cover" placeholder="封面 URL，可留空" />
                 </view>
               </view>
 
@@ -399,8 +450,15 @@
                   <input class="rm-input" v-model="editForm.audioUrl" placeholder="填写云存储音频 URL" />
                 </view>
                 <view class="rm-form-field">
-                  <text class="rm-form-label">封面 URL</text>
-                  <input class="rm-input" v-model="editForm.cover" placeholder="可留空" />
+                  <text class="rm-form-label">封面图</text>
+                  <view class="rm-file-row">
+                    <view class="rm-file-btn rm-file-btn-sm" @tap="chooseCoverFile">
+                      <view class="navi-icon navi-icon-upload-cloud"></view>
+                      <text>{{ uploadingCover ? '上传中...' : '选择封面图' }}</text>
+                    </view>
+                    <text v-if="uploadCoverName" class="rm-file-name">{{ uploadCoverName }}</text>
+                  </view>
+                  <input class="rm-input" v-model="editForm.cover" placeholder="封面 URL，可留空" />
                 </view>
               </view>
 
@@ -496,6 +554,16 @@ const uploadContent = ref('')
 const uploadAudioUrl = ref('')
 const uploadSortOrder = ref(1)
 const uploadQuestions = ref([])
+
+/* ===== 文件上传状态 ===== */
+const uploadVideoName = ref('')
+const uploadingVideo = ref(false)
+const uploadAudioName = ref('')
+const uploadingAudio = ref(false)
+const uploadPdfName = ref('')
+const uploadingPdf = ref(false)
+const uploadCoverName = ref('')
+const uploadingCover = ref(false)
 
 /* ===== 编辑弹窗 ===== */
 const editVisible = ref(false)
@@ -669,6 +737,136 @@ function addEditOption(questionIndex) {
 
 let payload = {}
 
+/* ===== 文件上传到云存储 ===== */
+function safeFileName(name) {
+  const extMatch = String(name || '').match(/\.[A-Za-z0-9]+$/)
+  const ext = (extMatch && extMatch[0]) || ''
+  const base = (String(name || 'file').replace(/\.[A-Za-z0-9]+$/, '') || 'file')
+    .replace(/[^\w\-]+/g, '_')
+    .slice(0, 40)
+  return `${Date.now()}_${base}${ext}`
+}
+
+function isCancelError(err) {
+  const msg = String((err && (err.errMsg || err.message)) || '').toLowerCase()
+  return msg.indexOf('cancel') >= 0
+}
+
+function chooseOneFile(extension) {
+  return new Promise((resolve, reject) => {
+    uni.chooseFile({
+      count: 1,
+      extension,
+      success: (res) => {
+        const file = res.tempFiles && res.tempFiles[0]
+        if (!file) {
+          reject(new Error('未选择文件'))
+          return
+        }
+        resolve(file)
+      },
+      fail: (err) => reject(err)
+    })
+  })
+}
+
+async function uploadToCloud(file, dir) {
+  const res = await uniCloud.uploadFile({
+    filePath: file.path,
+    cloudPath: `${dir}/${safeFileName(file.name)}`,
+    cloudPathAsRealPath: true
+  })
+  const url = (res && (res.fileID || res.fileUrl || res.url)) || ''
+  if (!/^https?:\/\//.test(url)) {
+    throw new Error('上传完成但未获取到可访问地址，请手动填写 URL')
+  }
+  return url
+}
+
+async function chooseVideoFile() {
+  if (uploadingVideo.value) return
+  try {
+    const file = await chooseOneFile(['.mp4', '.mov', '.m4v', '.webm'])
+    uploadingVideo.value = true
+    uni.showLoading({ title: '视频上传中...', mask: true })
+    const url = await uploadToCloud(file, 'upload/video')
+    uploadUrl.value = url
+    uploadVideoName.value = file.name
+    uni.showToast({ title: '视频已上传', icon: 'success' })
+  } catch (e) {
+    if (!isCancelError(e)) {
+      uni.showToast({ title: (e && e.message) || (e && e.errMsg) || '视频上传失败', icon: 'none' })
+    }
+  } finally {
+    uploadingVideo.value = false
+    uni.hideLoading()
+  }
+}
+
+async function chooseAudioFile() {
+  if (uploadingAudio.value) return
+  try {
+    const file = await chooseOneFile(['.mp3', '.m4a', '.wav', '.aac'])
+    uploadingAudio.value = true
+    uni.showLoading({ title: '音频上传中...', mask: true })
+    const url = await uploadToCloud(file, 'upload/audio')
+    uploadAudioUrl.value = url
+    uploadAudioName.value = file.name
+    uni.showToast({ title: '音频已上传', icon: 'success' })
+  } catch (e) {
+    if (!isCancelError(e)) {
+      uni.showToast({ title: (e && e.message) || (e && e.errMsg) || '音频上传失败', icon: 'none' })
+    }
+  } finally {
+    uploadingAudio.value = false
+    uni.hideLoading()
+  }
+}
+
+async function choosePdfFile() {
+  if (uploadingPdf.value) return
+  try {
+    const file = await chooseOneFile(['.pdf'])
+    uploadingPdf.value = true
+    uni.showLoading({ title: '文件上传中...', mask: true })
+    const url = await uploadToCloud(file, 'upload/file')
+    uploadUrl.value = url
+    uploadPdfName.value = file.name
+    uni.showToast({ title: '文件已上传', icon: 'success' })
+  } catch (e) {
+    if (!isCancelError(e)) {
+      uni.showToast({ title: (e && e.message) || (e && e.errMsg) || '文件上传失败', icon: 'none' })
+    }
+  } finally {
+    uploadingPdf.value = false
+    uni.hideLoading()
+  }
+}
+
+async function chooseCoverFile() {
+  if (uploadingCover.value) return
+  try {
+    const file = await chooseOneFile(['.jpg', '.jpeg', '.png', '.webp'])
+    uploadingCover.value = true
+    uni.showLoading({ title: '封面上传中...', mask: true })
+    const url = await uploadToCloud(file, 'upload/cover')
+    if (editVisible.value) {
+      editForm.cover = url
+    } else {
+      uploadCover.value = url
+    }
+    uploadCoverName.value = file.name
+    uni.showToast({ title: '封面已上传', icon: 'success' })
+  } catch (e) {
+    if (!isCancelError(e)) {
+      uni.showToast({ title: (e && e.message) || (e && e.errMsg) || '封面上传失败', icon: 'none' })
+    }
+  } finally {
+    uploadingCover.value = false
+    uni.hideLoading()
+  }
+}
+
 const doUpload = async () => {
   const title = uploadTitle.value.trim()
   if (!title) {
@@ -725,6 +923,10 @@ const doUpload = async () => {
   uploadAudioUrl.value = ''
   uploadSortOrder.value = 1
   uploadQuestions.value = []
+  uploadVideoName.value = ''
+  uploadAudioName.value = ''
+  uploadPdfName.value = ''
+  uploadCoverName.value = ''
   uni.showToast({ title: '保存成功，等待审核', icon: 'success' })
 }
 
@@ -1319,6 +1521,26 @@ onMounted(() => {
   display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
 }
 .rm-upload-tip { font-size: 12px; color: var(--rule-muted-foreground); }
+
+/* ===== 文件上传 ===== */
+.rm-file-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.rm-file-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 600; white-space: nowrap; cursor: pointer;
+  padding: 9px 16px; border-radius: var(--rule-radius-full);
+  color: var(--rule-primary-foreground);
+  background: linear-gradient(135deg, var(--rule-primary), var(--rule-primary-active));
+  box-shadow: 0 6px 14px -4px color-mix(in srgb, var(--rule-primary) 42%, transparent);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.rm-file-btn:hover { transform: translateY(-1px); }
+.rm-file-btn .navi-icon { width: 15px; height: 15px; background: var(--rule-primary-foreground); }
+.rm-file-btn-sm { padding: 7px 12px; font-size: 12px; }
+.rm-file-name {
+  font-size: 12px; color: var(--rule-muted-foreground);
+  max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.rm-form-label-soft { font-size: 12px; color: var(--rule-muted-foreground); font-weight: 500; }
 
 /* ===== Edit Modal ===== */
 .rm-modal-mask {
