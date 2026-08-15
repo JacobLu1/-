@@ -12,18 +12,22 @@
 
 - 云端框架与数据库 Schema 已完善：用户、资源、测评结果、题目、知识库。
 - 管理后台已接入真实数据：数据总览、题库、知识库、资源库、用户管理。
+- 资源库已升级为 `video/vocabulary/reading/listening` 四类，支持 `sortOrder` 排序、封面、音频、阅读正文、听力题目等字段。
 - 网页端主要页面已接入 uniCloud 真实数据，静态示例数据已清理。
+- 网页端学习中心包含视频、法律英语、词汇、文本阅读、听力训练等模块，内容由资源库驱动。
 - 小程序测评已接入真实题目库，支持真实计分并保存测评结果。
-- 小程序数据中心、个人中心、学习中心、法律英语等页面已接入真实数据或空状态。
+- 小程序数据中心、个人中心、学习中心、法律英语等页面已接入真实数据；听力训练、文本阅读页面读取真实资源。
+- AI 助手已接入智谱大模型：网页端与小程序端通过 `aiChat` 云函数调用，视频课程简介也由 AI 生成。
 - 详细改动见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 待办概览
 
-- 批量导入模板、部署文档与内容填充。详见[数据填充操作指南](数据填充操作指南/)。
-- 专项分类动态化与专项测评过滤。
-- 听力训练数据结构与页面接入。
-- 微信登录 openid 兑换。
-- AI 助手外部 API 接入。
+- 网页端专项分类动态化：`special-select` 从题目库真实 `dimension` 生成分类，专项测评按分类过滤题目。
+- 听力训练已有资源/题目录入与页面展示，学习历史与练习记录仍需完善。
+- 词汇学习进度与收藏目前保存在浏览器 Local Storage，跨端同步待设计。
+- 微信登录 openid 兑换：需要 AppID/Secret，完成后端 token 生成。
+- `aiChat` 云函数代码已接入，线上使用前需部署到共享空间并配置 API Key。
+- 批量导入模板、正式部署文档与内容填充。详见[数据填充操作指南](数据填充操作指南/)。
 - 成就、学习时长、课程、证书、排名等成长体系。
 - 详细交接清单见 [TODO.md](TODO.md)。
 
@@ -35,16 +39,19 @@
 │   ├── pages/                          # 页面
 │   │   ├── login/ login.vue            # 登录页
 │   │   ├── register/ register.vue      # 注册页
-│   │   ├── admin/                      # 管理后台（数据总览/题库/用户/资源管理）
+│   │   ├── admin/                      # 管理后台（数据总览/题库/知识库/资源库/用户）
 │   │   ├── survey/  result/  report/   # 测评相关
 │   │   ├── legal-db/  ai-assistant/    # 法律库 / AI 助手
-│   │   └── learning-center/            # 学习中心
+│   │   └── learning-center/            # 视频/法律英语/词汇/阅读/听力
 │   ├── uniCloud-aliyun/                # 云服务端（云函数 + 数据库）
 │   │   ├── cloudfunctions/
 │   │   │   ├── users/                  # 用户体系云对象（登录/注册/用户管理）
 │   │   │   ├── resources/              # 学习资源云对象
-│   │   │   └── survey/                 # 测评结果云对象
-│   │   └── database/                   # DB Schema（user/resource/survey_result）
+│   │   │   ├── survey/                 # 测评结果云对象
+│   │   │   ├── questions/              # 题目库云对象
+│   │   │   ├── knowledge/              # 法律知识库云对象
+│   │   │   └── aiChat/                 # 智谱大模型 AI 助手云对象
+│   │   └── database/                   # DB Schema（user/resource/survey_result/question/legal_doc）
 │   └── pages.json                      # 页面路由
 │
 └── 涉外法治人才培养（微信小程序）/      # 微信小程序端
@@ -53,7 +60,7 @@
     └── scripts/serve-video.js          # 本地视频服务器（可选）
 ```
 
-> **当前功能范围**：平台学习中心目前仅提供 **法律英语听力** 与 **视频学习** 两个模块（学习中心内暂未开放其他学习形式）。
+> **当前功能范围**：学习中心已接入视频、法律英语、词汇、文本阅读、听力训练等资源模块，页面内容由资源库驱动；对应资源未录入时显示维护提示。
 
 > **重要**：云函数和数据库只在「网页端」项目的 `uniCloud-aliyun` 目录维护与部署，小程序端只负责调用，不要再重复部署同名云函数，避免互相覆盖。
 
@@ -88,8 +95,8 @@
 
 在**网页端**项目中：
 
-1. **上传 DB Schema**：右键 `uniCloud/database` 目录 → 「上传所有 DB Schema 及公共模块」。上传后会在云端自动创建 `user`、`resource`、`survey_result` 三个集合
-2. **部署云函数**：分别右键 `uniCloud/cloudfunctions` 下的 `users`、`resources`、`survey` → 「上传部署」（选择云端依赖）
+1. **上传 DB Schema**：右键 `uniCloud/database` 目录 → 「上传所有 DB Schema 及公共模块」。上传后会在云端自动创建 `user`、`resource`、`survey_result`、`question`、`legal_doc` 五个集合
+2. **部署云函数**：分别右键 `uniCloud/cloudfunctions` 下的 `users`、`resources`、`survey`、`questions`、`knowledge`、`aiChat` → 「上传部署」（选择云端依赖）
 
 > 提示：部署时如果提示选择依赖，选「云端安装依赖」即可。部署成功后在控制台可以看到对应云函数（云对象）。
 
@@ -101,7 +108,7 @@
 
 ### 5. 运行小程序端
 
-1. 打开 `manifest.json` → 微信小程序配置 → 填入你自己的 **AppID**（没有可点「测试号」）
+1. 打开 `manifest.json` → 微信小程序配置 → 填入管理员的 **AppID：`wx0ac4ba85236b0a33`**
 2. 菜单「运行 → 运行到小程序模拟器 → 微信开发者工具」（首次需在 HBuilderX 设置中配置微信开发者工具安装路径）
 3. 微信开发者工具需开启「服务端口」（设置 → 安全设置 → 服务端口）并允许 HBuilderX 调用
 
@@ -139,19 +146,21 @@
 
 ### 5. 视频资源无法播放 / 如何上线视频
 
-视频地址由两端 `utils/video-config.js` 统一提供：
+视频地址以资源库中的 `resource.fileUrl` 为准：
 
-- **本地开发**（默认，无需配置）：网页端走相对路径 `/backend/video/`；小程序端走本地视频服务器：
-  ```
+- 填写完整 `https://` 云存储 URL 时，页面直接使用该地址。
+- 只填写文件名时，会通过 `utils/video-config.js` 拼接视频基址：网页端本地默认 `/backend/video/`，小程序端本地默认 `http://localhost:8972/video/`。
+- 小程序本地调试可启动视频服务器：
+  ```sh
   cd 涉外法治人才培养（微信小程序）
   node scripts/serve-video.js
   ```
-  启动后访问 `http://localhost:8972` 验证。
+  启动后访问 `http://localhost:8972` 验证。真机预览需把 `VIDEO_BASE_LOCAL` 改为电脑局域网地址。
 
   > **小程序播放视频报 `ERR_CONNECTION_REFUSED` 或 `MEDIA_ELEMENT_ERROR: Format error`**：说明本地视频服务器未启动，先在「微信小程序」目录下执行上面的 `node scripts/serve-video.js`，再在微信开发者工具里重新编译。若改过端口，同步修改 `scripts/serve-video.js`（默认 8972）与 `utils/video-config.js` 中的 `VIDEO_BASE_LOCAL`。
   >
   > **真机预览**：视频服务器需监听局域网地址，把 `utils/video-config.js` 的 `VIDEO_BASE_LOCAL` 换成 `http://<电脑局域网IP>:8972/video/`（启动服务器时控制台会打印局域网地址），并保证手机与电脑在同一网络。
-- **上线发布**：把 `backend/video/` 下的视频上传到 uniCloud 云存储（uniCloud 控制台 → 云存储），再把云存储目录地址填入 `utils/video-config.js` 中的 `VIDEO_BASE_ONLINE`（如 `https://xxx.bspapp.com/upload/video/`），重新打包两端即可。留空则自动用本地地址，不影响开发。
+- **上线发布**：先把视频/封面上传到 uniCloud 云存储，再在网页端“资源管理”里填写完整云存储 URL；视频填“视频地址/文件名”，封面填“封面 URL”，并把资源状态改为“已上线”。
 
 ## 后端交接
 
@@ -178,7 +187,7 @@ uniCloud 服务空间**所有权无法转让**（云厂商强制绑定创建者�
 | --- | --- |
 | 代码 | 两个项目文件夹（或 Git 仓库）+ 本 README |
 | 服务空间 | 按上面「成员管理」添加协作者并授权管理员 |
-| 云端结构 | 云函数：`users` / `resources` / `survey`；集合：`user` / `resource` / `survey_result` |
+| 云端结构 | 云函数：`users` / `resources` / `survey` / `questions` / `knowledge` / `aiChat`；集合：`user` / `resource` / `survey_result` / `question` / `legal_doc` |
 | 默认账号 | `admin001/123456`（管理员）、`user001/123456`（普通用户），注册页可自助注册 |
 | 文档 | 本 README 已含完整部署、排错与交接说明 |
 
