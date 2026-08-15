@@ -280,11 +280,11 @@ export default {
           id: d._id,
           type: d.type,
           title: d.title || '未命名资源',
-          tag1: d.cat || (d.type === 'video' ? '视频资源' : '英语资源'),
-          tag2: d.type === 'video' ? '视频' : '学习',
+          tag1: d.cat || (d.type === 'video' ? '视频资源' : d.type === 'vocabulary' ? '词汇' : d.type === 'reading' ? '文本阅读' : '听力训练'),
+          tag2: d.type === 'video' ? '视频' : d.type === 'vocabulary' ? '词汇' : d.type === 'reading' ? '阅读' : '听力',
           tagColor: index % 2 ? 'amber' : 'violet',
-          duration: d.meta || (d.type === 'video' ? '视频' : '阅读'),
-          icon: d.type === 'video' ? 'ri-video-line' : 'ri-book-open-line',
+          duration: d.meta || (d.type === 'video' ? '视频' : d.type === 'reading' ? '阅读' : d.type === 'listening' ? '听力' : '学习'),
+          icon: d.type === 'video' ? 'ri-video-line' : d.type === 'listening' ? 'ri-mic-line' : 'ri-book-open-line',
           fileUrl: d.fileUrl || '',
           description: d.description || ''
         }))
@@ -317,7 +317,7 @@ export default {
         uni.navigateTo({
           url: '/pages/video-detail/video-detail?id=' + encodeURIComponent(rec.id) + '&title=' + encodeURIComponent(rec.title || '')
         })
-      } else if (rec.type === 'english') {
+      } else if (['vocabulary', 'reading', 'listening'].includes(rec.type)) {
         uni.navigateTo({ url: '/pages/legal-english/legal-english' })
       }
     },

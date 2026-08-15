@@ -133,30 +133,32 @@
             <view class="doc-section-header">
               <text class="doc-section-title">今日词汇</text>
               <view class="doc-section-meta">
-                <text>{{ starredCount }} 词已收藏</text>
+                <text>新词 {{ newWords.length }} · 复习 {{ reviewWords.length }}</text>
                 <text class="vocab-more" @tap="onMoreWords">更多 ›</text>
               </view>
+            </view>
+            <view v-if="vocabPool.length" class="vocab-tabs">
+              <view class="vocab-tab" :class="{ 'is-active': vocabTab === 'new' }" @tap="switchVocabTab('new')">今日新词 {{ newWords.length }}</view>
+              <view class="vocab-tab" :class="{ 'is-active': vocabTab === 'review' }" @tap="switchVocabTab('review')">待复习 {{ reviewWords.length }}</view>
             </view>
             <view class="vocab-card">
               <view
                 class="vocab-row"
-                v-for="(word, idx) in words"
-                :key="idx"
+                v-for="word in displayWords"
+                :key="word.id"
                 @tap="onWordTap(word)"
               >
-                <text class="vocab-phonetic">{{ word.phonetic }}</text>
+                <text class="vocab-phonetic">{{ word.level || word.phonetic }}</text>
                 <text class="vocab-en">{{ word.en }}</text>
                 <text class="vocab-cn">{{ word.cn }}</text>
-                <view
-                  class="vocab-star"
-                  :class="{ 'is-starred': word.starred }"
-                  @tap.stop="toggleStar(word)"
-                >
-                  <view class="star-icon"></view>
+                <view class="vocab-actions">
+                  <view class="vocab-btn vocab-btn-known" @tap.stop="markWord(word, true)">{{ progressMap[word.id] ? '已掌握' : '认识' }}</view>
+                  <view class="vocab-btn vocab-btn-again" @tap.stop="markWord(word, false)">{{ progressMap[word.id] ? '再复习' : '不认识' }}</view>
                 </view>
               </view>
             </view>
-            <view v-if="!words.length" class="le-empty">暂无词汇数据</view>
+            <view v-if="!words.length" class="le-empty">今日词汇暂未安排，请先维护“词汇积累”资源</view>
+            <view v-else-if="!displayWords.length" class="le-empty">{{ vocabTab === 'new' ? '今日新词已全部掌握' : '当前没有待复习词汇' }}</view>
 
             <!-- ===== Bottom Tip ===== -->
             <view class="le-tip">
@@ -173,7 +175,14 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { requireLogin, getDisplayName, getLevelText } from '@/utils/auth.js'
+import { requireLogin, getDisplayName, getLevelText, getStoredUserInfo } from '@/utils/auth.js'
+
+/* ============================================================
+   Daily Vocabulary Config
+   ============================================================ */
+const DAILY_WORD_COUNT = 10
+const REVIEW_TARGET = 5
+const REVIEW_INTERVALS = [1, 2, 4, 7, 15, 30]
 
 /* ============================================================
    User Data
@@ -190,6 +199,9 @@ const overallLevel = ref('暂无')
 const stats = ref([])
 const modules = ref([])
 const words = ref([])
+const vocabPool = ref([])
+const progressMap = ref({})
+const vocabTab = ref('new')
 
 /* ============================================================
    Computed
@@ -202,7 +214,15 @@ const todayDateText = computed(() => {
   return `${y}年${m}月${d}日`
 })
 
-const starredCount = computed(() => words.value.filter(w => w.starred).length)
+const newWords = computed(() => words.value.filter(w => {
+  const p = progressMap.value[w.id]
+  return !p || !p.learnedAt
+}))
+const reviewWords = computed(() => words.value.filter(w => {
+  const p = progressMap.value[w.id]
+  return p && p.learnedAt && p.reviewAt && p.reviewAt <= Date.now()
+}))
+const displayWords = computed(() => vocabTab.value === 'new' ? newWords.value : reviewWords.value)
 
 /* ============================================================
    Event Handlers
@@ -228,44 +248,238 @@ function onModuleTap(mod) {
 }
 
 function onMoreWords() {
-  uni.showToast({ title: '更多词汇即将上线', icon: 'none' })
+  if (!words.value.length) {
+    uni.showToast({ title: '暂无词汇数据', icon: 'none' })
+    return
+  }
+  uni.showToast({
+    title: `今日 ${words.value.length} 词：新词 ${newWords.value.length}，复习 ${reviewWords.value.length}`,
+    icon: 'none'
+  })
+}
+
+function switchVocabTab(tab) {
+  vocabTab.value = tab
 }
 
 function onWordTap(word) {
   uni.showToast({ title: `${word.en}：${word.cn}`, icon: 'none' })
 }
 
-function toggleStar(word) {
-  word.starred = !word.starred
+function getVocabUserKey() {
+  const user = getStoredUserInfo()
+  return `legal_vocab_${(user && user.account) || 'guest'}`
+}
+
+function getProgressKey() {
+  return `${getVocabUserKey()}_progress`
+}
+
+function getDailyPlanKey(dateKey) {
+  return `${getVocabUserKey()}_plan_${dateKey}`
+}
+
+function loadVocabProgress() {
+  try {
+    return uni.getStorageSync(getProgressKey()) || {}
+  } catch (e) {
+    return {}
+  }
+}
+
+function saveVocabProgress() {
+  try {
+    uni.setStorageSync(getProgressKey(), progressMap.value)
+  } catch (e) {}
+}
+
+function loadDailyPlan(dateKey) {
+  try {
+    const plan = uni.getStorageSync(getDailyPlanKey(dateKey))
+    return plan && Array.isArray(plan.ids) ? plan.ids : []
+  } catch (e) {
+    return []
+  }
+}
+
+function saveDailyPlan(dateKey, ids) {
+  try {
+    uni.setStorageSync(getDailyPlanKey(dateKey), { date: dateKey, ids })
+  } catch (e) {}
+}
+
+function getDateKey(date = new Date()) {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
+function hashString(input) {
+  let hash = 2166136261
+  for (let i = 0; i < input.length; i += 1) {
+    hash ^= input.charCodeAt(i)
+    hash = Math.imul(hash, 16777619)
+  }
+  return hash >>> 0
+}
+
+function mulberry32(seed) {
+  let state = seed >>> 0
+  return function () {
+    state = (state + 0x6D2B79F5) >>> 0
+    let t = state
+    t = Math.imul(t ^ (t >>> 15), t | 1)
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+function seededShuffle(items, seed) {
+  const arr = [...items]
+  const random = mulberry32(seed)
+  for (let i = arr.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(random() * (i + 1))
+    const tmp = arr[i]
+    arr[i] = arr[j]
+    arr[j] = tmp
+  }
+  return arr
+}
+
+function mapWord(doc) {
+  return {
+    id: doc._id,
+    en: doc.title || '',
+    phonetic: doc.meta || '',
+    cn: doc.description || '暂无释义',
+    level: doc.meta || ''
+  }
+}
+
+function buildTodayWords() {
+  const pool = vocabPool.value
+  if (!pool.length) {
+    words.value = []
+    return
+  }
+
+  const dateKey = getDateKey()
+  const savedPlan = loadDailyPlan(dateKey)
+  if (savedPlan.length) {
+    const poolMap = new Map(pool.map(w => [w.id, w]))
+    const planned = savedPlan.map(id => poolMap.get(id)).filter(Boolean)
+    if (planned.length) {
+      words.value = planned
+      syncVocabTab()
+      return
+    }
+  }
+
+  const now = Date.now()
+  const dueWords = seededShuffle(pool.filter(w => {
+    const p = progressMap.value[w.id]
+    return p && p.learnedAt && p.reviewAt && p.reviewAt <= now
+  }), hashString(`review:${dateKey}`))
+  const newWordsPool = seededShuffle(pool.filter(w => {
+    const p = progressMap.value[w.id]
+    return !p || !p.learnedAt
+  }), hashString(`new:${dateKey}`))
+  const selected = []
+
+  selected.push(...dueWords.slice(0, REVIEW_TARGET))
+  let need = DAILY_WORD_COUNT - selected.length
+  if (need > 0) selected.push(...newWordsPool.slice(0, need))
+
+  need = DAILY_WORD_COUNT - selected.length
+  if (need > 0) {
+    const usedIds = new Set(selected.map(w => w.id))
+    const rest = seededShuffle(pool.filter(w => !usedIds.has(w.id)), hashString(`fill:${dateKey}`))
+    selected.push(...rest.slice(0, need))
+  }
+
+  words.value = selected
+  saveDailyPlan(dateKey, selected.map(w => w.id))
+  syncVocabTab()
+}
+
+function syncVocabTab() {
+  if (vocabTab.value === 'new' && !newWords.value.length && reviewWords.value.length) {
+    vocabTab.value = 'review'
+    return
+  }
+  if (vocabTab.value === 'review' && !reviewWords.value.length && newWords.value.length) {
+    vocabTab.value = 'new'
+  }
+}
+
+function markWord(word, known) {
+  const now = Date.now()
+  const prev = progressMap.value[word.id] || {}
+  const correctCount = known ? (prev.correctCount || 0) + 1 : (prev.correctCount || 0)
+  const wrongCount = known ? (prev.wrongCount || 0) : (prev.wrongCount || 0) + 1
+  const intervalIndex = Math.min(correctCount - 1, REVIEW_INTERVALS.length - 1)
+  const reviewAt = known
+    ? now + REVIEW_INTERVALS[intervalIndex] * 24 * 60 * 60 * 1000
+    : now
+
+  progressMap.value = {
+    ...progressMap.value,
+    [word.id]: {
+      ...prev,
+      correctCount,
+      wrongCount,
+      reviewCount: (prev.reviewCount || 0) + 1,
+      lastResult: known ? 'known' : 'unknown',
+      learnedAt: prev.learnedAt || now,
+      reviewAt,
+      updatedAt: now
+    }
+  }
+  saveVocabProgress()
+  uni.showToast({ title: known ? '已加入复习计划' : '已加入待复习', icon: 'none' })
+  syncVocabTab()
 }
 
 async function loadEnglishResources() {
   try {
     const resourcesObj = uniCloud.importObject('resources', { customUI: true })
-    const r = (await resourcesObj.listPublic({ type: 'english' })) || {}
+    const r = (await resourcesObj.listPublic({ type: 'all' })) || {}
     if (r.errCode !== 0) {
       uni.showToast({ title: r.errMsg || '法律英语资源加载失败', icon: 'none' })
       return
     }
-    const list = r.list || []
+    const list = (r.list || []).filter(d => ['vocabulary', 'reading', 'listening'].includes(d.type))
+    vocabPool.value = list.filter(d => d.type === 'vocabulary').map(mapWord)
+    buildTodayWords()
     stats.value = [
-      { iconClass: 'stat-bookmark-icon', val: String(list.length), label: '法律英语资源' }
+      { iconClass: 'stat-bookmark-icon', val: String(list.filter(d => d.type === 'vocabulary').length), label: '词汇' },
+      { iconClass: 'stat-file-icon', val: String(list.filter(d => d.type === 'reading').length), label: '文本阅读' },
+      { iconClass: 'stat-mic-icon', val: String(list.filter(d => d.type === 'listening').length), label: '听力' }
     ]
-    const map = {}
-    const icons = ['mod-book-icon', 'mod-file-icon', 'mod-mic-icon', 'mod-chat-icon']
-    list.forEach((item, idx) => {
-      const name = item.cat || '未分类'
-      if (!map[name]) {
-        map[name] = {
-          name,
-          level: `L${Math.min(3, Object.keys(map).length + 1)}`,
-          percent: 0,
-          iconClass: icons[idx % icons.length],
-          route: name === '听力训练' ? '/pages/learning-center/listening-training' : ''
-        }
+    modules.value = [
+      {
+        name: '词汇积累',
+        level: 'L1',
+        percent: 0,
+        iconClass: 'mod-book-icon',
+        route: '/pages/learning-center/legal-vocab'
+      },
+      {
+        name: '文本阅读',
+        level: 'L2',
+        percent: 0,
+        iconClass: 'mod-file-icon',
+        route: '/pages/learning-center/reading-list'
+      },
+      {
+        name: '听力训练',
+        level: 'L2',
+        percent: 0,
+        iconClass: 'mod-mic-icon',
+        route: '/pages/learning-center/listening-training'
       }
-    })
-    modules.value = Object.values(map)
+    ]
   } catch (e) {
     uni.showToast({ title: (e && e.errMsg) || '法律英语资源加载失败', icon: 'none' })
   }
@@ -309,6 +523,7 @@ onLoad(() => {
       userName.value = info.name
     }
   } catch (e) {}
+  progressMap.value = loadVocabProgress()
   loadEnglishResources()
 })
 </script>
@@ -671,6 +886,14 @@ onLoad(() => {
   -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><polyline points='12 6 12 12 16 14'/></svg>") center/contain no-repeat;
   mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><polyline points='12 6 12 12 16 14'/></svg>") center/contain no-repeat;
 }
+.stat-file-icon {
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z'/><polyline points='14 2 14 8 20 8'/></svg>") center/contain no-repeat;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z'/><polyline points='14 2 14 8 20 8'/></svg>") center/contain no-repeat;
+}
+.stat-mic-icon {
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z'/><path d='M19 10v2a7 7 0 0 1-14 0v-2'/><line x1='12' x2='12' y1='19' y2='22'/></svg>") center/contain no-repeat;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z'/><path d='M19 10v2a7 7 0 0 1-14 0v-2'/><line x1='12' x2='12' y1='19' y2='22'/></svg>") center/contain no-repeat;
+}
 .overview-stat-info {
   display: flex; flex-direction: column;
 }
@@ -802,6 +1025,30 @@ onLoad(() => {
 }
 
 /* ---- Vocabulary ---- */
+.vocab-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0;
+}
+.vocab-tab {
+  padding: 8px 14px;
+  border: 1px solid var(--rule-border);
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--rule-muted-foreground);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.vocab-tab:hover {
+  border-color: var(--rule-primary-tint-2);
+  color: var(--rule-primary);
+}
+.vocab-tab.is-active {
+  background: var(--rule-primary);
+  border-color: var(--rule-primary);
+  color: var(--rule-primary-foreground);
+}
 .vocab-card {
   background: var(--rule-card);
   border: 1px solid var(--rule-border);
@@ -835,6 +1082,34 @@ onLoad(() => {
   margin-right: 16px;
   font-size: 15px; font-weight: 600;
   color: var(--rule-primary);
+}
+.vocab-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 16px;
+  flex-shrink: 0;
+}
+.vocab-btn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.vocab-btn:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
+.vocab-btn-known {
+  color: #FFFFFF;
+  background: var(--state-success);
+}
+.vocab-btn-again {
+  color: var(--state-error);
+  background: #FEE2E2;
+  border: 1px solid #FECACA;
 }
 .vocab-star {
   width: 22px; height: 22px;
@@ -890,6 +1165,7 @@ onLoad(() => {
   .overview-stats { flex-wrap: wrap; }
   .vocab-row { flex-wrap: wrap; gap: 8px; }
   .vocab-phonetic { width: 100%; }
+  .vocab-actions { width: 100%; justify-content: flex-end; margin-left: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {

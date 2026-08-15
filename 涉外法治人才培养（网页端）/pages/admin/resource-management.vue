@@ -98,24 +98,35 @@
             </view>
             <view class="qb-kpi-card qb-accent-warning">
               <view class="qb-kpi-card-head">
-                <text class="qb-kpi-card-label">法律英语资源</text>
+                <text class="qb-kpi-card-label">词汇资源</text>
                 <view class="qb-kpi-card-icon"><view class="navi-icon navi-icon-book-open"></view></view>
               </view>
-              <text class="qb-kpi-card-value">{{ kpiEnglish }}</text>
+              <text class="qb-kpi-card-value">{{ kpiVocabulary }}</text>
               <view class="qb-kpi-card-foot">
                 <view class="navi-icon navi-icon-trending-up-sm"></view>
-                <text>type = english</text>
+                <text>type = vocabulary</text>
               </view>
             </view>
             <view class="qb-kpi-card">
               <view class="qb-kpi-card-head">
-                <text class="qb-kpi-card-label">文档资料</text>
+                <text class="qb-kpi-card-label">文本阅读</text>
                 <view class="qb-kpi-card-icon"><view class="navi-icon navi-icon-file-text"></view></view>
               </view>
-              <text class="qb-kpi-card-value">{{ kpiDoc }}</text>
+              <text class="qb-kpi-card-value">{{ kpiReading }}</text>
               <view class="qb-kpi-card-foot">
                 <view class="navi-icon navi-icon-trending-up-sm"></view>
-                <text>当前未启用</text>
+                <text>type = reading</text>
+              </view>
+            </view>
+            <view class="qb-kpi-card">
+              <view class="qb-kpi-card-head">
+                <text class="qb-kpi-card-label">听力训练</text>
+                <view class="qb-kpi-card-icon"><view class="navi-icon navi-icon-mic"></view></view>
+              </view>
+              <text class="qb-kpi-card-value">{{ kpiListening }}</text>
+              <view class="qb-kpi-card-foot">
+                <view class="navi-icon navi-icon-trending-up-sm"></view>
+                <text>type = listening</text>
               </view>
             </view>
           </view>
@@ -138,46 +149,111 @@
                 <text class="rm-form-label">资源类型</text>
                 <view class="qb-pills">
                   <view class="qb-pill" :class="{ 'is-active': uploadType === 'video' }" @tap="uploadType = 'video'">视频资源</view>
-                  <view class="qb-pill" :class="{ 'is-active': uploadType === 'english' }" @tap="uploadType = 'english'">法律英语</view>
+                  <view class="qb-pill" :class="{ 'is-active': uploadType === 'vocabulary' }" @tap="uploadType = 'vocabulary'">词汇</view>
+                  <view class="qb-pill" :class="{ 'is-active': uploadType === 'reading' }" @tap="uploadType = 'reading'">文本阅读</view>
+                  <view class="qb-pill" :class="{ 'is-active': uploadType === 'listening' }" @tap="uploadType = 'listening'">听力训练</view>
                 </view>
               </view>
               <view class="rm-form-field rm-form-field-grow">
                 <text class="rm-form-label">资源标题</text>
-                <input class="rm-input" v-model="uploadTitle" placeholder="请输入资源标题，如：国际商事仲裁实务精讲" />
+                <input class="rm-input" v-model="uploadTitle" :placeholder="uploadType === 'vocabulary' ? '请输入英文单词' : '请输入资源标题'" />
               </view>
               <view class="rm-form-field">
-                <text class="rm-form-label">时长 / 大小</text>
-                <input class="rm-input rm-input-sm" v-model="uploadMeta" placeholder="如 45:30 或 2.4MB" />
+                <text class="rm-form-label">排序号</text>
+                <input class="rm-input rm-input-sm" v-model="uploadSortOrder" type="number" placeholder="数字越小越靠前" />
               </view>
             </view>
 
             <view class="rm-upload-row">
               <view class="rm-form-field rm-form-field-grow">
-                <text class="rm-form-label">资源地址 / 文件名</text>
-                <input class="rm-input" v-model="uploadUrl" placeholder="完整 URL 或文件名，如 video_intl_arbitration_0.mp4" />
+                <text class="rm-form-label">{{ uploadType === 'video' ? '视频分类' : uploadType === 'vocabulary' ? '词汇主题' : uploadType === 'reading' ? '阅读主题' : '听力场景' }}</text>
+                <input class="rm-input" v-model="uploadCategory" :placeholder="uploadType === 'video' ? '如 国际仲裁 / WTO法 / 跨境投资 / 海商法' : '如 国际仲裁 / 跨境投资 / 海商法'" />
               </view>
               <view class="rm-form-field">
-                <text class="rm-form-label">封面 URL（学习中心显示）</text>
-                <input class="rm-input" v-model="uploadCover" placeholder="填写封面图 URL，可留空" />
-              </view>
-            </view>
-            <view class="rm-upload-row">
-              <view class="rm-form-field rm-form-field-grow">
-                <text class="rm-form-label">{{ uploadType === 'video' ? '视频分类' : '资源类型' }}</text>
-                <input class="rm-input" v-model="uploadCategory" :placeholder="uploadType === 'video' ? '如 国际仲裁 / WTO法 / 跨境投资 / 海商法' : '如 词汇积累 / 术语精讲 / 听力训练 / 实战练习'" />
-              </view>
-            </view>
-            <view class="rm-upload-row">
-              <view class="rm-form-field rm-form-field-grow">
-                <text class="rm-form-label">资源简介</text>
-                <input class="rm-input" v-model="uploadDescription" placeholder="可选，用于学习中心展示" />
+                <text class="rm-form-label">{{ uploadType === 'video' ? '时长' : '难度 / 音标' }}</text>
+                <input class="rm-input rm-input-sm" v-model="uploadMeta" :placeholder="uploadType === 'video' ? '如 45:30' : '如 中级 / /əˈbɪtrəl/' " />
               </view>
             </view>
 
-            <view class="rm-dropzone">
-              <view class="navi-icon navi-icon-link rm-dropzone-icon"></view>
-              <text class="rm-dropzone-title">资源地址字段</text>
-              <text class="rm-dropzone-sub">填写完整 URL（如云存储地址）或文件名；文件名会按 video-config 基址拼接</text>
+            <view v-if="uploadType === 'video'" class="rm-upload-row">
+              <view class="rm-form-field rm-form-field-grow">
+                <text class="rm-form-label">视频地址 / 文件名</text>
+                <input class="rm-input" v-model="uploadUrl" placeholder="云存储 MP4 地址或文件名" />
+              </view>
+              <view class="rm-form-field">
+                <text class="rm-form-label">封面 URL</text>
+                <input class="rm-input" v-model="uploadCover" placeholder="可留空" />
+              </view>
+            </view>
+
+            <view v-if="uploadType === 'vocabulary'" class="rm-upload-row">
+              <view class="rm-form-field rm-form-field-grow">
+                <text class="rm-form-label">中文释义</text>
+                <input class="rm-input" v-model="uploadDescription" placeholder="请输入单词释义" />
+              </view>
+              <view class="rm-form-field">
+                <text class="rm-form-label">例句 / 用法</text>
+                <input class="rm-input" v-model="uploadContent" placeholder="可选" />
+              </view>
+            </view>
+
+            <view v-if="uploadType === 'reading'" class="rm-upload-row">
+              <view class="rm-form-field rm-form-field-grow">
+                <text class="rm-form-label">阅读正文</text>
+                <textarea class="rm-textarea" v-model="uploadContent" placeholder="请输入阅读正文"></textarea>
+              </view>
+              <view class="rm-form-field">
+                <text class="rm-form-label">PDF / 原文链接</text>
+                <input class="rm-input" v-model="uploadUrl" placeholder="可留空" />
+                <text class="rm-form-label">封面 URL</text>
+                <input class="rm-input" v-model="uploadCover" placeholder="可留空" />
+              </view>
+            </view>
+
+            <view v-if="uploadType === 'listening'" class="rm-upload-row">
+              <view class="rm-form-field rm-form-field-grow">
+                <text class="rm-form-label">音频地址</text>
+                <input class="rm-input" v-model="uploadAudioUrl" placeholder="填写云存储音频 URL" />
+              </view>
+              <view class="rm-form-field">
+                <text class="rm-form-label">封面 URL</text>
+                <input class="rm-input" v-model="uploadCover" placeholder="可留空" />
+              </view>
+            </view>
+
+            <view v-if="uploadType === 'reading' || uploadType === 'listening'" class="rm-upload-row">
+              <view class="rm-form-field rm-form-field-grow">
+                <text class="rm-form-label">{{ uploadType === 'reading' ? '阅读简介' : '听力原文' }}</text>
+                <textarea class="rm-textarea" v-model="uploadDescription" :placeholder="uploadType === 'reading' ? '请输入摘要或说明' : '请输入听力原文，可包含换行'"></textarea>
+              </view>
+            </view>
+
+            <view v-if="uploadType === 'listening'" class="rm-question-box">
+              <view class="rm-question-head">
+                <text class="rm-question-title">听力题目</text>
+                <view class="rm-mini-btn" @tap="addUploadQuestion">添加题目</view>
+              </view>
+              <view v-if="!uploadQuestions.length" class="rm-question-empty">尚未添加题目，可先保存听力资源后再补充</view>
+              <view v-for="(question, qi) in uploadQuestions" :key="qi" class="rm-question-item">
+                <view class="rm-upload-row">
+                  <text class="rm-form-label">题目 {{ qi + 1 }}</text>
+                  <input class="rm-input rm-input-grow" v-model="question.stem" placeholder="请输入题干" />
+                  <view class="rm-link-btn" @tap="removeUploadQuestion(qi)">删除</view>
+                </view>
+                <view class="rm-upload-row rm-options-row">
+                  <input
+                    v-for="(option, oi) in question.options"
+                    :key="oi"
+                    class="rm-input rm-option-input"
+                    v-model="question.options[oi]"
+                    :placeholder="String.fromCharCode(65 + oi) + ' 选项'"
+                  />
+                  <view class="rm-link-btn" @tap="addUploadOption(qi)">+ 选项</view>
+                </view>
+                <view class="rm-upload-row">
+                  <input class="rm-input rm-input-sm" v-model="question.answer" placeholder="答案，单选填 A/B" />
+                </view>
+              </view>
             </view>
 
             <view class="rm-upload-foot">
@@ -190,14 +266,14 @@
           </view>
         </section>
 
-        <!-- ===== Section 3: 视频资源管理 ===== -->
-        <section class="dc-section" :class="{ 'is-visible': visibleSections[2] }" aria-label="视频资源管理">
+        <!-- ===== Section 3: 学习资源管理 ===== -->
+        <section class="dc-section" :class="{ 'is-visible': visibleSections[2] }" aria-label="学习资源管理">
           <view class="qb-section-header">
             <view class="qb-section-title-wrap">
               <view class="qb-section-bar"></view>
               <view>
-                <text class="qb-section-title">视频资源管理</text>
-                <text class="qb-section-subtitle">共 {{ videos.length }} 个视频资源</text>
+                <text class="qb-section-title">学习资源管理</text>
+                <text class="qb-section-subtitle">共 {{ resources.length }} 条资源，按类型、分类、排序统一管理</text>
               </view>
             </view>
           </view>
@@ -205,82 +281,16 @@
             <view class="qb-toolbar-row">
               <view class="qb-search">
                 <view class="navi-icon navi-icon-search qb-search-icon"></view>
-                <input class="qb-search-input" v-model="videoSearch" placeholder="搜索视频资源标题" />
+                <input class="qb-search-input" v-model="resourceSearch" placeholder="搜索资源标题" />
               </view>
-              <view class="qb-filter-group">
-                <text class="qb-filter-label">分类</text>
-                <view class="qb-pills">
-                  <view class="qb-pill" :class="{ 'is-active': videoFilter === 'all' }" @tap="videoFilter = 'all'">全部</view>
-                  <view class="qb-pill" :class="{ 'is-active': videoFilter === '国际仲裁' }" @tap="videoFilter = '国际仲裁'">国际仲裁</view>
-                  <view class="qb-pill" :class="{ 'is-active': videoFilter === 'WTO法' }" @tap="videoFilter = 'WTO法'">WTO法</view>
-                  <view class="qb-pill" :class="{ 'is-active': videoFilter === '跨境投资' }" @tap="videoFilter = '跨境投资'">跨境投资</view>
-                  <view class="qb-pill" :class="{ 'is-active': videoFilter === '海商法' }" @tap="videoFilter = '海商法'">海商法</view>
-                </view>
-              </view>
-            </view>
-          </view>
-          <view class="qb-table-card">
-            <view class="qb-table-container">
-              <table class="qb-table">
-                <thead>
-                  <tr>
-                    <th scope="col">编号</th>
-                    <th scope="col">资源标题</th>
-                    <th scope="col">分类</th>
-                    <th scope="col">时长</th>
-                    <th scope="col">上传时间</th>
-                    <th scope="col">状态</th>
-                    <th scope="col">操作</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="v in filteredVideos" :key="v.id">
-                    <td><text class="qb-qid">{{ v.id }}</text></td>
-                    <td class="qb-qcontent"><text class="qb-qcontent-text">{{ v.title }}</text></td>
-                    <td><text class="qb-type-tag" :class="v.tagClass">{{ v.category }}</text></td>
-                    <td><text class="qb-date">{{ v.duration }}</text></td>
-                    <td><text class="qb-date">{{ v.date }}</text></td>
-                    <td><text class="qb-diff-tag" :class="v.statusClass">{{ v.status }}</text></td>
-                    <td>
-                      <view class="qb-actions">
-                        <view class="qb-action-btn qb-action-edit" @tap="openEdit(v)">
-                          <view class="navi-icon navi-icon-pencil"></view>
-                          <text>编辑</text>
-                        </view>
-                        <view class="qb-action-btn qb-action-del" @tap="handleDelete('video', v)">
-                          <view class="navi-icon navi-icon-trash-2"></view>
-                          <text>删除</text>
-                        </view>
-                      </view>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </view>
-          </view>
-        </section>
-
-        <!-- ===== Section 4: 法律英语资源管理 ===== -->
-        <section class="dc-section" :class="{ 'is-visible': visibleSections[3] }" aria-label="法律英语资源管理">
-          <view class="qb-section-header">
-            <view class="qb-section-title-wrap">
-              <view class="qb-section-bar"></view>
-              <view>
-                <text class="qb-section-title">法律英语资源管理</text>
-                <text class="qb-section-subtitle">共 {{ englishResources.length }} 个法律英语资源</text>
-              </view>
-            </view>
-          </view>
-          <view class="qb-toolbar">
-            <view class="qb-toolbar-row">
               <view class="qb-filter-group">
                 <text class="qb-filter-label">类型</text>
                 <view class="qb-pills">
-                  <view class="qb-pill" :class="{ 'is-active': englishFilter === 'all' }" @tap="englishFilter = 'all'">全部</view>
-                  <view class="qb-pill" :class="{ 'is-active': englishFilter === '词汇积累' }" @tap="englishFilter = '词汇积累'">词汇积累</view>
-                  <view class="qb-pill" :class="{ 'is-active': englishFilter === '术语精讲' }" @tap="englishFilter = '术语精讲'">术语精讲</view>
-                  <view class="qb-pill" :class="{ 'is-active': englishFilter === '听力训练' }" @tap="englishFilter = '听力训练'">听力训练</view>
-                  <view class="qb-pill" :class="{ 'is-active': englishFilter === '实战练习' }" @tap="englishFilter = '实战练习'">实战练习</view>
+                  <view class="qb-pill" :class="{ 'is-active': resourceFilter === 'all' }" @tap="resourceFilter = 'all'">全部</view>
+                  <view class="qb-pill" :class="{ 'is-active': resourceFilter === 'video' }" @tap="resourceFilter = 'video'">视频</view>
+                  <view class="qb-pill" :class="{ 'is-active': resourceFilter === 'vocabulary' }" @tap="resourceFilter = 'vocabulary'">词汇</view>
+                  <view class="qb-pill" :class="{ 'is-active': resourceFilter === 'reading' }" @tap="resourceFilter = 'reading'">阅读</view>
+                  <view class="qb-pill" :class="{ 'is-active': resourceFilter === 'listening' }" @tap="resourceFilter = 'listening'">听力</view>
                 </view>
               </view>
             </view>
@@ -291,29 +301,31 @@
                 <thead>
                   <tr>
                     <th scope="col">编号</th>
-                    <th scope="col">资源标题</th>
                     <th scope="col">类型</th>
-                    <th scope="col">难度</th>
-                    <th scope="col">上传时间</th>
+                    <th scope="col">资源标题</th>
+                    <th scope="col">分类</th>
+                    <th scope="col">难度 / 时长</th>
+                    <th scope="col">排序</th>
                     <th scope="col">状态</th>
                     <th scope="col">操作</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="e in filteredEnglish" :key="e.id">
-                    <td><text class="qb-qid">{{ e.id }}</text></td>
-                    <td class="qb-qcontent"><text class="qb-qcontent-text">{{ e.title }}</text></td>
-                    <td><text class="qb-type-tag" :class="e.typeClass">{{ e.type }}</text></td>
-                    <td><text class="qb-diff-tag" :class="e.diffClass">{{ e.diffLabel }}</text></td>
-                    <td><text class="qb-date">{{ e.date }}</text></td>
-                    <td><text class="qb-diff-tag" :class="e.statusClass">{{ e.status }}</text></td>
+                  <tr v-for="item in filteredResources" :key="item.id">
+                    <td><text class="qb-qid">{{ item.id }}</text></td>
+                    <td><text class="qb-type-tag" :class="item.typeClass">{{ resourceTypeLabel(item.type) }}</text></td>
+                    <td class="qb-qcontent"><text class="qb-qcontent-text">{{ item.title }}</text></td>
+                    <td><text class="qb-type-tag" :class="item.tagClass">{{ item.category || '待分类' }}</text></td>
+                    <td><text class="qb-date">{{ item.meta || '--' }}</text></td>
+                    <td><text class="qb-date">{{ item.sortOrder }}</text></td>
+                    <td><text class="qb-diff-tag" :class="item.statusClass">{{ item.status }}</text></td>
                     <td>
                       <view class="qb-actions">
-                        <view class="qb-action-btn qb-action-edit" @tap="openEdit(e)">
+                        <view class="qb-action-btn qb-action-edit" @tap="openEdit(item)">
                           <view class="navi-icon navi-icon-pencil"></view>
                           <text>编辑</text>
                         </view>
-                        <view class="qb-action-btn qb-action-del" @tap="handleDelete('english', e)">
+                        <view class="qb-action-btn qb-action-del" @tap="handleDelete(item.type, item)">
                           <view class="navi-icon navi-icon-trash-2"></view>
                           <text>删除</text>
                         </view>
@@ -322,6 +334,7 @@
                   </tr>
                 </tbody>
               </table>
+              <view v-if="!filteredResources.length" class="qb-empty-row">暂无资源，请先录入并上线</view>
             </view>
           </view>
         </section>
@@ -331,7 +344,7 @@
           <view class="rm-modal">
             <view class="rm-modal-header">
               <view>
-                <text class="rm-modal-title">编辑{{ editType === 'video' ? '视频' : '法律英语' }}资源</text>
+                <text class="rm-modal-title">编辑{{ resourceTypeLabel(editType) }}资源</text>
                 <text class="rm-modal-subtitle">保存后立即同步到学习中心</text>
               </view>
               <view class="rm-modal-close" @tap="closeEdit">×</view>
@@ -340,39 +353,99 @@
               <view class="rm-upload-row">
                 <view class="rm-form-field rm-form-field-grow">
                   <text class="rm-form-label">资源标题</text>
-                  <input class="rm-input" v-model="editForm.title" placeholder="请输入资源标题" />
+                  <input class="rm-input" v-model="editForm.title" :placeholder="editType === 'vocabulary' ? '请输入英文单词' : '请输入资源标题'" />
                 </view>
                 <view class="rm-form-field">
-                  <text class="rm-form-label">{{ editType === 'video' ? '分类' : '类型' }}</text>
-                  <input class="rm-input" v-model="editForm.cat" placeholder="如 国际仲裁 / 听力训练" />
+                  <text class="rm-form-label">分类</text>
+                  <input class="rm-input" v-model="editForm.cat" placeholder="如 国际仲裁 / 跨境投资" />
                 </view>
               </view>
               <view class="rm-upload-row">
                 <view class="rm-form-field">
-                  <text class="rm-form-label">{{ editType === 'video' ? '时长' : '难度' }}</text>
+                  <text class="rm-form-label">{{ editType === 'video' ? '时长' : '难度 / 音标' }}</text>
                   <input class="rm-input" v-model="editForm.meta" placeholder="如 45:30 或 中级" />
                 </view>
                 <view class="rm-form-field rm-form-field-grow">
-                  <text class="rm-form-label">资源地址 / 文件名</text>
-                  <input class="rm-input" v-model="editForm.fileUrl" placeholder="完整 URL 或文件名" />
+                  <text class="rm-form-label">排序号</text>
+                  <input class="rm-input" v-model="editForm.sortOrder" type="number" placeholder="数字越小越靠前" />
                 </view>
               </view>
-              <view class="rm-upload-row">
+
+              <view v-if="editType === 'video' || editType === 'reading'" class="rm-upload-row">
                 <view class="rm-form-field rm-form-field-grow">
+                  <text class="rm-form-label">{{ editType === 'video' ? '视频地址' : 'PDF / 原文链接' }}</text>
+                  <input class="rm-input" v-model="editForm.fileUrl" placeholder="填写云存储公开 URL" />
+                </view>
+                <view class="rm-form-field">
                   <text class="rm-form-label">封面 URL</text>
                   <input class="rm-input" v-model="editForm.cover" placeholder="可留空" />
                 </view>
-                <view class="rm-form-field">
-                  <text class="rm-form-label">上传日期</text>
-                  <input class="rm-input" v-model="editForm.date" placeholder="如 2026-08-12" />
-                </view>
               </view>
-              <view class="rm-upload-row">
+
+              <view v-if="editType === 'vocabulary'" class="rm-upload-row">
                 <view class="rm-form-field rm-form-field-grow">
-                  <text class="rm-form-label">资源简介</text>
-                  <textarea class="rm-textarea" v-model="editForm.description" placeholder="请输入资源简介"></textarea>
+                  <text class="rm-form-label">中文释义</text>
+                  <input class="rm-input" v-model="editForm.description" placeholder="请输入单词释义" />
+                </view>
+                <view class="rm-form-field rm-form-field-grow">
+                  <text class="rm-form-label">例句 / 用法</text>
+                  <input class="rm-input" v-model="editForm.content" placeholder="可选" />
                 </view>
               </view>
+
+              <view v-if="editType === 'listening'" class="rm-upload-row">
+                <view class="rm-form-field rm-form-field-grow">
+                  <text class="rm-form-label">音频地址</text>
+                  <input class="rm-input" v-model="editForm.audioUrl" placeholder="填写云存储音频 URL" />
+                </view>
+                <view class="rm-form-field">
+                  <text class="rm-form-label">封面 URL</text>
+                  <input class="rm-input" v-model="editForm.cover" placeholder="可留空" />
+                </view>
+              </view>
+
+              <view v-if="editType === 'reading'" class="rm-upload-row">
+                <view class="rm-form-field rm-form-field-grow">
+                  <text class="rm-form-label">阅读正文</text>
+                  <textarea class="rm-textarea" v-model="editForm.content" placeholder="请输入阅读正文"></textarea>
+                </view>
+              </view>
+
+              <view v-if="editType === 'listening'" class="rm-upload-row">
+                <view class="rm-form-field rm-form-field-grow">
+                  <text class="rm-form-label">听力原文</text>
+                  <textarea class="rm-textarea" v-model="editForm.content" placeholder="请输入听力原文，可包含换行"></textarea>
+                </view>
+              </view>
+
+              <view v-if="editType === 'listening'" class="rm-question-box">
+                <view class="rm-question-head">
+                  <text class="rm-question-title">听力题目</text>
+                  <view class="rm-mini-btn" @tap="addEditQuestion">添加题目</view>
+                </view>
+                <view v-if="!editQuestions.length" class="rm-question-empty">尚未添加题目</view>
+                <view v-for="(question, qi) in editQuestions" :key="qi" class="rm-question-item">
+                  <view class="rm-upload-row">
+                    <text class="rm-form-label">题目 {{ qi + 1 }}</text>
+                    <input class="rm-input rm-input-grow" v-model="question.stem" placeholder="请输入题干" />
+                    <view class="rm-link-btn" @tap="removeEditQuestion(qi)">删除</view>
+                  </view>
+                  <view class="rm-upload-row rm-options-row">
+                    <input
+                      v-for="(option, oi) in question.options"
+                      :key="oi"
+                      class="rm-input rm-option-input"
+                      v-model="question.options[oi]"
+                      :placeholder="String.fromCharCode(65 + oi) + ' 选项'"
+                    />
+                    <view class="rm-link-btn" @tap="addEditOption(qi)">+ 选项</view>
+                  </view>
+                  <view class="rm-upload-row">
+                    <input class="rm-input rm-input-sm" v-model="question.answer" placeholder="答案，单选填 A/B" />
+                  </view>
+                </view>
+              </view>
+
               <view class="rm-modal-options">
                 <view class="rm-form-field">
                   <text class="rm-form-label">审核状态</text>
@@ -402,7 +475,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { requireAdmin } from '@/utils/auth.js'
 
-const visibleSections = ref([false, false, false, false])
+const visibleSections = ref([false, false, false])
 const todayDateText = computed(() => {
   const now = new Date()
   const y = now.getFullYear()
@@ -419,12 +492,17 @@ const uploadUrl = ref('')
 const uploadCover = ref('')
 const uploadCategory = ref('')
 const uploadDescription = ref('')
+const uploadContent = ref('')
+const uploadAudioUrl = ref('')
+const uploadSortOrder = ref(1)
+const uploadQuestions = ref([])
 
 /* ===== 编辑弹窗 ===== */
 const editVisible = ref(false)
 const editSaving = ref(false)
 const editType = ref('video')
 const editTarget = ref(null)
+const editQuestions = ref([])
 const editForm = reactive({
   id: '',
   type: 'video',
@@ -434,53 +512,101 @@ const editForm = reactive({
   meta: '',
   diffClass: 'qb-diff-mid',
   fileUrl: '',
+  audioUrl: '',
+  content: '',
   cover: '',
   description: '',
+  sortOrder: 1,
   date: '',
   status: '审核中',
   statusClass: 'qb-diff-mid'
 })
 
-/* ===== 视频资源 ===== */
-const videoSearch = ref('')
-const videoFilter = ref('all')
-const videos = ref([])
+/* ===== 学习资源 ===== */
+const resourceSearch = ref('')
+const resourceFilter = ref('all')
+const resources = ref([])
 
-const filteredVideos = computed(() => {
-  const q = videoSearch.value.trim().toLowerCase()
-  return videos.value.filter(v => {
-    const matchCategory = videoFilter.value === 'all' || v.category === videoFilter.value
-    const matchQuery = !q || v.title.toLowerCase().includes(q) || v.id.toLowerCase().includes(q)
-    return matchCategory && matchQuery
+const filteredResources = computed(() => {
+  const q = resourceSearch.value.trim().toLowerCase()
+  return resources.value.filter(item => {
+    const matchType = resourceFilter.value === 'all' || item.type === resourceFilter.value
+    const matchQuery = !q || item.title.toLowerCase().includes(q) || (item.category || '').toLowerCase().includes(q) || item.id.toLowerCase().includes(q)
+    return matchType && matchQuery
   })
 })
 
-/* ===== 法律英语资源 ===== */
-const englishFilter = ref('all')
-const englishResources = ref([])
-
-const filteredEnglish = computed(() => {
-  if (englishFilter.value === 'all') return englishResources.value
-  return englishResources.value.filter(e => e.type === englishFilter.value)
-})
-
 /* ===== 资源概览 KPI ===== */
-const kpiTotal = computed(() => videos.value.length + englishResources.value.length)
-const kpiVideo = computed(() => videos.value.length)
-const kpiEnglish = computed(() => englishResources.value.length)
-const kpiDoc = computed(() => 0)
+const kpiTotal = computed(() => resources.value.length)
+const kpiVideo = computed(() => resources.value.filter(item => item.type === 'video').length)
+const kpiVocabulary = computed(() => resources.value.filter(item => item.type === 'vocabulary').length)
+const kpiReading = computed(() => resources.value.filter(item => item.type === 'reading').length)
+const kpiListening = computed(() => resources.value.filter(item => item.type === 'listening').length)
 
 /* ===== 云端数据 ===== */
 function getAdminToken() {
   return uni.getStorageSync('adminToken')
 }
 
-// 云文档 → 页面表格行
-function toVideoItem(doc) {
-  return { id: doc._id, title: doc.title, category: doc.cat, tagClass: doc.tagClass, duration: doc.meta, meta: doc.meta || '', diffClass: doc.diffClass || '', date: doc.date, status: doc.status, statusClass: doc.statusClass, fileUrl: doc.fileUrl || '', cover: doc.cover || '', description: doc.description || '' }
+function resourceTypeLabel(type) {
+  const labels = {
+    video: '视频',
+    vocabulary: '词汇',
+    reading: '文本阅读',
+    listening: '听力训练'
+  }
+  return labels[type] || type || '未分类'
 }
-function toEnglishItem(doc) {
-  return { id: doc._id, title: doc.title, type: doc.cat, typeClass: doc.tagClass, diffLabel: doc.meta, meta: doc.meta || '', diffClass: doc.diffClass || '', date: doc.date, status: doc.status, statusClass: doc.statusClass, fileUrl: doc.fileUrl || '', cover: doc.cover || '', description: doc.description || '' }
+
+const CATEGORY_COLOR_CLASSES = [
+  'qb-cat-blue',
+  'qb-cat-green',
+  'qb-cat-amber',
+  'qb-cat-red',
+  'qb-cat-violet',
+  'qb-cat-teal',
+  'qb-cat-pink'
+]
+
+function categoryColorClass(category) {
+  const value = String(category || '待分类').trim()
+  const lower = value.toLowerCase()
+  const stableMap = {
+    '国际仲裁': 'qb-cat-blue',
+    'wto法': 'qb-cat-green',
+    '跨境投资': 'qb-cat-amber',
+    '海商法': 'qb-cat-red'
+  }
+  if (stableMap[lower]) return stableMap[lower]
+  let hash = 0
+  for (let i = 0; i < value.length; i++) {
+    hash = ((hash << 5) - hash + value.charCodeAt(i)) | 0
+  }
+  return CATEGORY_COLOR_CLASSES[Math.abs(hash) % CATEGORY_COLOR_CLASSES.length]
+}
+
+// 云文档 → 页面表格行
+function toResourceItem(doc) {
+  return {
+    id: doc._id,
+    type: doc.type || '',
+    title: doc.title || '',
+    category: doc.cat || '',
+    tagClass: categoryColorClass(doc.cat || ''),
+    typeClass: doc.type === 'video' ? 'qb-type-single' : 'qb-type-multi',
+    meta: doc.meta || '',
+    diffClass: doc.diffClass || 'qb-diff-mid',
+    fileUrl: doc.fileUrl || '',
+    audioUrl: doc.audioUrl || '',
+    content: doc.content || '',
+    cover: doc.cover || '',
+    description: doc.description || '',
+    questions: Array.isArray(doc.questions) ? doc.questions : [],
+    sortOrder: Number(doc.sortOrder) >= 0 ? Number(doc.sortOrder) : 9999,
+    date: doc.date || '',
+    status: doc.status || '审核中',
+    statusClass: doc.statusClass || 'qb-diff-mid'
+  }
 }
 
 async function loadAll() {
@@ -488,8 +614,7 @@ async function loadAll() {
     const resourcesObj = uniCloud.importObject('resources', { customUI: true })
     const r = (await resourcesObj.list({ adminToken: getAdminToken(), type: 'all' })) || {}
     if (r.errCode === 0) {
-      videos.value = (r.list || []).filter(d => d.type === 'video').map(toVideoItem)
-      englishResources.value = (r.list || []).filter(d => d.type === 'english').map(toEnglishItem)
+      resources.value = (r.list || []).map(toResourceItem)
     }
   } catch (e) {
     uni.showToast({ title: (e && e.errMsg) || '资源加载失败', icon: 'none' })
@@ -514,6 +639,34 @@ const handleLogout = () => {
   })
 }
 
+function createQuestion() {
+  return { stem: '', options: ['', ''], answer: '' }
+}
+
+function addUploadQuestion() {
+  uploadQuestions.value.push(createQuestion())
+}
+
+function removeUploadQuestion(index) {
+  uploadQuestions.value.splice(index, 1)
+}
+
+function addUploadOption(questionIndex) {
+  uploadQuestions.value[questionIndex].options.push('')
+}
+
+function addEditQuestion() {
+  editQuestions.value.push(createQuestion())
+}
+
+function removeEditQuestion(index) {
+  editQuestions.value.splice(index, 1)
+}
+
+function addEditOption(questionIndex) {
+  editQuestions.value[questionIndex].options.push('')
+}
+
 let payload = {}
 
 const doUpload = async () => {
@@ -526,35 +679,25 @@ const doUpload = async () => {
   const date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
   const meta = uploadMeta.value.trim()
 
-  if (uploadType.value === 'video') {
-    payload = {
-      title,
-      cat: uploadCategory.value.trim() || '待分类',
-      tagClass: 'qb-type-case',
-      meta: meta || '--:--',
-      diffClass: '',
-      fileUrl: uploadUrl.value.trim(),
-      cover: uploadCover.value.trim(),
-      description: uploadDescription.value.trim(),
-      status: '审核中',
-      statusClass: 'qb-diff-mid'
-    }
-  } else if (uploadType.value === 'english') {
-    payload = {
-      title,
-      cat: uploadCategory.value.trim() || '待分类',
-      tagClass: 'qb-type-case',
-      meta: '待定',
-      diffClass: 'qb-diff-mid',
-      fileUrl: uploadUrl.value.trim(),
-      cover: uploadCover.value.trim(),
-      description: uploadDescription.value.trim(),
-      status: '审核中',
-      statusClass: 'qb-diff-mid'
-    }
-  } else {
-    uni.showToast({ title: '文档资料上传功能建设中', icon: 'none' })
-    return
+  payload = {
+    title,
+    cat: uploadCategory.value.trim() || '待分类',
+    tagClass: categoryColorClass(uploadCategory.value.trim() || '待分类'),
+    meta: uploadType.value === 'video' ? (meta || '--:--') : meta,
+    diffClass: 'qb-diff-mid',
+    cover: uploadCover.value.trim(),
+    fileUrl: uploadUrl.value.trim(),
+    audioUrl: uploadAudioUrl.value.trim(),
+    content: uploadContent.value.trim(),
+    description: uploadDescription.value.trim(),
+    questions: uploadQuestions.value.map(q => ({
+      stem: q.stem.trim(),
+      options: (q.options || []).map(o => o.trim()),
+      answer: String(q.answer || '').trim()
+    })),
+    sortOrder: Number(uploadSortOrder.value) >= 0 ? Number(uploadSortOrder.value) : 1,
+    status: '审核中',
+    statusClass: 'qb-diff-mid'
   }
 
   let r
@@ -570,12 +713,7 @@ const doUpload = async () => {
     return
   }
 
-  // 本地即时插入（保持原体验），成功后重新拉取云端保持一致
-  if (uploadType.value === 'video') {
-    videos.value.unshift({ id: r.id, title, category: uploadCategory.value.trim() || '待分类', tagClass: 'qb-type-case', duration: meta || '--:--', date, status: '审核中', statusClass: 'qb-diff-mid', fileUrl: uploadUrl.value.trim(), cover: uploadCover.value.trim(), description: uploadDescription.value.trim() })
-  } else {
-    englishResources.value.unshift({ id: r.id, title, type: uploadCategory.value.trim() || '待分类', typeClass: 'qb-type-case', diffLabel: '待定', diffClass: 'qb-diff-mid', date, status: '审核中', statusClass: 'qb-diff-mid', fileUrl: uploadUrl.value.trim(), cover: uploadCover.value.trim(), description: uploadDescription.value.trim() })
-  }
+  resources.value.unshift(toResourceItem({ _id: r.id, type: uploadType.value, ...payload, date }))
 
   uploadTitle.value = ''
   uploadMeta.value = ''
@@ -583,26 +721,37 @@ const doUpload = async () => {
   uploadCover.value = ''
   uploadCategory.value = ''
   uploadDescription.value = ''
+  uploadContent.value = ''
+  uploadAudioUrl.value = ''
+  uploadSortOrder.value = 1
+  uploadQuestions.value = []
   uni.showToast({ title: '保存成功，等待审核', icon: 'success' })
 }
 
 const openEdit = (item) => {
-  const isVideo = item.category !== undefined
-  editType.value = isVideo ? 'video' : 'english'
+  editType.value = item.type || 'video'
   editTarget.value = item
   editForm.id = item.id
   editForm.type = editType.value
   editForm.title = item.title || ''
-  editForm.cat = isVideo ? (item.category || '') : (item.type || '')
-  editForm.tagClass = item.tagClass || item.typeClass || 'qb-type-case'
-  editForm.meta = isVideo ? (item.duration || item.meta || '') : (item.diffLabel || item.meta || '')
+  editForm.cat = item.category || item.cat || ''
+  editForm.tagClass = categoryColorClass(item.category || item.cat || '')
+  editForm.meta = item.meta || ''
   editForm.diffClass = item.diffClass || 'qb-diff-mid'
   editForm.fileUrl = item.fileUrl || ''
+  editForm.audioUrl = item.audioUrl || ''
+  editForm.content = item.content || ''
   editForm.cover = item.cover || ''
   editForm.description = item.description || ''
+  editForm.sortOrder = Number(item.sortOrder) >= 0 ? Number(item.sortOrder) : 1
   editForm.date = item.date || ''
   editForm.status = item.status || '审核中'
   editForm.statusClass = item.statusClass || (editForm.status === '已上线' ? 'qb-diff-easy' : 'qb-diff-mid')
+  editQuestions.value = (item.questions || []).map(q => ({
+    stem: q.stem || '',
+    options: Array.isArray(q.options) && q.options.length ? q.options.map(o => String(o || '')) : ['', ''],
+    answer: q.answer === undefined || q.answer === null ? '' : String(q.answer)
+  }))
   editVisible.value = true
 }
 
@@ -626,12 +775,20 @@ const saveEdit = async () => {
   const data = {
     title,
     cat: editForm.cat.trim() || '待分类',
-    tagClass: editForm.tagClass || 'qb-type-case',
+    tagClass: categoryColorClass(editForm.cat.trim() || '待分类'),
     meta: editForm.meta.trim(),
     diffClass: editForm.diffClass || 'qb-diff-mid',
     fileUrl: editForm.fileUrl.trim(),
+    audioUrl: editForm.audioUrl.trim(),
+    content: editForm.content.trim(),
     cover: editForm.cover.trim(),
     description: editForm.description.trim(),
+    questions: editQuestions.value.map(q => ({
+      stem: q.stem.trim(),
+      options: (q.options || []).map(o => o.trim()),
+      answer: String(q.answer || '').trim()
+    })),
+    sortOrder: Number(editForm.sortOrder) >= 0 ? Number(editForm.sortOrder) : 1,
     date: editForm.date.trim(),
     status: editForm.status,
     statusClass: editForm.statusClass
@@ -650,23 +807,20 @@ const saveEdit = async () => {
     if (target) {
       target.title = data.title
       target.cat = data.cat
-      target.tagClass = data.tagClass
+      target.tagClass = categoryColorClass(data.cat)
       target.meta = data.meta
       target.diffClass = data.diffClass
       target.fileUrl = data.fileUrl
+      target.audioUrl = data.audioUrl
+      target.content = data.content
       target.cover = data.cover
       target.description = data.description
+      target.questions = data.questions
+      target.sortOrder = data.sortOrder
       target.date = data.date
       target.status = data.status
       target.statusClass = data.statusClass
-      if (target.category !== undefined) {
-        target.category = data.cat
-        target.duration = data.meta
-      } else {
-        target.type = data.cat
-        target.typeClass = data.tagClass
-        target.diffLabel = data.meta
-      }
+      target.category = data.cat
     }
 
     editVisible.value = false
@@ -690,11 +844,7 @@ const handleDelete = (type, item) => {
         const resourcesObj = uniCloud.importObject('resources', { customUI: true })
         const r = (await resourcesObj.remove({ adminToken: getAdminToken(), id: item.id })) || {}
         if (r.errCode === 0) {
-          if (type === 'video') {
-            videos.value = videos.value.filter(v => v.id !== item.id)
-          } else {
-            englishResources.value = englishResources.value.filter(e => e.id !== item.id)
-          }
+          resources.value = resources.value.filter(v => v.id !== item.id)
           uni.showToast({ title: '已删除', icon: 'success' })
         } else {
           uni.showToast({ title: r.errMsg || '删除失败', icon: 'none' })
@@ -710,7 +860,7 @@ onMounted(() => {
   if (!requireAdmin()) return
   loadAll()
   setTimeout(() => {
-    visibleSections.value = [true, true, true, true]
+    visibleSections.value = [true, true, true]
   }, 100)
 })
 </script>
@@ -750,6 +900,12 @@ onMounted(() => {
   --state-error-tint: #FEE2E2;
   --state-info: #2563EB;
   --state-info-tint: #DBEAFE;
+  --state-violet: #7C3AED;
+  --state-violet-tint: #EDE9FE;
+  --state-teal: #0F766E;
+  --state-teal-tint: #CCFBF1;
+  --state-pink: #BE185D;
+  --state-pink-tint: #FCE7F3;
   --rule-ink: #0F172A;
   --rule-ink-2: #475569;
   --rule-ink-3: #94A3B8;
@@ -847,6 +1003,10 @@ onMounted(() => {
 .navi-icon-video {
   -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><rect width='18' height='18' x='3' y='3' rx='2'/><path d='M7 3v18'/><path d='M17 3v18'/><path d='M3 7.5h4'/><path d='M3 12h18'/><path d='M3 16.5h4'/><path d='M17 7.5h4'/><path d='M17 16.5h4'/></svg>") center/contain no-repeat;
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><rect width='18' height='18' x='3' y='3' rx='2'/><path d='M7 3v18'/><path d='M17 3v18'/><path d='M3 7.5h4'/><path d='M3 12h18'/><path d='M3 16.5h4'/><path d='M17 7.5h4'/><path d='M17 16.5h4'/></svg>") center/contain no-repeat;
+}
+.navi-icon-mic {
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z'/><path d='M19 10v2a7 7 0 0 1-14 0v-2'/><line x1='12' x2='12' y1='19' y2='22'/></svg>") center/contain no-repeat;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z'/><path d='M19 10v2a7 7 0 0 1-14 0v-2'/><line x1='12' x2='12' y1='19' y2='22'/></svg>") center/contain no-repeat;
 }
 .navi-icon-book-open {
   -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z'/><path d='M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z'/></svg>") center/contain no-repeat;
@@ -1059,6 +1219,7 @@ onMounted(() => {
 .qb-qid { font-family: var(--rule-font-mono); font-size: 13px; font-weight: 600; color: var(--rule-primary); white-space: nowrap; }
 .qb-qcontent { color: var(--rule-ink-2); max-width: 340px; }
 .qb-qcontent-text { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
+.qb-empty-row { padding: 28px 16px; text-align: center; font-size: 13px; color: var(--rule-muted-foreground); }
 .qb-date { color: var(--rule-muted-foreground); font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 13px; }
 
 /* type tags */
@@ -1066,6 +1227,13 @@ onMounted(() => {
 .qb-type-single { background: var(--rule-primary-tint-1); color: var(--rule-primary); }
 .qb-type-multi { background: var(--state-success-tint); color: var(--state-success); }
 .qb-type-case { background: var(--state-warning-tint); color: var(--state-warning); }
+.qb-cat-blue { background: var(--state-info-tint); color: var(--state-info); }
+.qb-cat-green { background: var(--state-success-tint); color: var(--state-success); }
+.qb-cat-amber { background: var(--state-warning-tint); color: var(--state-warning); }
+.qb-cat-red { background: var(--state-error-tint); color: var(--state-error); }
+.qb-cat-violet { background: var(--state-violet-tint); color: var(--state-violet); }
+.qb-cat-teal { background: var(--state-teal-tint); color: var(--state-teal); }
+.qb-cat-pink { background: var(--state-pink-tint); color: var(--state-pink); }
 
 /* difficulty / status tags */
 .qb-diff-tag { display: inline-flex; align-items: center; font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: var(--rule-radius-full); white-space: nowrap; }
@@ -1110,30 +1278,41 @@ onMounted(() => {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .rm-input-sm { width: 150px; }
+.rm-input-grow { flex: 1 1 240px; min-width: 200px; }
 .rm-input::placeholder { color: var(--rule-muted-foreground); }
 .rm-input:focus { border-color: var(--rule-primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--rule-primary) 18%, transparent); }
 
-.rm-dropzone {
-  margin-top: 20px;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 6px; padding: 32px 20px;
-  border: 2px dashed color-mix(in srgb, var(--rule-primary) 30%, transparent);
+.rm-question-box {
+  margin-top: 18px; padding: 18px;
+  border: 1px dashed color-mix(in srgb, var(--rule-primary) 35%, transparent);
   border-radius: var(--rule-radius-large);
-  background: color-mix(in srgb, var(--rule-primary-tint-3) 55%, transparent);
-  cursor: pointer;
-  transition: border-color 0.25s var(--qb-ease), background 0.25s var(--qb-ease), transform 0.25s var(--qb-ease);
+  background: color-mix(in srgb, var(--rule-primary-tint-3) 70%, transparent);
 }
-.rm-dropzone:hover {
-  border-color: var(--rule-primary);
-  background: var(--rule-primary-tint-3);
-  transform: translateY(-1px);
+.rm-question-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.rm-question-title { font-size: 14px; font-weight: 700; color: var(--rule-foreground); }
+.rm-question-empty { font-size: 13px; color: var(--rule-muted-foreground); }
+.rm-question-item {
+  padding: 14px; margin-top: 12px;
+  border: 1px solid var(--rule-border);
+  border-radius: var(--rule-radius-medium);
+  background: var(--rule-card);
 }
-.rm-dropzone-icon {
-  width: 34px; height: 34px;
-  background: var(--rule-primary);
+.rm-mini-btn, .rm-link-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 600; white-space: nowrap;
+  cursor: pointer; border-radius: var(--rule-radius-full);
 }
-.rm-dropzone-title { font-size: 15px; font-weight: 600; color: var(--rule-ink); }
-.rm-dropzone-sub { font-size: 13px; color: var(--rule-muted-foreground); }
+.rm-mini-btn {
+  padding: 7px 12px; color: var(--rule-primary-foreground);
+  background: linear-gradient(135deg, var(--rule-primary), var(--rule-primary-active));
+}
+.rm-link-btn {
+  padding: 6px 10px; color: var(--rule-primary);
+  background: var(--rule-primary-tint-1);
+  border: 1px solid color-mix(in srgb, var(--rule-primary) 20%, transparent);
+}
+.rm-options-row { align-items: center; }
+.rm-option-input { flex: 1 1 140px; min-width: 130px; }
 
 .rm-upload-foot {
   margin-top: 20px;
@@ -1230,6 +1409,6 @@ onMounted(() => {
 }
 @media (prefers-reduced-motion: reduce) {
   .dc-section { transition-duration: 0.01ms; }
-  .qb-kpi-card:hover, .qb-create-btn:hover, .rm-dropzone:hover { transform: none; }
+  .qb-kpi-card:hover, .qb-create-btn:hover { transform: none; }
 }
 </style>

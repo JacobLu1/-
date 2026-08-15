@@ -9,9 +9,6 @@ unpackage/
 **/backend/video/*
 !**/backend/video/.gitkeep
 
-# 云函数密钥配置（不提交到 git）
-**/uniCloud-aliyun/cloudfunctions/aiChat/config.local.json
-
 # 临时文件
 *.log
 *.zip

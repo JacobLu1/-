@@ -44,6 +44,7 @@
             v-for="(task, i) in weeklyTasks"
             :key="i"
             hover-class="task-hover"
+            @click="selectLesson(i)"
           >
             <view class="task-top">
               <view class="task-badge">{{ task.dayNum }}</view>
@@ -213,6 +214,8 @@ export default {
       currentLang: 'en',
       selectedAnswers: {},
       weeklyTasks: [],
+      lessons: [],
+      currentLesson: null,
       transcripts: { en: '', zh: '' },
       quizQuestions: [],
       historyRecords: []
@@ -225,6 +228,7 @@ export default {
   },
   onLoad() {
     this.statusBarHeight = this.getStatusBarHeight()
+    this.loadListeningLessons()
   },
   methods: {
     getStatusBarHeight() {
@@ -245,8 +249,94 @@ export default {
         }
       })
     },
+    async loadListeningLessons() {
+      try {
+        const resourcesObj = uniCloud.importObject('resources', { customUI: true })
+        const r = (await resourcesObj.listPublic({ type: 'listening' })) || {}
+        if (r.errCode !== 0) {
+          uni.showToast({ title: r.errMsg || '听力资源加载失败', icon: 'none' })
+          return
+        }
+        this.lessons = (r.list || []).map((doc, index) => ({
+          id: doc._id,
+          dayNum: String(index + 1).padStart(2, '0'),
+          day: '第' + (index + 1) + '天',
+          difficulty: 'mid',
+          difficultyText: doc.meta || '中级',
+          title: doc.title || '未命名听力',
+          progress: 0,
+          status: 'active',
+          statusText: '待学习',
+          audioUrl: doc.audioUrl || doc.fileUrl || '',
+          transcriptEn: doc.content || '',
+          transcriptZh: doc.description || '',
+          questions: (doc.questions || []).map(q => ({
+            question: q.stem || '',
+            options: q.options || [],
+            answer: q.answer
+          }))
+        }))
+        this.weeklyTasks = this.lessons
+        if (this.lessons.length) this.selectLesson(0)
+      } catch (e) {
+        uni.showToast({ title: (e && e.errMsg) || '听力资源加载失败', icon: 'none' })
+      }
+    },
+    selectLesson(index) {
+      this.currentLesson = this.lessons[index] || null
+      if (!this.currentLesson) return
+      this.transcripts = {
+        en: this.currentLesson.transcriptEn || '',
+        zh: this.currentLesson.transcriptZh || ''
+      }
+      this.quizQuestions = this.currentLesson.questions.map(q => ({
+        question: q.question,
+        options: q.options || [],
+        answer: q.answer
+      }))
+      this.selectedAnswers = {}
+      this.playerTitle = this.currentLesson.title
+      this.playerProgress = 0
+      this.playerCurrentTime = '00:00'
+      this.playerTotalTime = '--:--'
+      this.isPlaying = false
+      if (this._audioInstance) {
+        this._audioInstance.destroy()
+        this._audioInstance = null
+      }
+    },
     togglePlay() {
-      this.isPlaying = !this.isPlaying
+      if (!this.currentLesson || !this.currentLesson.audioUrl) {
+        uni.showToast({ title: '当前听力未配置音频地址', icon: 'none' })
+        return
+      }
+      if (!this._audioInstance) {
+        this._audioInstance = uni.createInnerAudioContext()
+        this._audioInstance.src = this.currentLesson.audioUrl
+        this._audioInstance.onTimeUpdate(() => {
+          this.playerCurrentTime = this.formatTime(this._audioInstance.currentTime)
+          this.playerTotalTime = this.formatTime(this._audioInstance.duration)
+          if (this._audioInstance.duration) {
+            this.playerProgress = Math.round((this._audioInstance.currentTime / this._audioInstance.duration) * 100)
+          }
+        })
+        this._audioInstance.onEnded(() => {
+          this.isPlaying = false
+        })
+      }
+      if (this.isPlaying) {
+        this._audioInstance.pause()
+        this.isPlaying = false
+      } else {
+        this._audioInstance.play()
+        this.isPlaying = true
+      }
+    },
+    formatTime(seconds) {
+      if (!Number.isFinite(seconds) || seconds < 0) return '00:00'
+      const m = Math.floor(seconds / 60)
+      const s = Math.floor(seconds % 60)
+      return (m < 10 ? '0' + m : String(m)) + ':' + (s < 10 ? '0' + s : String(s))
     },
     selectAnswer(qIndex, oIndex) {
       this.$set(this.selectedAnswers, qIndex, oIndex)
@@ -261,7 +351,23 @@ export default {
         uni.showToast({ title: '还有题目未作答', icon: 'none' })
         return
       }
-      uni.showToast({ title: '答案已提交', icon: 'success' })
+      let correct = 0
+      this.quizQuestions.forEach((question, qIndex) => {
+        const selectedIndex = this.selectedAnswers[qIndex]
+        if (selectedIndex === undefined) return
+        const selected = String.fromCharCode(65 + selectedIndex)
+        const answer = String(question.answer || '').trim().toUpperCase()
+        if (selected === answer) correct += 1
+      })
+      const accuracy = Math.round((correct / this.quizQuestions.length) * 100)
+      uni.showToast({ title: '答对 ' + correct + '/' + this.quizQuestions.length + ' 题', icon: 'none' })
+      this.historyRecords.unshift({
+        level: accuracy >= 80 ? 'high' : accuracy >= 60 ? 'mid' : 'low',
+        accuracy,
+        title: this.currentLesson ? this.currentLesson.title : '听力练习',
+        date: new Date().toISOString().slice(0, 10),
+        duration: '--'
+      })
     },
     ringColor(level) {
       if (level === 'high') return '#22C55E'

@@ -13,8 +13,8 @@
 		},
 		"type": {
 			"bsonType": "string",
-			"enum": ["video", "english"],
-			"description": "资源类型：video 视频 / english 法律英语"
+			"enum": ["video", "vocabulary", "reading", "listening"],
+			"description": "资源类型：video 视频 / vocabulary 词汇 / reading 文本阅读 / listening 听力训练"
 		},
 		"title": {
 			"bsonType": "string",
@@ -26,7 +26,40 @@
 		},
 		"fileUrl": {
 			"bsonType": "string",
-			"description": "资源文件地址：视频/音频完整 URL 或文件名"
+			"description": "资源文件地址：视频/PDF/文章链接完整 URL 或文件名"
+		},
+		"audioUrl": {
+			"bsonType": "string",
+			"description": "听力音频地址，listening 类型使用"
+		},
+		"content": {
+			"bsonType": "string",
+			"description": "阅读正文或听力原文"
+		},
+		"questions": {
+			"bsonType": "array",
+			"description": "听力/练习题目",
+			"items": {
+				"bsonType": "object",
+				"properties": {
+					"type": {
+						"bsonType": "string",
+						"enum": ["single", "multi"]
+					},
+					"stem": {
+						"bsonType": "string"
+					},
+					"options": {
+						"bsonType": "array",
+						"items": {
+							"bsonType": "string"
+						}
+					},
+					"answer": {
+						"bsonType": ["string", "array", "number", "bool"]
+					}
+				}
+			}
 		},
 		"description": {
 			"bsonType": "string",
@@ -34,7 +67,7 @@
 		},
 		"cat": {
 			"bsonType": "string",
-			"description": "分类（视频）或类型（法律英语）"
+			"description": "业务分类，如 国际仲裁 / 跨境投资 / 词汇主题 / 阅读主题 / 听力场景"
 		},
 		"tagClass": {
 			"bsonType": "string",
@@ -42,11 +75,26 @@
 		},
 		"meta": {
 			"bsonType": "string",
-			"description": "视频时长 或 法律英语难度文字"
+			"description": "视频时长、词汇音标、阅读/听力难度等扩展文字"
 		},
 		"diffClass": {
 			"bsonType": "string",
 			"description": "难度徽标样式类"
+		},
+		"level": {
+			"bsonType": "string",
+			"description": "难度/等级，如 初级、中级、高级"
+		},
+		"tags": {
+			"bsonType": "array",
+			"items": {
+				"bsonType": "string"
+			},
+			"description": "资源标签"
+		},
+		"sortOrder": {
+			"bsonType": "int",
+			"description": "手动排序，数字越小越靠前"
 		},
 		"date": {
 			"bsonType": "string",

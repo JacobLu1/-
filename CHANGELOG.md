@@ -1,5 +1,27 @@
 # 变更记录
 
+## 2026-08-14 资源库升级为四类资源模型
+
+- `resource` 资源类型由 `video/english` 升级为 `video/vocabulary/reading/listening` 四类。
+- `resource.schema.json` 新增 `audioUrl`、`content`、`questions`、`sortOrder`、`level`、`tags` 字段；`type` 枚举改为 `video/vocabulary/reading/listening`。
+- `resources` 云对象新增四类资源新增/更新校验，支持 `category`、`keyword` 筛选，列表按 `sortOrder` 升序、`createDate` 降序返回；网页端与小程序本地副本已同步。
+- 网页端资源管理后台改为统一资源列表，新增表单支持视频、词汇、文本阅读、听力训练四种动态录入；支持类型筛选、标题搜索、排序号维护和听力题目动态编辑。
+- 删除资源录入表单下方无实际功能的“资源文件说明”空盒子。
+- 网页端学习中心接入新模型：词汇页读取 `vocabulary`，新增 `reading-list` 文本阅读页，听力训练页读取 `listening` 并渲染音频、原文和题目；法律英语页学习模块按四类资源生成。
+- 小程序端同步新模型：`resources` 本地副本更新，法律英语、首页推荐、听力训练接入新类型，新增 `legal-english/reading-list` 文本阅读页。
+- 资源库操作指南补充四类资源录入说明，并明确不使用 B站等外部视频。
+- 当前 `resource.schema.json` 与 `resources` 云函数尚未部署到共享空间；存在旧 `type=english` 数据时，上线前需迁移或清理。
+
+## 2026-08-14 学习中心词汇功能与本地 AI 配置收口
+
+- 同步 GitHub `jacoblu/master` 提交 `4b40b30`（2026-08-13）中的 17 个文件到本地 main，覆盖双端 AI 助手、登录注册、资源/用户管理、视频详情等文件。
+- `aiChat` 云函数改为每次请求实时读取 `config.local.json`，避免 HBuilderX 本地调试启动后读不到 Key；网页端 `.gitignore` 忽略 `**/aiChat/config.local.json`。
+- 网页端学习中心移除“法律英语资源”区块，保留“专业技能提升”中的法律英语综合训练入口。
+- 法律英语“今日词汇”改为从资源库“词汇积累”分类按日期随机抽取 10 词，支持新词/待复习切换，并按 `1/2/4/7/15/30` 天间隔安排复习。
+- 新增 `utils/vocab.js` 共享词汇状态工具，词汇进度与收藏保存在浏览器 Local Storage，按账号隔离。
+- 新增 `pages/learning-center/legal-vocab.vue` 词汇积累页，展示“未学习词汇 / 待复习词汇 / 收藏词汇”三张卡片，支持收藏、认识、不认识、已掌握、再复习。
+- “学习模块-词汇积累”卡片接入新页面，无词汇资源时保留入口并显示维护提示。
+
 ## 2026-08-13 小程序端接入真实 AI
 
 - 小程序端复制 `aiChat` 云函数（智谱 GLM-4-Flash-250414），与网页端共用同一 AI 服务，支持本地运行调试；API Key 存放于 `config.local.json` 并在 `.gitignore` 中忽略。

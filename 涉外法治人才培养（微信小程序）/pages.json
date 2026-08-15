@@ -29,6 +29,13 @@
 			}
 		},
 		{
+			"path": "pages/legal-english/reading-list",
+			"style": {
+				"navigationBarTitleText": "文本阅读",
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "pages/legal-english/listening-training",
 			"style": {
 				"navigationBarTitleText": "听力实训",

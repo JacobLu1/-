@@ -13,11 +13,12 @@
 // 推荐：在本云函数目录下的 config.local.json 里填 zhipuApiKey（该文件已在 .gitignore 中忽略）
 
 const path = require('path')
+const fs = require('fs')
 
 // 读取同目录 config.local.json（部署时随云函数上传到云端，但被 git 忽略）
 function getApiKey() {
   try {
-    const localConfig = require(path.resolve(__dirname, './config.local.json'))
+    const localConfig = JSON.parse(fs.readFileSync(path.resolve(__dirname, './config.local.json'), 'utf8'))
     if (localConfig && localConfig.zhipuApiKey && localConfig.zhipuApiKey.indexOf('请在此填入') === -1) {
       return localConfig.zhipuApiKey
     }
@@ -27,7 +28,6 @@ function getApiKey() {
   return process.env.ZHIPU_API_KEY || ''
 }
 
-const ZHIPU_API_KEY = getApiKey()
 const ZHIPU_CHAT_URL = 'https://open.bigmodel.cn/api/paas/v4/chat/completions'
 
 // 系统提示词：让模型扮演涉外法治人才培养平台的专家助手
@@ -62,6 +62,7 @@ function extractZhipuError(data) {
 // 发送请求，429/5xx 自动重试最多 3 次（指数退避），避免偶发限流导致失败
 async function requestWithRetry(fullMessages, retryLeft = 3) {
   const doRequest = () => {
+    const ZHIPU_API_KEY = getApiKey()
     return uniCloud.httpclient.request(ZHIPU_CHAT_URL, {
       method: 'POST',
       contentType: 'json',
@@ -98,6 +99,7 @@ module.exports = {
    * @param {Array} messages 对话消息 [{ role: 'user'|'assistant', content: '...' }]
    */
   async chat({ messages = [], system = '' } = {}) {
+    const ZHIPU_API_KEY = getApiKey()
     if (!Array.isArray(messages) || messages.length === 0) {
       return { errCode: 400, errMsg: '消息不能为空', content: '' }
     }
@@ -145,6 +147,7 @@ module.exports = {
    * @returns {Object} { errCode, errMsg, intro }
    */
   async generateVideoIntro({ title = '', category = '', description = '', meta = '' } = {}) {
+    const ZHIPU_API_KEY = getApiKey()
     if (!ZHIPU_API_KEY) {
       return { errCode: 1001, errMsg: '未配置智谱 API Key', intro: '' }
     }

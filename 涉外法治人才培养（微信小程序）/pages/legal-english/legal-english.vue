@@ -166,41 +166,43 @@ export default {
       this.resourceLoading = true
       try {
     const resourcesObj = uniCloud.importObject('resources', { customUI: true })
-        const r = (await resourcesObj.listPublic({ type: 'english' })) || {}
+        const r = (await resourcesObj.listPublic({ type: 'all' })) || {}
         if (r.errCode !== 0) {
           uni.showToast({ title: r.errMsg || '资源加载失败', icon: 'none' })
           return
         }
-        const list = r.list || []
+        const list = (r.list || []).filter(d => ['vocabulary', 'reading', 'listening'].includes(d.type))
         this.englishResources = list.map((d) => ({
           id: d._id,
+          type: d.type,
           title: d.title || '未命名资源',
           category: d.cat || '未分类',
           level: d.meta || '',
           fileUrl: d.fileUrl || '',
           description: d.description || '',
-          icon: this.resourceIcon(d.cat)
+          icon: this.resourceIcon(d.type)
         }))
         const catCount = {}
         const moduleIcons = {
-          '词汇积累': 'ri-book-open-line',
-          '术语精讲': 'ri-file-list-3-line',
-          '听力训练': 'ri-mic-line',
-          '实战练习': 'ri-question-answer-line'
+          vocabulary: 'ri-book-open-line',
+          reading: 'ri-file-list-3-line',
+          listening: 'ri-mic-line'
         }
         list.forEach(d => {
-          const name = d.cat || '其他'
+          const name = d.type || '其他'
           catCount[name] = (catCount[name] || 0) + 1
         })
-        this.modules = Object.keys(catCount).map((name, index) => ({
-          name,
+        this.modules = Object.keys(catCount).map((type, index) => ({
+          name: type === 'vocabulary' ? '词汇积累' : type === 'reading' ? '文本阅读' : '听力训练',
           level: 'L' + Math.min(index + 2, 4),
           percent: 0,
-          icon: moduleIcons[name] || 'ri-book-line',
-          url: name === '听力训练' ? '/pages/legal-english/listening-training' : ''
+          icon: moduleIcons[type] || 'ri-book-line',
+          url: type === 'listening' ? '/pages/legal-english/listening-training' : type === 'reading' ? '/pages/legal-english/reading-list' : ''
         }))
         this.stats = [
-          { icon: 'ri-file-list-3-line', val: String(list.length), label: '英语资源' },
+          { icon: 'ri-file-list-3-line', val: String(list.filter(d => d.type === 'reading').length), label: '文本阅读' },
+          { icon: 'ri-mic-line', val: String(list.filter(d => d.type === 'listening').length), label: '听力训练' },
+          { icon: 'ri-bookmark-line', val: String(list.filter(d => d.type === 'vocabulary').length), label: '词汇' },
           { icon: 'ri-bookmark-line', val: String(this.modules.length), label: '学习模块' }
         ]
       } catch (e) {
@@ -209,11 +211,10 @@ export default {
         this.resourceLoading = false
       }
     },
-    resourceIcon(cat) {
-      if (cat === '词汇积累') return 'ri-book-open-line'
-      if (cat === '术语精讲') return 'ri-file-list-3-line'
-      if (cat === '听力训练') return 'ri-mic-line'
-      if (cat === '实战练习') return 'ri-question-answer-line'
+    resourceIcon(type) {
+      if (type === 'vocabulary') return 'ri-book-open-line'
+      if (type === 'reading') return 'ri-file-list-3-line'
+      if (type === 'listening') return 'ri-mic-line'
       return 'ri-book-line'
     },
     onResource(res) {

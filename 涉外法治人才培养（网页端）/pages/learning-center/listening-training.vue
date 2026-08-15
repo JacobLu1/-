@@ -108,7 +108,8 @@
             <!-- Task Cards -->
             <div v-for="(task, index) in weeklyTasks" :key="index"
                  class="lt-task-card"
-                 :class="{'is-done': task.status === 'done', 'is-active': task.status === 'active'}">
+                 :class="{'is-done': task.status === 'done', 'is-active': task.status === 'active'}"
+                 @click="selectLesson(index)">
               <div class="lt-task-top">
                 <span class="lt-task-badge">{{ task.dayNum }}</span>
                 <span class="lt-task-day">{{ task.day }}</span>
@@ -289,26 +290,130 @@ const currentLang = ref('en')
 const selectedAnswers = ref({})
 const visibleSections = ref([false, false, false])
 
-// 本周任务数据：等待听力资源结构接入
+// 听力资源
+const lessons = ref([])
+const currentLesson = ref(null)
 const weeklyTasks = ref([])
+let audioInstance = null
 
 // 文本数据
-const transcripts = {
+const transcripts = ref({
   en: '',
   zh: ''
-}
+})
 
-const currentTranscript = computed(() => transcripts[currentLang.value])
+const currentTranscript = computed(() => transcripts.value[currentLang.value])
 
-// 习题数据：等待听力资源结构接入
+// 习题数据
 const quizQuestions = ref([])
 
 // 历史记录数据
 const historyRecords = ref([])
 
 // 方法
+function formatTime(seconds) {
+  if (!Number.isFinite(seconds) || seconds < 0) return '00:00'
+  const m = Math.floor(seconds / 60)
+  const s = Math.floor(seconds % 60)
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+}
+
+function selectLesson(index) {
+  currentLesson.value = lessons.value[index] || null
+  if (!currentLesson.value) return
+  transcripts.value = {
+    en: currentLesson.value.transcriptEn || '',
+    zh: currentLesson.value.transcriptZh || ''
+  }
+  quizQuestions.value = currentLesson.value.questions.map(q => ({
+    question: q.question,
+    options: q.options || [],
+    answer: q.answer
+  }))
+  selectedAnswers.value = {}
+  playerTitle.value = currentLesson.value.title
+  playerProgress.value = 0
+  playerCurrentTime.value = '00:00'
+  playerTotalTime.value = '00:00'
+  isPlaying.value = false
+  if (audioInstance) {
+    audioInstance.pause()
+    audioInstance = null
+  }
+}
+
+async function loadListeningLessons() {
+  try {
+    const resourcesObj = uniCloud.importObject('resources', { customUI: true })
+    const r = (await resourcesObj.listPublic({ type: 'listening' })) || {}
+    if (r.errCode !== 0) {
+      uni.showToast({ title: r.errMsg || '听力资源加载失败', icon: 'none' })
+      return
+    }
+    lessons.value = (r.list || []).map((doc, index) => ({
+      id: doc._id,
+      dayNum: String(index + 1).padStart(2, '0'),
+      day: `第${index + 1}天`,
+      difficulty: 'mid',
+      difficultyText: doc.meta || '中级',
+      title: doc.title || '未命名听力',
+      progress: 0,
+      status: 'active',
+      statusText: '待学习',
+      audioUrl: doc.audioUrl || doc.fileUrl || '',
+      transcriptEn: doc.content || '',
+      transcriptZh: doc.description || '',
+      questions: (doc.questions || []).map(q => ({
+        question: q.stem || '',
+        options: q.options || [],
+        answer: q.answer
+      }))
+    }))
+    weeklyTasks.value = lessons.value
+    if (lessons.value.length) selectLesson(0)
+  } catch (e) {
+    uni.showToast({ title: (e && e.errMsg) || '听力资源加载失败', icon: 'none' })
+  }
+}
+
 const togglePlay = () => {
-  isPlaying.value = !isPlaying.value
+  if (!currentLesson.value || !currentLesson.value.audioUrl) {
+    uni.showToast({ title: '当前听力未配置音频地址', icon: 'none' })
+    return
+  }
+  if (!audioInstance && typeof Audio !== 'undefined') {
+    audioInstance = new Audio(currentLesson.value.audioUrl)
+    audioInstance.playbackRate = playbackRate.value
+    audioInstance.addEventListener('loadedmetadata', () => {
+      playerTotalTime.value = formatTime(audioInstance.duration)
+    })
+    audioInstance.addEventListener('timeupdate', () => {
+      playerCurrentTime.value = formatTime(audioInstance.currentTime)
+      playerTotalTime.value = formatTime(audioInstance.duration)
+      if (audioInstance.duration) {
+        playerProgress.value = Math.round((audioInstance.currentTime / audioInstance.duration) * 100)
+      }
+    })
+    audioInstance.addEventListener('ended', () => {
+      isPlaying.value = false
+    })
+  }
+  if (!audioInstance) {
+    uni.showToast({ title: '当前环境不支持音频播放', icon: 'none' })
+    return
+  }
+  if (isPlaying.value) {
+    audioInstance.pause()
+    isPlaying.value = false
+  } else {
+    audioInstance.play()
+      .then(() => {
+        isPlaying.value = true
+      })
+      .catch(() => {
+        uni.showToast({ title: '音频播放失败，请检查地址', icon: 'none' })
+      })
+  }
 }
 
 const selectAnswer = (qIndex, oIndex) => {
@@ -320,8 +425,24 @@ const submitAnswers = () => {
     uni.showToast({ title: '暂无习题', icon: 'none' })
     return
   }
-  console.log('提交答案:', selectedAnswers.value)
-  uni.showToast({ title: '答案已提交', icon: 'success' })
+  let correct = 0
+  quizQuestions.value.forEach((question, qIndex) => {
+    const selectedIndex = selectedAnswers.value[qIndex]
+    if (selectedIndex === undefined) return
+    const selected = String.fromCharCode(65 + selectedIndex)
+    const answer = String(question.answer || '').trim().toUpperCase()
+    if (selected === answer) correct += 1
+  })
+  const accuracy = Math.round((correct / quizQuestions.value.length) * 100)
+  uni.showToast({ title: `答对 ${correct}/${quizQuestions.value.length} 题`, icon: 'none' })
+  historyRecords.value.unshift({
+    level: accuracy >= 80 ? 'high' : accuracy >= 60 ? 'mid' : 'low',
+    strokeDashoffset: String(263.89 - (accuracy / 100) * 263.89),
+    accuracy,
+    title: currentLesson.value ? currentLesson.value.title : '听力练习',
+    date: todayDateText.value,
+    duration: '--'
+  })
 }
 
 const navigateTo = (url) => {
@@ -368,6 +489,7 @@ onLoad(() => {
       userName.value = info.name
     }
   } catch (e) {}
+  loadListeningLessons()
 })
 </script>
 

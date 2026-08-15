@@ -2,3 +2,5 @@ node_modules/
 unpackage/
 .hbuilderx/
 .DS_Store
+# aiChat local API key
+**/aiChat/config.local.json

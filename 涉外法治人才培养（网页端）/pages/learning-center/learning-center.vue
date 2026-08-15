@@ -130,31 +130,6 @@
             <view v-if="!videos.length" class="lc-empty">暂无视频课程</view>
           </section>
 
-          <!-- ===== 法律英语资源 Section ===== -->
-          <section class="lc-section" :class="{ 'is-visible': sections.english }" aria-label="法律英语资源">
-            <view class="lc-section-header">
-              <view class="lc-section-title-wrap">
-                <view class="lc-section-bar"></view>
-                <view>
-                  <text class="lc-section-title">法律英语资源</text>
-                  <text class="lc-section-subtitle">词汇、听力与实务资源来自资源数据库</text>
-                </view>
-              </view>
-            </view>
-            <view class="rec-grid">
-              <view class="rec-card" v-for="(item, eIdx) in englishResources" :key="eIdx" @tap="openEnglishResource(item)">
-                <text class="rec-tag rec-tag-adv">{{ item.category }}</text>
-                <text class="rec-title">{{ item.title }}</text>
-                <text class="rec-reason">{{ item.description || (item.level ? '难度：' + item.level : '暂无简介') }}</text>
-                <view class="rec-btn">
-                  <text>{{ item.fileUrl ? '查看资源' : '暂无资源文件' }}</text>
-                  <view class="arrow-r"></view>
-                </view>
-              </view>
-            </view>
-            <view v-if="!englishResources.length" class="lc-empty">暂无法律英语资源</view>
-          </section>
-
           <!-- ===== Professional Skills Section ===== -->
           <section class="lc-section" :class="{ 'is-visible': sections.skills }" aria-label="专业技能提升">
             <view class="lc-section-header">
@@ -448,7 +423,6 @@ const videoGradients = [
 
 const videos = ref([])
 const latestVideos = computed(() => videos.value.slice(0, 4))
-const englishResources = ref([])
 const resourceLoading = ref(false)
 
 function mapVideo(doc, index) {
@@ -477,18 +451,6 @@ function videoThumbStyle(video) {
   return { background: video.gradient }
 }
 
-function mapEnglish(doc) {
-  return {
-    id: doc._id,
-    title: doc.title,
-    category: doc.cat || '未分类',
-    level: doc.meta || '',
-    fileUrl: doc.fileUrl || '',
-    cover: doc.cover || '',
-    description: doc.description || ''
-  }
-}
-
 async function loadResources() {
   if (resourceLoading.value) return
   resourceLoading.value = true
@@ -504,7 +466,6 @@ async function loadResources() {
       .filter(d => d.type === 'video')
       .sort((a, b) => (b.createDate || 0) - (a.createDate || 0))
     videos.value = videoList.map(mapVideo)
-    englishResources.value = list.filter(d => d.type === 'english').map(mapEnglish)
     STAT_CONFIG.courses.suffix = ''
     STAT_CONFIG.courses.to = videos.value.length
     statRaw.courses = videos.value.length
@@ -661,7 +622,6 @@ const sections = reactive({
   // 避免首屏出现"透明度为0→延迟后淡入"的假白屏/闪烁观感
   // 也取消 setTimeouts 调度开销
   video: true,
-  english: true,
   skills: true,
   recommendation: true
 })

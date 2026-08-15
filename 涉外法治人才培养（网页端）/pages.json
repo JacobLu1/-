@@ -106,6 +106,20 @@
 			}
 		},
 		{
+			"path": "pages/learning-center/legal-vocab",
+			"style": {
+				"navigationBarTitleText": "词汇积累",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/learning-center/reading-list",
+			"style": {
+				"navigationBarTitleText": "文本阅读",
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "pages/admin/dashboard",
 			"style": {
 				"navigationBarTitleText": "数据总览",
