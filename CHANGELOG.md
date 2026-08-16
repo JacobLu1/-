@@ -1,5 +1,15 @@
 # 变更记录
 
+## 2026-08-16 词汇按语言分类与资源 lang 字段
+
+- 网页端新增 `pages/learning-center/vocab-language.vue` 语言分类页：`法律英语 -> 词汇积累` 先展示英语、德语、法语、拉丁语、西班牙语五张卡片，并统计各语言已上线词汇数。
+- `legal-vocab.vue` 支持 `?lang=` 参数过滤，页面内可切换语言；旧词汇数据没有 `lang` 时默认按“英语”展示。
+- `resource.schema.json` 新增 `lang` 字段，枚举为英语/德语/法语/拉丁语/西班牙语；`resources` 云对象新增 `lang` 参数、写入校验和更新允许字段。
+- 管理端资源管理新增词汇“语言分类”选择，新增/编辑/保存/搜索支持语言；资源表格新增语言列，非词汇资源显示 `--`。
+- 法律英语页“今日词汇”只读取英语词汇，避免混入其他语言的资源。
+- `resources` 云对象已同步到小程序本地 `cloudfunctions` 副本。
+- 注意：`resource.schema.json` 与 `resources` 云对象尚未部署到共享空间；小程序端目前还没有词汇积累页面，本次只完成了网页端前端和共享云对象改动。
+
 ## 2026-08-14 资源库升级为四类资源模型
 
 - `resource` 资源类型由 `video/english` 升级为 `video/vocabulary/reading/listening` 四类。

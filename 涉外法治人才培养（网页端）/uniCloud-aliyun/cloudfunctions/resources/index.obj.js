@@ -1,8 +1,8 @@
 // 云对象：学习资源管理（网页端管理后台 + 小程序学习中心共用）
 // 调用方式：
 //   const resourcesObj = uniCloud.importObject('resources')
-//   await resourcesObj.list({ adminToken, type: 'video'|'vocabulary'|'reading'|'listening'|'all', category, keyword })
-//   await resourcesObj.listPublic({ type: 'video'|'vocabulary'|'reading'|'listening'|'all', category, keyword })
+//   await resourcesObj.list({ adminToken, type: 'video'|'vocabulary'|'reading'|'listening'|'all', category, keyword, lang })
+//   await resourcesObj.listPublic({ type: 'video'|'vocabulary'|'reading'|'listening'|'all', category, keyword, lang })
 //   await resourcesObj.get({ id })
 //   方法：list / listPublic / get / add / update / remove
 // 返回统一结构：{ errCode: 0 成功 | 非0 失败, errMsg, ... }
@@ -10,6 +10,7 @@
 const db = uniCloud.database()
 
 const RESOURCE_TYPES = ['video', 'vocabulary', 'reading', 'listening']
+const RESOURCE_LANGS = ['英语', '德语', '法语', '拉丁语', '西班牙语']
 
 function normalizeQuestions(value) {
   if (!Array.isArray(value)) return []
@@ -38,11 +39,12 @@ function splitTags(value) {
     .filter(Boolean)
 }
 
-function buildWhere({ type = 'all', category = '', keyword = '', status = '' } = {}) {
+function buildWhere({ type = 'all', category = '', keyword = '', lang = '', status = '' } = {}) {
   const where = {}
   if (status) where.status = status
   if (type && type !== 'all') where.type = type
   if (category && category !== 'all') where.cat = category
+  if (lang && lang !== 'all') where.lang = lang
   const kw = String(keyword || '').trim()
   if (kw) where.title = new RegExp(kw, 'i')
   return where
@@ -53,12 +55,12 @@ module.exports = {
    * 资源列表（需管理员 token）
    * @param {string} type video | vocabulary | reading | listening | all
    */
-  async list({ adminToken, type = 'all', category = '', keyword = '' } = {}) {
+  async list({ adminToken, type = 'all', category = '', keyword = '', lang = '' } = {}) {
     const check = await checkAdmin(adminToken)
     if (check.errCode !== 0) return check
 
     const table = db.collection('resource')
-    const where = buildWhere({ type, category, keyword })
+    const where = buildWhere({ type, category, keyword, lang })
     const listRes = await table
       .where(where)
       .orderBy('sortOrder', 'asc')
@@ -71,9 +73,9 @@ module.exports = {
    * 公开资源列表（学习中心使用，只返回已上线）
    * @param {string} type video | vocabulary | reading | listening | all
    */
-  async listPublic({ type = 'all', category = '', keyword = '' } = {}) {
+  async listPublic({ type = 'all', category = '', keyword = '', lang = '' } = {}) {
     const table = db.collection('resource')
-    const where = buildWhere({ type, category, keyword, status: '已上线' })
+    const where = buildWhere({ type, category, keyword, lang, status: '已上线' })
     const listRes = await table
       .where(where)
       .orderBy('sortOrder', 'asc')
@@ -106,6 +108,9 @@ module.exports = {
     if (!RESOURCE_TYPES.includes(type)) {
       return { errCode: 'PARAM_ERROR', errMsg: '资源类型不合法' }
     }
+    if (type === 'vocabulary' && data.lang && !RESOURCE_LANGS.includes(data.lang)) {
+      return { errCode: 'PARAM_ERROR', errMsg: '词汇语言分类不合法' }
+    }
     if (!data.title || !String(data.title).trim()) {
       return { errCode: 'PARAM_IS_NULL', errMsg: '资源标题不能为空' }
     }
@@ -113,6 +118,7 @@ module.exports = {
     const doc = {
       type,
       title: String(data.title).trim(),
+      lang: data.lang || (type === 'vocabulary' ? '英语' : ''),
       cat: data.cat || '待分类',
       tagClass: data.tagClass || 'qb-type-case',
       meta: data.meta || '',
@@ -146,7 +152,7 @@ module.exports = {
     }
 
     const allow = [
-      'title', 'cat', 'tagClass', 'meta', 'diffClass', 'level', 'cover',
+      'title', 'lang', 'cat', 'tagClass', 'meta', 'diffClass', 'level', 'cover',
       'fileUrl', 'audioUrl', 'content', 'description', 'questions',
       'tags', 'sortOrder', 'date', 'status', 'statusClass'
     ]
@@ -159,6 +165,9 @@ module.exports = {
     }
     if (patch.status !== undefined && !['已上线', '审核中'].includes(patch.status)) {
       return { errCode: 'PARAM_ERROR', errMsg: '资源状态不合法' }
+    }
+    if (patch.lang !== undefined && patch.lang && !RESOURCE_LANGS.includes(patch.lang)) {
+      return { errCode: 'PARAM_ERROR', errMsg: '词汇语言分类不合法' }
     }
     if (patch.questions !== undefined) patch.questions = normalizeQuestions(patch.questions)
     if (patch.tags !== undefined) patch.tags = splitTags(patch.tags)

@@ -68,6 +68,13 @@
     "uniStatistics" : {
         "enable" : false
     },
+    /* 上传大文件超时配置，默认60秒过短，视频按分钟级上传时间设置 */
+    "networkTimeout" : {
+        "request" : 60000,
+        "connectSocket" : 60000,
+        "uploadFile" : 1800000,
+        "downloadFile" : 60000
+    },
     "vueVersion" : "3",
     "h5" : {
         "title" : "涉外法治人才培养平台",

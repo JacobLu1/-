@@ -7,10 +7,20 @@
           <text>返回</text>
         </view>
         <text class="page-title">词汇积累</text>
-        <text class="page-total">共 {{ vocabTotal }} 词</text>
+        <text class="page-total">{{ currentLang }} · 共 {{ vocabTotal }} 词</text>
       </header>
 
       <main class="page-content">
+        <view class="lang-switch">
+          <view
+            class="lang-chip"
+            :class="{ 'is-active': currentLang === lang }"
+            v-for="lang in LANGUAGES"
+            :key="lang"
+            @tap="switchLang(lang)"
+          >{{ lang }}</view>
+        </view>
+
         <view class="vocab-cards">
           <view class="vocab-card unlearned" :class="{ active: activeCard === 'unlearned' }" @tap="switchCard('unlearned')">
             <view class="card-num">{{ stats.unlearned }}</view>
@@ -76,13 +86,16 @@ import {
   isDueReview,
   isStarred,
   markWordProgress,
-  toggleWordStar
+  toggleWordStar,
+  normalizeLang
 } from '@/utils/vocab.js'
 
+const LANGUAGES = ['英语', '德语', '法语', '拉丁语', '西班牙语']
 const vocabPool = ref([])
 const progressMap = ref({})
 const activeCard = ref('unlearned')
 const loading = ref(false)
+const currentLang = ref('英语')
 
 const stats = computed(() => getVocabStats(vocabPool.value, progressMap.value))
 const vocabTotal = computed(() => stats.value.total)
@@ -110,11 +123,26 @@ const activeTitle = computed(() => {
 })
 
 const emptyText = computed(() => {
-  if (!vocabPool.value.length) return '资源库中还没有“词汇积累”内容，请在管理端维护后重试'
+  if (!vocabPool.value.length) return `当前“${currentLang.value}”语言下还没有词汇内容，请在管理端维护后重试`
   if (activeCard.value === 'review') return '当前没有到期待复习的词汇，先学习未学习词汇吧'
   if (activeCard.value === 'unlearned') return '未学习词汇已全部完成'
   return '还没有收藏词汇，点击列表中的收藏即可加入'
 })
+
+function switchLang(lang) {
+  if (currentLang.value === lang) return
+  currentLang.value = lang
+  vocabPool.value = []
+  loadVocabResources()
+}
+
+function parseLang(value) {
+  let raw = String(value || '')
+  try {
+    raw = decodeURIComponent(raw)
+  } catch (e) {}
+  return normalizeLang(raw)
+}
 
 function switchCard(card) {
   activeCard.value = card
@@ -150,7 +178,9 @@ async function loadVocabResources() {
     const resourcesObj = uniCloud.importObject('resources', { customUI: true })
     const r = (await resourcesObj.listPublic({ type: 'vocabulary' })) || {}
     if (r.errCode === 0) {
-      vocabPool.value = (r.list || []).filter(d => d.type === 'vocabulary').map(mapWord)
+      vocabPool.value = (r.list || [])
+        .filter(d => d.type === 'vocabulary' && normalizeLang(d.lang) === currentLang.value)
+        .map(mapWord)
     }
   } catch (e) {
     uni.showToast({ title: (e && e.errMsg) || '词汇资源加载失败', icon: 'none' })
@@ -167,8 +197,9 @@ function goBack() {
   })
 }
 
-onLoad(() => {
+onLoad((options) => {
   if (!requireLogin()) return
+  currentLang.value = parseLang(options && options.lang)
   progressMap.value = loadVocabProgress()
   loadVocabResources()
 })
@@ -235,6 +266,40 @@ onLoad(() => {
   max-width: 1160px;
   margin: 0 auto;
   padding: 24px;
+}
+
+.lang-switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.lang-chip {
+  height: 34px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #E2E8F0;
+  border-radius: 9999px;
+  background: #FFFFFF;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748B;
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease, color .15s ease;
+}
+
+.lang-chip:hover {
+  border-color: #BFDBFE;
+  color: #2563EB;
+}
+
+.lang-chip.is-active {
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
 }
 
 .vocab-cards {

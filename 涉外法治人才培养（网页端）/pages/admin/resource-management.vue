@@ -175,6 +175,21 @@
               </view>
             </view>
 
+            <view v-if="uploadType === 'vocabulary'" class="rm-upload-row">
+              <view class="rm-form-field">
+                <text class="rm-form-label">语言分类</text>
+                <view class="qb-pills">
+                  <view
+                    class="qb-pill"
+                    :class="{ 'is-active': uploadLang === lang }"
+                    v-for="lang in LANGUAGES"
+                    :key="lang"
+                    @tap="uploadLang = lang"
+                  >{{ lang }}</view>
+                </view>
+              </view>
+            </view>
+
             <view v-if="uploadType === 'video'" class="rm-upload-row">
               <view class="rm-form-field rm-form-field-grow">
                 <text class="rm-form-label">视频文件</text>
@@ -301,10 +316,16 @@
             </view>
 
             <view class="rm-upload-foot">
-              <text class="rm-upload-tip">保存后将进入审核，通过后在学习中心展示</text>
-              <view class="qb-create-btn" @tap="doUpload">
-                <view class="navi-icon navi-icon-upload-cloud"></view>
-                <text>保存资源</text>
+              <text class="rm-upload-tip">普通保存进入审核；保存并上线后直接在学习中心展示</text>
+              <view class="rm-upload-actions">
+                <view class="qb-create-btn" @tap="handleUpload(false)">
+                  <view class="navi-icon navi-icon-upload-cloud"></view>
+                  <text>保存资源</text>
+                </view>
+                <view class="qb-create-btn qb-create-btn-success" @tap="handleUpload(true)">
+                  <view class="navi-icon navi-icon-check-circle"></view>
+                  <text>保存并上线资源</text>
+                </view>
               </view>
             </view>
           </view>
@@ -346,6 +367,7 @@
                   <tr>
                     <th scope="col">编号</th>
                     <th scope="col">类型</th>
+                    <th scope="col">语言</th>
                     <th scope="col">资源标题</th>
                     <th scope="col">分类</th>
                     <th scope="col">难度 / 时长</th>
@@ -358,6 +380,7 @@
                   <tr v-for="item in filteredResources" :key="item.id">
                     <td><text class="qb-qid">{{ item.id }}</text></td>
                     <td><text class="qb-type-tag" :class="item.typeClass">{{ resourceTypeLabel(item.type) }}</text></td>
+                    <td><text class="qb-type-tag qb-cat-blue">{{ item.type === 'vocabulary' ? (item.lang || '英语') : '--' }}</text></td>
                     <td class="qb-qcontent"><text class="qb-qcontent-text">{{ item.title }}</text></td>
                     <td><text class="qb-type-tag" :class="item.tagClass">{{ item.category || '待分类' }}</text></td>
                     <td><text class="qb-date">{{ item.meta || '--' }}</text></td>
@@ -430,6 +453,21 @@
                     <text v-if="uploadCoverName" class="rm-file-name">{{ uploadCoverName }}</text>
                   </view>
                   <input class="rm-input" v-model="editForm.cover" placeholder="封面 URL，可留空" />
+                </view>
+              </view>
+
+              <view v-if="editType === 'vocabulary'" class="rm-upload-row">
+                <view class="rm-form-field">
+                  <text class="rm-form-label">语言分类</text>
+                  <view class="qb-pills">
+                    <view
+                      class="qb-pill"
+                      :class="{ 'is-active': editForm.lang === lang }"
+                      v-for="lang in LANGUAGES"
+                      :key="lang"
+                      @tap="editForm.lang = lang"
+                    >{{ lang }}</view>
+                  </view>
                 </view>
               </view>
 
@@ -553,6 +591,7 @@ const uploadDescription = ref('')
 const uploadContent = ref('')
 const uploadAudioUrl = ref('')
 const uploadSortOrder = ref(1)
+const uploadLang = ref('英语')
 const uploadQuestions = ref([])
 
 /* ===== 文件上传状态 ===== */
@@ -576,6 +615,7 @@ const editForm = reactive({
   type: 'video',
   title: '',
   cat: '',
+  lang: '英语',
   tagClass: 'qb-type-case',
   meta: '',
   diffClass: 'qb-diff-mid',
@@ -599,7 +639,11 @@ const filteredResources = computed(() => {
   const q = resourceSearch.value.trim().toLowerCase()
   return resources.value.filter(item => {
     const matchType = resourceFilter.value === 'all' || item.type === resourceFilter.value
-    const matchQuery = !q || item.title.toLowerCase().includes(q) || (item.category || '').toLowerCase().includes(q) || item.id.toLowerCase().includes(q)
+    const matchQuery = !q ||
+      item.title.toLowerCase().includes(q) ||
+      (item.category || '').toLowerCase().includes(q) ||
+      (item.lang || '').toLowerCase().includes(q) ||
+      item.id.toLowerCase().includes(q)
     return matchType && matchQuery
   })
 })
@@ -615,6 +659,8 @@ const kpiListening = computed(() => resources.value.filter(item => item.type ===
 function getAdminToken() {
   return uni.getStorageSync('adminToken')
 }
+
+const LANGUAGES = ['英语', '德语', '法语', '拉丁语', '西班牙语']
 
 function resourceTypeLabel(type) {
   const labels = {
@@ -660,6 +706,7 @@ function toResourceItem(doc) {
     type: doc.type || '',
     title: doc.title || '',
     category: doc.cat || '',
+    lang: doc.lang || '英语',
     tagClass: categoryColorClass(doc.cat || ''),
     typeClass: doc.type === 'video' ? 'qb-type-single' : 'qb-type-multi',
     meta: doc.meta || '',
@@ -749,7 +796,10 @@ function safeFileName(name) {
 
 function isCancelError(err) {
   const msg = String((err && (err.errMsg || err.message)) || '').toLowerCase()
-  return msg.indexOf('cancel') >= 0
+  const isUserCancel = msg.indexOf('cancel') >= 0 &&
+    msg.indexOf('timeout') < 0 &&
+    msg.indexOf('abort') < 0
+  return isUserCancel
 }
 
 function chooseOneFile(extension) {
@@ -770,28 +820,133 @@ function chooseOneFile(extension) {
   })
 }
 
-async function uploadToCloud(file, dir) {
-  const res = await uniCloud.uploadFile({
+function uploadToCloud(file, dir, options = {}) {
+  return uniCloud.uploadFile({
     filePath: file.path,
     cloudPath: `${dir}/${safeFileName(file.name)}`,
-    cloudPathAsRealPath: true
+    cloudPathAsRealPath: true,
+    onUploadProgress: (progressEvent) => {
+      if (progressEvent && Number(progressEvent.total) > 0 && options.onProgress) {
+        const percent = Math.min(99, Math.max(0, Math.round((Number(progressEvent.loaded) / Number(progressEvent.total)) * 100)))
+        options.onProgress(percent)
+      }
+    }
+  }).then((res) => {
+    const url = (res && (res.fileID || res.fileUrl || res.url)) || ''
+    if (!/^https?:\/\//.test(url)) {
+      throw new Error('上传完成但未获取到可访问地址，请手动填写 URL')
+    }
+    return url
   })
-  const url = (res && (res.fileID || res.fileUrl || res.url)) || ''
-  if (!/^https?:\/\//.test(url)) {
-    throw new Error('上传完成但未获取到可访问地址，请手动填写 URL')
+}
+
+function isRetryableUploadError(err) {
+  const msg = String((err && (err.errMsg || err.message)) || '').toLowerCase()
+  return msg.indexOf('timeout') >= 0 ||
+    msg.indexOf('network') >= 0 ||
+    msg.indexOf('etimedout') >= 0 ||
+    msg.indexOf('请求超时') >= 0 ||
+    msg.indexOf('上传超时') >= 0
+}
+
+async function uploadWithRetry(file, dir, label, onProgress) {
+  const maxAttempts = 3
+  let lastError = null
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await uploadToCloud(file, dir, { onProgress })
+    } catch (e) {
+      lastError = e
+      if (!isRetryableUploadError(e) || attempt >= maxAttempts) break
+      if (onProgress) onProgress(0, `上传超时，正在第 ${attempt + 1} 次重试...`)
+      await new Promise((resolve) => setTimeout(resolve, 1200 * attempt))
+    }
   }
-  return url
+  if (lastError) throw lastError
+  throw new Error(`${label}上传失败`)
+}
+
+function formatFileSize(bytes) {
+  const value = Number(bytes) || 0
+  if (value <= 0) return ''
+  if (value < 1024 * 1024) return `${Math.round(value / 1024)}KB`
+  if (value < 1024 * 1024 * 1024) return `${(value / (1024 * 1024)).toFixed(1)}MB`
+  return `${(value / (1024 * 1024 * 1024)).toFixed(2)}GB`
+}
+
+function probeVideoDuration(file) {
+  if (!file) return Promise.resolve('')
+  if (Number(file.duration) > 0) {
+    return Promise.resolve(formatVideoDuration(Number(file.duration)))
+  }
+  return new Promise((resolve) => {
+    let timer = null
+    let objectUrl = ''
+    const cleanup = () => {
+      if (timer) clearTimeout(timer)
+      if (objectUrl && URL && URL.revokeObjectURL) URL.revokeObjectURL(objectUrl)
+    }
+    try {
+      if (typeof document === 'undefined' || typeof window === 'undefined') {
+        resolve('')
+        return
+      }
+      const video = document.createElement('video')
+      video.preload = 'metadata'
+      objectUrl = URL.createObjectURL(file)
+      timer = setTimeout(() => {
+        cleanup()
+        resolve('')
+      }, 8000)
+      video.onloadedmetadata = () => {
+        const duration = video.duration
+        cleanup()
+        resolve(formatVideoDuration(duration))
+      }
+      video.onerror = () => {
+        cleanup()
+        resolve('')
+      }
+      video.src = objectUrl
+    } catch (e) {
+      cleanup()
+      resolve('')
+    }
+  })
+}
+
+function formatVideoDuration(seconds) {
+  const total = Math.max(0, Math.floor(Number(seconds) || 0))
+  const h = Math.floor(total / 3600)
+  const m = Math.floor((total % 3600) / 60)
+  const s = total % 60
+  const mm = String(m).padStart(2, '0')
+  const ss = String(s).padStart(2, '0')
+  if (h > 0) return `${String(h).padStart(2, '0')}:${mm}:${ss}`
+  return `${mm}:${ss}`
 }
 
 async function chooseVideoFile() {
   if (uploadingVideo.value) return
   try {
     const file = await chooseOneFile(['.mp4', '.mov', '.m4v', '.webm'])
+    const duration = await probeVideoDuration(file)
     uploadingVideo.value = true
-    uni.showLoading({ title: '视频上传中...', mask: true })
-    const url = await uploadToCloud(file, 'upload/video')
+    uni.showLoading({ title: `视频上传中${file.size ? ' ' + formatFileSize(file.size) : ''}`, mask: true })
+    const url = await uploadWithRetry(file, 'upload/video', '视频', (percent, message) => {
+      uni.showLoading({
+        title: message || `视频上传中 ${percent}%`,
+        mask: true
+      })
+    })
     uploadUrl.value = url
     uploadVideoName.value = file.name
+    if (!uploadTitle.value.trim() && file.name) {
+      uploadTitle.value = String(file.name).replace(/\.[^.]+$/, '')
+    }
+    if (duration && !uploadMeta.value.trim()) {
+      uploadMeta.value = duration
+    }
     uni.showToast({ title: '视频已上传', icon: 'success' })
   } catch (e) {
     if (!isCancelError(e)) {
@@ -808,8 +963,13 @@ async function chooseAudioFile() {
   try {
     const file = await chooseOneFile(['.mp3', '.m4a', '.wav', '.aac'])
     uploadingAudio.value = true
-    uni.showLoading({ title: '音频上传中...', mask: true })
-    const url = await uploadToCloud(file, 'upload/audio')
+    uni.showLoading({ title: `音频上传中${file.size ? ' ' + formatFileSize(file.size) : ''}`, mask: true })
+    const url = await uploadWithRetry(file, 'upload/audio', '音频', (percent, message) => {
+      uni.showLoading({
+        title: message || `音频上传中 ${percent}%`,
+        mask: true
+      })
+    })
     uploadAudioUrl.value = url
     uploadAudioName.value = file.name
     uni.showToast({ title: '音频已上传', icon: 'success' })
@@ -828,8 +988,13 @@ async function choosePdfFile() {
   try {
     const file = await chooseOneFile(['.pdf'])
     uploadingPdf.value = true
-    uni.showLoading({ title: '文件上传中...', mask: true })
-    const url = await uploadToCloud(file, 'upload/file')
+    uni.showLoading({ title: `文件上传中${file.size ? ' ' + formatFileSize(file.size) : ''}`, mask: true })
+    const url = await uploadWithRetry(file, 'upload/file', '文件', (percent, message) => {
+      uni.showLoading({
+        title: message || `文件上传中 ${percent}%`,
+        mask: true
+      })
+    })
     uploadUrl.value = url
     uploadPdfName.value = file.name
     uni.showToast({ title: '文件已上传', icon: 'success' })
@@ -848,8 +1013,13 @@ async function chooseCoverFile() {
   try {
     const file = await chooseOneFile(['.jpg', '.jpeg', '.png', '.webp'])
     uploadingCover.value = true
-    uni.showLoading({ title: '封面上传中...', mask: true })
-    const url = await uploadToCloud(file, 'upload/cover')
+    uni.showLoading({ title: `封面上传中${file.size ? ' ' + formatFileSize(file.size) : ''}`, mask: true })
+    const url = await uploadWithRetry(file, 'upload/cover', '封面', (percent, message) => {
+      uni.showLoading({
+        title: message || `封面上传中 ${percent}%`,
+        mask: true
+      })
+    })
     if (editVisible.value) {
       editForm.cover = url
     } else {
@@ -867,7 +1037,11 @@ async function chooseCoverFile() {
   }
 }
 
-const doUpload = async () => {
+const handleUpload = (publishNow) => {
+  doUpload(publishNow)
+}
+
+const doUpload = async (publishNow = false) => {
   const title = uploadTitle.value.trim()
   if (!title) {
     uni.showToast({ title: '请输入资源标题', icon: 'none' })
@@ -888,14 +1062,15 @@ const doUpload = async () => {
     audioUrl: uploadAudioUrl.value.trim(),
     content: uploadContent.value.trim(),
     description: uploadDescription.value.trim(),
+    lang: uploadType.value === 'vocabulary' ? uploadLang.value : '',
     questions: uploadQuestions.value.map(q => ({
       stem: q.stem.trim(),
       options: (q.options || []).map(o => o.trim()),
       answer: String(q.answer || '').trim()
     })),
     sortOrder: Number(uploadSortOrder.value) >= 0 ? Number(uploadSortOrder.value) : 1,
-    status: '审核中',
-    statusClass: 'qb-diff-mid'
+    status: publishNow ? '已上线' : '审核中',
+    statusClass: publishNow ? 'qb-diff-easy' : 'qb-diff-mid'
   }
 
   let r
@@ -922,12 +1097,13 @@ const doUpload = async () => {
   uploadContent.value = ''
   uploadAudioUrl.value = ''
   uploadSortOrder.value = 1
+  uploadLang.value = '英语'
   uploadQuestions.value = []
   uploadVideoName.value = ''
   uploadAudioName.value = ''
   uploadPdfName.value = ''
   uploadCoverName.value = ''
-  uni.showToast({ title: '保存成功，等待审核', icon: 'success' })
+  uni.showToast({ title: publishNow ? '已保存并上线' : '保存成功，等待审核', icon: 'success' })
 }
 
 const openEdit = (item) => {
@@ -937,6 +1113,7 @@ const openEdit = (item) => {
   editForm.type = editType.value
   editForm.title = item.title || ''
   editForm.cat = item.category || item.cat || ''
+  editForm.lang = item.lang || '英语'
   editForm.tagClass = categoryColorClass(item.category || item.cat || '')
   editForm.meta = item.meta || ''
   editForm.diffClass = item.diffClass || 'qb-diff-mid'
@@ -985,6 +1162,7 @@ const saveEdit = async () => {
     content: editForm.content.trim(),
     cover: editForm.cover.trim(),
     description: editForm.description.trim(),
+    lang: editType.value === 'vocabulary' ? editForm.lang : '',
     questions: editQuestions.value.map(q => ({
       stem: q.stem.trim(),
       options: (q.options || []).map(o => o.trim()),
@@ -1017,6 +1195,7 @@ const saveEdit = async () => {
       target.content = data.content
       target.cover = data.cover
       target.description = data.description
+      target.lang = data.lang
       target.questions = data.questions
       target.sortOrder = data.sortOrder
       target.date = data.date
@@ -1232,6 +1411,10 @@ onMounted(() => {
   -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242'/><path d='M12 12v9'/><path d='m16 16-4-4-4 4'/></svg>") center/contain no-repeat;
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242'/><path d='M12 12v9'/><path d='m16 16-4-4-4 4'/></svg>") center/contain no-repeat;
 }
+.navi-icon-check-circle {
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M22 11.08V12a10 10 0 1 1-5.93-9.14'/><path d='m9 11 3 3L22 4'/></svg>") center/contain no-repeat;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M22 11.08V12a10 10 0 1 1-5.93-9.14'/><path d='m9 11 3 3L22 4'/></svg>") center/contain no-repeat;
+}
 .navi-icon-check {
   width: 16px; height: 16px;
   -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M20 6 9 17l-5-5'/></svg>") center/contain no-repeat;
@@ -1395,6 +1578,13 @@ onMounted(() => {
 }
 .qb-create-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 28px -4px color-mix(in srgb, var(--rule-primary) 56%, transparent); }
 .qb-create-btn .navi-icon { width: 16px; height: 16px; background: var(--rule-primary-foreground); }
+.qb-create-btn-success {
+  background: linear-gradient(135deg, var(--state-success), color-mix(in srgb, var(--state-success) 72%, var(--rule-ink)));
+  box-shadow: 0 8px 20px -4px color-mix(in srgb, var(--state-success) 46%, transparent);
+}
+.qb-create-btn-success:hover {
+  box-shadow: 0 12px 28px -4px color-mix(in srgb, var(--state-success) 58%, transparent);
+}
 
 /* ===== Table Card ===== */
 .qb-table-card {
@@ -1521,6 +1711,7 @@ onMounted(() => {
   display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
 }
 .rm-upload-tip { font-size: 12px; color: var(--rule-muted-foreground); }
+.rm-upload-actions { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
 /* ===== 文件上传 ===== */
 .rm-file-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }

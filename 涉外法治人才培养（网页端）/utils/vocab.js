@@ -83,13 +83,19 @@ export function seededShuffle(items, seed) {
   return arr
 }
 
+export function normalizeLang(value) {
+  const lang = String(value || '').trim()
+  return ['英语', '德语', '法语', '拉丁语', '西班牙语'].includes(lang) ? lang : '英语'
+}
+
 export function mapWord(doc) {
   return {
     id: doc._id,
     en: doc.title || '',
     phonetic: doc.meta || '',
     cn: doc.description || '暂无释义',
-    level: doc.meta || ''
+    level: doc.meta || '',
+    lang: normalizeLang(doc.lang)
   }
 }
 

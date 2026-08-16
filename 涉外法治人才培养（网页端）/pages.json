@@ -106,6 +106,13 @@
 			}
 		},
 		{
+			"path": "pages/learning-center/vocab-language",
+			"style": {
+				"navigationBarTitleText": "语言分类",
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "pages/learning-center/legal-vocab",
 			"style": {
 				"navigationBarTitleText": "词汇积累",

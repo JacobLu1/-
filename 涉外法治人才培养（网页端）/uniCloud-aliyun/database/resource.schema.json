@@ -16,6 +16,11 @@
 			"enum": ["video", "vocabulary", "reading", "listening"],
 			"description": "资源类型：video 视频 / vocabulary 词汇 / reading 文本阅读 / listening 听力训练"
 		},
+		"lang": {
+			"bsonType": "string",
+			"enum": ["", "英语", "德语", "法语", "拉丁语", "西班牙语"],
+			"description": "词汇语言分类，非词汇资源可留空"
+		},
 		"title": {
 			"bsonType": "string",
 			"description": "资源标题"

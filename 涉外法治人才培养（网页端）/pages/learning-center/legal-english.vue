@@ -176,6 +176,7 @@
 import { ref, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { requireLogin, getDisplayName, getLevelText, getStoredUserInfo } from '@/utils/auth.js'
+import { normalizeLang } from '@/utils/vocab.js'
 
 /* ============================================================
    Daily Vocabulary Config
@@ -450,10 +451,11 @@ async function loadEnglishResources() {
       return
     }
     const list = (r.list || []).filter(d => ['vocabulary', 'reading', 'listening'].includes(d.type))
-    vocabPool.value = list.filter(d => d.type === 'vocabulary').map(mapWord)
+    const vocabularyList = list.filter(d => d.type === 'vocabulary')
+    vocabPool.value = vocabularyList.filter(d => normalizeLang(d.lang) === '英语').map(mapWord)
     buildTodayWords()
     stats.value = [
-      { iconClass: 'stat-bookmark-icon', val: String(list.filter(d => d.type === 'vocabulary').length), label: '词汇' },
+      { iconClass: 'stat-bookmark-icon', val: String(vocabPool.value.length), label: '英语词汇' },
       { iconClass: 'stat-file-icon', val: String(list.filter(d => d.type === 'reading').length), label: '文本阅读' },
       { iconClass: 'stat-mic-icon', val: String(list.filter(d => d.type === 'listening').length), label: '听力' }
     ]
@@ -463,7 +465,7 @@ async function loadEnglishResources() {
         level: 'L1',
         percent: 0,
         iconClass: 'mod-book-icon',
-        route: '/pages/learning-center/legal-vocab'
+        route: '/pages/learning-center/vocab-language'
       },
       {
         name: '文本阅读',
