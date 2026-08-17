@@ -92,23 +92,55 @@
           <text class="list-count">{{ activeWords.length }} 词</text>
         </view>
 
-        <view v-if="activeWords.length" class="word-list">
-          <view class="word-row" v-for="word in activeWords" :key="word.id" @tap="onWordTap(word)">
-            <view class="word-main">
-              <text class="word-en">{{ word.en }}</text>
-              <text class="word-level">{{ word.level || '法律英语' }}</text>
-              <text class="word-cn">{{ word.cn }}</text>
+        <view v-if="activeWords.length">
+          <view class="word-list">
+            <view class="word-row" v-for="word in displayedWords" :key="word.id" @tap="onWordTap(word)">
+              <view class="word-main">
+                <text class="word-en">{{ word.en }}</text>
+                <text class="word-level">{{ word.level || '法律英语' }}</text>
+                <text class="word-cn">{{ word.cn }}</text>
+              </view>
+              <view class="word-actions">
+                <view class="action-btn star-btn" :class="{ active: isStarredWord(word) }" @tap.stop="toggleStar(word)">
+                  {{ isStarredWord(word) ? '已收藏' : '收藏' }}
+                </view>
+                <view v-if="activeCard !== 'starred'" class="action-btn known-btn" @tap.stop="markWord(word, true)">
+                  {{ isLearnedWord(word) ? '已掌握' : '认识' }}
+                </view>
+                <view v-if="activeCard !== 'starred'" class="action-btn again-btn" @tap.stop="markWord(word, false)">
+                  {{ isLearnedWord(word) ? '再复习' : '不认识' }}
+                </view>
+              </view>
             </view>
-            <view class="word-actions">
-              <view class="action-btn star-btn" :class="{ active: isStarredWord(word) }" @tap.stop="toggleStar(word)">
-                {{ isStarredWord(word) ? '已收藏' : '收藏' }}
+          </view>
+          <view v-if="activeWords.length > PAGE_SIZE" class="vocab-pagination">
+            <view class="vocab-pagination-info">
+              共 {{ activeWords.length }} 词，每页 50 条，当前第 {{ currentPage }} / {{ totalPages }} 页
+            </view>
+            <view class="vocab-pagination-buttons">
+              <view
+                class="vocab-page-btn"
+                :class="{ 'is-disabled': currentPage <= 1 }"
+                @tap="changePage(currentPage - 1)"
+              >上一页</view>
+              <view
+                class="vocab-page-item"
+                v-for="page in visiblePageNumbers"
+                :key="page"
+              >
+                <view v-if="page === '...'" class="vocab-page-ellipsis">...</view>
+                <view
+                  v-else
+                  class="vocab-page-btn"
+                  :class="{ 'is-active': page === currentPage }"
+                  @tap="changePage(page)"
+                >{{ page }}</view>
               </view>
-              <view v-if="activeCard !== 'starred'" class="action-btn known-btn" @tap.stop="markWord(word, true)">
-                {{ isLearnedWord(word) ? '已掌握' : '认识' }}
-              </view>
-              <view v-if="activeCard !== 'starred'" class="action-btn again-btn" @tap.stop="markWord(word, false)">
-                {{ isLearnedWord(word) ? '再复习' : '不认识' }}
-              </view>
+              <view
+                class="vocab-page-btn"
+                :class="{ 'is-disabled': currentPage >= totalPages }"
+                @tap="changePage(currentPage + 1)"
+              >下一页</view>
             </view>
           </view>
         </view>
@@ -122,7 +154,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { requireLogin, getDisplayName, getLevelText } from '@/utils/auth.js'
 import {
@@ -144,6 +176,8 @@ const progressMap = ref({})
 const activeCard = ref('unlearned')
 const loading = ref(false)
 const currentLang = ref('英语')
+const PAGE_SIZE = 50
+const currentPage = ref(1)
 
 const userName = ref(getDisplayName())
 const userRole = ref(getLevelText())
@@ -168,6 +202,39 @@ const activeWords = computed(() => {
   return []
 })
 
+const totalPages = computed(() => Math.max(1, Math.ceil(activeWords.value.length / PAGE_SIZE)))
+
+const displayedWords = computed(() => {
+  const start = (currentPage.value - 1) * PAGE_SIZE
+  return activeWords.value.slice(start, start + PAGE_SIZE)
+})
+
+const visiblePageNumbers = computed(() => {
+  const total = totalPages.value
+  const current = currentPage.value
+  if (total <= 7) {
+    return Array.from({ length: total }, (_, i) => i + 1)
+  }
+  const pages = []
+  if (current > 3) pages.push(1, '...')
+  const start = Math.max(1, current - 1)
+  const end = Math.min(total, current + 1)
+  for (let i = start; i <= end; i += 1) pages.push(i)
+  if (current < total - 2) pages.push('...', total)
+  return pages
+})
+
+function changePage(page) {
+  const next = Number(page)
+  if (!Number.isInteger(next) || next < 1 || next > totalPages.value || next === currentPage.value) return
+  currentPage.value = next
+  uni.pageScrollTo({ scrollTop: 0, duration: 200 })
+}
+
+watch(totalPages, (total) => {
+  if (currentPage.value > total) currentPage.value = total
+})
+
 const activeTitle = computed(() => {
   if (activeCard.value === 'review') return '待复习词汇'
   if (activeCard.value === 'unlearned') return '未学习词汇'
@@ -185,6 +252,7 @@ function switchLang(lang) {
   if (currentLang.value === lang) return
   currentLang.value = lang
   vocabPool.value = []
+  currentPage.value = 1
   loadVocabResources()
 }
 
@@ -197,7 +265,10 @@ function parseLang(value) {
 }
 
 function switchCard(card) {
-  activeCard.value = card
+  if (activeCard.value !== card) {
+    activeCard.value = card
+    currentPage.value = 1
+  }
 }
 
 function isStarredWord(word) {
@@ -228,11 +299,10 @@ async function loadVocabResources() {
   loading.value = true
   try {
     const resourcesObj = uniCloud.importObject('resources', { customUI: true })
-    const r = (await resourcesObj.listPublic({ type: 'vocabulary' })) || {}
+    const r = (await resourcesObj.listPublic({ type: 'vocabulary', lang: currentLang.value })) || {}
     if (r.errCode === 0) {
-      vocabPool.value = (r.list || [])
-        .filter(d => d.type === 'vocabulary' && normalizeLang(d.lang) === currentLang.value)
-        .map(mapWord)
+      vocabPool.value = (r.list || []).map(mapWord)
+      currentPage.value = 1
     }
   } catch (e) {
     uni.showToast({ title: (e && e.errMsg) || '词汇资源加载失败', icon: 'none' })
@@ -821,6 +891,64 @@ onLoad((options) => {
   color: #DC2626;
   background: #FEE2E2;
   border: 1px solid #FECACA;
+}
+
+.vocab-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+.vocab-pagination-info {
+  font-size: 13px;
+  color: #64748B;
+  font-variant-numeric: tabular-nums;
+}
+.vocab-pagination-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.vocab-page-item {
+  display: inline-flex;
+}
+.vocab-page-btn,
+.vocab-page-ellipsis {
+  min-width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  background: #FFFFFF;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+}
+.vocab-page-ellipsis {
+  border-color: transparent;
+  background: transparent;
+  cursor: default;
+}
+.vocab-page-btn:hover:not(.is-disabled):not(.is-active) {
+  border-color: #2563EB;
+  color: #2563EB;
+}
+.vocab-page-btn.is-active {
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
+}
+.vocab-page-btn.is-disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .empty-state {

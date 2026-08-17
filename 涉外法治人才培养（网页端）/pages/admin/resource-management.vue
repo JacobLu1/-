@@ -359,7 +359,7 @@
         </section>
 
         <!-- ===== Section 3: 学习资源管理 ===== -->
-        <section class="dc-section" :class="{ 'is-visible': visibleSections[2] }" aria-label="学习资源管理">
+        <section id="learning-resource-management" class="dc-section" :class="{ 'is-visible': visibleSections[2] }" aria-label="学习资源管理">
           <view class="qb-section-header">
             <view class="qb-section-title-wrap">
               <view class="qb-section-bar"></view>
@@ -394,7 +394,7 @@
                   <tr>
                     <th scope="col">编号</th>
                     <th scope="col">类型</th>
-                    <th scope="col">语言</th>
+                    <th v-if="showLanguageColumn" scope="col">语言</th>
                     <th scope="col">资源标题</th>
                     <th scope="col">分类</th>
                     <th scope="col">难度 / 时长</th>
@@ -407,7 +407,7 @@
                   <tr v-for="item in pagedResources" :key="item.id">
                     <td><text class="qb-qid">{{ item.id }}</text></td>
                     <td><text class="qb-type-tag" :class="item.typeClass">{{ resourceTypeLabel(item.type) }}</text></td>
-                    <td><text class="qb-type-tag qb-cat-blue">{{ item.type === 'vocabulary' ? (item.lang || '英语') : '--' }}</text></td>
+                    <td v-if="showLanguageColumn"><text class="qb-type-tag qb-cat-blue">{{ item.lang || '英语' }}</text></td>
                     <td class="qb-qcontent"><text class="qb-qcontent-text">{{ item.title }}</text></td>
                     <td><text class="qb-type-tag" :class="item.tagClass">{{ item.category || '待分类' }}</text></td>
                     <td><text class="qb-date">{{ item.meta || '--' }}</text></td>
@@ -811,6 +811,8 @@ const filteredResources = computed(() => {
   })
 })
 
+const showLanguageColumn = computed(() => resourceFilter.value === 'vocabulary')
+
 const totalPages = computed(() => Math.max(1, Math.ceil(filteredResources.value.length / PAGE_SIZE)))
 
 const pagedResources = computed(() => {
@@ -837,6 +839,11 @@ function changePage(page) {
   const next = Number(page)
   if (!Number.isInteger(next) || next < 1 || next > totalPages.value || next === currentPage.value) return
   currentPage.value = next
+  setTimeout(() => {
+    if (typeof document === 'undefined') return
+    const section = document.getElementById('learning-resource-management')
+    if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, 50)
 }
 
 watch([resourceSearch, resourceFilter], () => {
@@ -1844,6 +1851,10 @@ onMounted(() => {
 }
 
 /* ===== Table Card ===== */
+#learning-resource-management {
+  scroll-margin-top: 80px;
+}
+
 .qb-table-card {
   background: linear-gradient(135deg, var(--rule-card), var(--rule-primary-tint-3));
   border: 1px solid color-mix(in srgb, var(--rule-border) 55%, transparent);

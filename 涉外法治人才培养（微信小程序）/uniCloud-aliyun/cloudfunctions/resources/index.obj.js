@@ -13,16 +13,17 @@ const RESOURCE_TYPES = ['video', 'vocabulary', 'reading', 'listening']
 const RESOURCE_LANGS = ['英语', '德语', '法语', '拉丁语', '西班牙语']
 const MAX_QUERY_LIMIT = 500
 
-async function fetchAllByPage(query) {
-  const all = []
-  let offset = 0
-  while (true) {
-    const res = await query.skip(offset).limit(MAX_QUERY_LIMIT).get()
-    all.push(...res.data)
-    if (res.data.length < MAX_QUERY_LIMIT) break
-    offset += MAX_QUERY_LIMIT
-  }
-  return all
+async function fetchAllByPage(query, countQuery) {
+  const countRes = await (countQuery || query).count()
+  const total = countRes.total || 0
+  const pageCount = Math.ceil(total / MAX_QUERY_LIMIT)
+  if (pageCount <= 0) return []
+  const results = await Promise.all(
+    Array.from({ length: pageCount }, (_, index) => (
+      query.skip(index * MAX_QUERY_LIMIT).limit(MAX_QUERY_LIMIT).get()
+    ))
+  )
+  return results.reduce((all, res) => all.concat(res.data), [])
 }
 
 function normalizeQuestions(value) {
@@ -78,7 +79,7 @@ module.exports = {
       .where(where)
       .orderBy('sortOrder', 'asc')
       .orderBy('createDate', 'desc')
-    const list = await fetchAllByPage(query)
+    const list = await fetchAllByPage(query, table.where(where))
     return { errCode: 0, errMsg: '', list }
   },
 
@@ -93,7 +94,7 @@ module.exports = {
       .where(where)
       .orderBy('sortOrder', 'asc')
       .orderBy('createDate', 'desc')
-    const list = await fetchAllByPage(query)
+    const list = await fetchAllByPage(query, table.where(where))
     return { errCode: 0, errMsg: '', list }
   },
 
@@ -240,13 +241,14 @@ module.exports = {
     }
 
     // 云端去重：按 title（忽略大小写）跳过已存在的词汇
+    const existingWhere = {
+      type: 'vocabulary',
+      title: db.command.in(docs.map(d => d.title))
+    }
     const existingQuery = db.collection('resource')
-      .where({
-        type: 'vocabulary',
-        title: db.command.in(docs.map(d => d.title))
-      })
+      .where(existingWhere)
       .field({ title: true })
-    const existingList = await fetchAllByPage(existingQuery)
+    const existingList = await fetchAllByPage(existingQuery, db.collection('resource').where(existingWhere))
     const existingSet = new Set(existingList.map(x => String(x.title).toLowerCase()))
     const fresh = docs.filter(d => !existingSet.has(d.title.toLowerCase()))
     const skipped = docs.length - fresh.length
