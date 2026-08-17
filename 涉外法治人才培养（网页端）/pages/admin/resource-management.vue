@@ -404,7 +404,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="item in filteredResources" :key="item.id">
+                  <tr v-for="item in pagedResources" :key="item.id">
                     <td><text class="qb-qid">{{ item.id }}</text></td>
                     <td><text class="qb-type-tag" :class="item.typeClass">{{ resourceTypeLabel(item.type) }}</text></td>
                     <td><text class="qb-type-tag qb-cat-blue">{{ item.type === 'vocabulary' ? (item.lang || '英语') : '--' }}</text></td>
@@ -429,6 +429,36 @@
                 </tbody>
               </table>
               <view v-if="!filteredResources.length" class="qb-empty-row">暂无资源，请先录入并上线</view>
+            </view>
+            <view v-if="filteredResources.length" class="qb-pagination">
+              <view class="qb-pagination-info">
+                共 {{ filteredResources.length }} 条，每页 50 条，当前第 {{ currentPage }} / {{ totalPages }} 页
+              </view>
+              <view class="qb-pagination-buttons">
+                <view
+                  class="qb-page-btn"
+                  :class="{ 'is-disabled': currentPage <= 1 }"
+                  @tap="changePage(currentPage - 1)"
+                >上一页</view>
+                <view
+                  class="qb-page-item"
+                  v-for="page in visiblePageNumbers"
+                  :key="page"
+                >
+                  <view v-if="page === '...'" class="qb-page-ellipsis">...</view>
+                  <view
+                    v-else
+                    class="qb-page-btn"
+                    :class="{ 'is-active': page === currentPage }"
+                    @tap="changePage(page)"
+                  >{{ page }}</view>
+                </view>
+                <view
+                  class="qb-page-btn"
+                  :class="{ 'is-disabled': currentPage >= totalPages }"
+                  @tap="changePage(currentPage + 1)"
+                >下一页</view>
+              </view>
             </view>
           </view>
         </section>
@@ -595,7 +625,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { requireAdmin } from '@/utils/auth.js'
 
 const visibleSections = ref([false, false, false])
@@ -765,6 +795,8 @@ const editForm = reactive({
 const resourceSearch = ref('')
 const resourceFilter = ref('all')
 const resources = ref([])
+const PAGE_SIZE = 50
+const currentPage = ref(1)
 
 const filteredResources = computed(() => {
   const q = resourceSearch.value.trim().toLowerCase()
@@ -777,6 +809,42 @@ const filteredResources = computed(() => {
       item.id.toLowerCase().includes(q)
     return matchType && matchQuery
   })
+})
+
+const totalPages = computed(() => Math.max(1, Math.ceil(filteredResources.value.length / PAGE_SIZE)))
+
+const pagedResources = computed(() => {
+  const start = (currentPage.value - 1) * PAGE_SIZE
+  return filteredResources.value.slice(start, start + PAGE_SIZE)
+})
+
+const visiblePageNumbers = computed(() => {
+  const total = totalPages.value
+  const current = currentPage.value
+  if (total <= 7) {
+    return Array.from({ length: total }, (_, i) => i + 1)
+  }
+  const pages = []
+  if (current > 3) pages.push(1, '...')
+  const start = Math.max(1, current - 1)
+  const end = Math.min(total, current + 1)
+  for (let i = start; i <= end; i += 1) pages.push(i)
+  if (current < total - 2) pages.push('...', total)
+  return pages
+})
+
+function changePage(page) {
+  const next = Number(page)
+  if (!Number.isInteger(next) || next < 1 || next > totalPages.value || next === currentPage.value) return
+  currentPage.value = next
+}
+
+watch([resourceSearch, resourceFilter], () => {
+  currentPage.value = 1
+})
+
+watch(totalPages, (total) => {
+  if (currentPage.value > total) currentPage.value = total
 })
 
 /* ===== 资源概览 KPI ===== */
@@ -1802,6 +1870,65 @@ onMounted(() => {
 .qb-qcontent-text { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
 .qb-empty-row { padding: 28px 16px; text-align: center; font-size: 13px; color: var(--rule-muted-foreground); }
 .qb-date { color: var(--rule-muted-foreground); font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 13px; }
+
+/* pagination */
+.qb-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+.qb-pagination-info {
+  font-size: 13px;
+  color: var(--rule-muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+.qb-pagination-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.qb-page-item {
+  display: inline-flex;
+}
+.qb-page-btn,
+.qb-page-ellipsis {
+  min-width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  border: 1px solid var(--rule-border);
+  border-radius: 8px;
+  background: var(--rule-card);
+  color: var(--rule-ink-2);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+}
+.qb-page-ellipsis {
+  border-color: transparent;
+  background: transparent;
+  cursor: default;
+}
+.qb-page-btn:hover:not(.is-disabled):not(.is-active) {
+  border-color: var(--rule-primary);
+  color: var(--rule-primary);
+}
+.qb-page-btn.is-active {
+  background: var(--rule-primary);
+  border-color: var(--rule-primary);
+  color: #FFFFFF;
+}
+.qb-page-btn.is-disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
 
 /* type tags */
 .qb-type-tag { display: inline-flex; align-items: center; font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: var(--rule-radius-full); white-space: nowrap; }
