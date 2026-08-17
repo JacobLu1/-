@@ -479,7 +479,7 @@ async function loadEnglishResources() {
         level: 'L1',
         percent: 0,
         iconClass: 'mod-book-icon',
-        route: '/pages/learning-center/vocab-language'
+        route: '/pages/learning-center/legal-vocab'
       },
       {
         name: '文本阅读',
