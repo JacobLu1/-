@@ -11,6 +11,19 @@ const db = uniCloud.database()
 
 const RESOURCE_TYPES = ['video', 'vocabulary', 'reading', 'listening']
 const RESOURCE_LANGS = ['英语', '德语', '法语', '拉丁语', '西班牙语']
+const MAX_QUERY_LIMIT = 500
+
+async function fetchAllByPage(query) {
+  const all = []
+  let offset = 0
+  while (true) {
+    const res = await query.skip(offset).limit(MAX_QUERY_LIMIT).get()
+    all.push(...res.data)
+    if (res.data.length < MAX_QUERY_LIMIT) break
+    offset += MAX_QUERY_LIMIT
+  }
+  return all
+}
 
 function normalizeQuestions(value) {
   if (!Array.isArray(value)) return []
@@ -61,12 +74,12 @@ module.exports = {
 
     const table = db.collection('resource')
     const where = buildWhere({ type, category, keyword, lang })
-    const listRes = await table
+    const query = table
       .where(where)
       .orderBy('sortOrder', 'asc')
       .orderBy('createDate', 'desc')
-      .get()
-    return { errCode: 0, errMsg: '', list: listRes.data }
+    const list = await fetchAllByPage(query)
+    return { errCode: 0, errMsg: '', list }
   },
 
   /**
@@ -76,12 +89,12 @@ module.exports = {
   async listPublic({ type = 'all', category = '', keyword = '', lang = '' } = {}) {
     const table = db.collection('resource')
     const where = buildWhere({ type, category, keyword, lang, status: '已上线' })
-    const listRes = await table
+    const query = table
       .where(where)
       .orderBy('sortOrder', 'asc')
       .orderBy('createDate', 'desc')
-      .get()
-    return { errCode: 0, errMsg: '', list: listRes.data }
+    const list = await fetchAllByPage(query)
+    return { errCode: 0, errMsg: '', list }
   },
 
   /**
@@ -227,14 +240,14 @@ module.exports = {
     }
 
     // 云端去重：按 title（忽略大小写）跳过已存在的词汇
-    const existingRes = await db.collection('resource')
+    const existingQuery = db.collection('resource')
       .where({
         type: 'vocabulary',
         title: db.command.in(docs.map(d => d.title))
       })
       .field({ title: true })
-      .get()
-    const existingSet = new Set(existingRes.data.map(x => String(x.title).toLowerCase()))
+    const existingList = await fetchAllByPage(existingQuery)
+    const existingSet = new Set(existingList.map(x => String(x.title).toLowerCase()))
     const fresh = docs.filter(d => !existingSet.has(d.title.toLowerCase()))
     const skipped = docs.length - fresh.length
 
