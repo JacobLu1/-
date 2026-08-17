@@ -4,7 +4,7 @@
 //   await resourcesObj.list({ adminToken, type: 'video'|'vocabulary'|'reading'|'listening'|'all', category, keyword, lang })
 //   await resourcesObj.listPublic({ type: 'video'|'vocabulary'|'reading'|'listening'|'all', category, keyword, lang })
 //   await resourcesObj.get({ id })
-//   方法：list / listPublic / get / add / update / remove
+//   方法：list / listPublic / get / add / update / remove / batchCreateVocabulary
 // 返回统一结构：{ errCode: 0 成功 | 非0 失败, errMsg, ... }
 
 const db = uniCloud.database()
@@ -175,6 +175,82 @@ module.exports = {
 
     await db.collection('resource').doc(id).update(patch)
     return { errCode: 0, errMsg: '' }
+  },
+
+  /**
+   * 批量导入词汇（需管理员 token）
+   * @param {Array} items [{ title, description, meta, content, cat, lang }]
+   *   按 title 去重（忽略已存在的词汇），单次最多 2000 条
+   */
+  async batchCreateVocabulary({ adminToken, items = [] } = {}) {
+    const check = await checkAdmin(adminToken)
+    if (check.errCode !== 0) return check
+    if (!Array.isArray(items) || !items.length) {
+      return { errCode: 'PARAM_IS_NULL', errMsg: '导入内容不能为空' }
+    }
+    if (items.length > 2000) {
+      return { errCode: 'PARAM_ERROR', errMsg: '单次最多导入 2000 条' }
+    }
+
+    const docs = []
+    items.forEach((raw, index) => {
+      const title = String((raw && raw.title) || '').trim()
+      if (!title) return
+      const lang = (raw && raw.lang) || '英语'
+      if (!RESOURCE_LANGS.includes(lang)) return
+      docs.push({
+        type: 'vocabulary',
+        title,
+        lang,
+        cat: String((raw && raw.cat) || '').trim() || '待分类',
+        tagClass: 'qb-type-case',
+        meta: String((raw && raw.meta) || '').trim(),
+        diffClass: '',
+        level: '',
+        cover: '',
+        fileUrl: '',
+        audioUrl: '',
+        content: String((raw && raw.content) || '').trim(),
+        description: String((raw && raw.description) || '').trim(),
+        questions: [],
+        tags: splitTags(raw && raw.tags),
+        sortOrder: 9999,
+        date: '',
+        status: '已上线',
+        statusClass: 'qb-diff-mid',
+        createDate: Date.now() + index
+      })
+    })
+
+    if (!docs.length) {
+      return { errCode: 'PARAM_ERROR', errMsg: '没有可导入的有效词条' }
+    }
+
+    // 云端去重：按 title（忽略大小写）跳过已存在的词汇
+    const existingRes = await db.collection('resource')
+      .where({
+        type: 'vocabulary',
+        title: db.command.in(docs.map(d => d.title))
+      })
+      .field({ title: true })
+      .get()
+    const existingSet = new Set(existingRes.data.map(x => String(x.title).toLowerCase()))
+    const fresh = docs.filter(d => !existingSet.has(d.title.toLowerCase()))
+    const skipped = docs.length - fresh.length
+
+    if (!fresh.length) {
+      return { errCode: 0, errMsg: '', added: 0, skipped }
+    }
+
+    // 阿里云版支持数组批量 add，分批写入（每批不超过 400 条）
+    const MAX_BATCH = 400
+    let added = 0
+    for (let i = 0; i < fresh.length; i += MAX_BATCH) {
+      const batch = fresh.slice(i, i + MAX_BATCH)
+      await db.collection('resource').add(batch)
+      added += batch.length
+    }
+    return { errCode: 0, errMsg: '', added, skipped }
   },
 
   /**

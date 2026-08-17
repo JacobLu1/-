@@ -181,9 +181,9 @@ import { normalizeLang } from '@/utils/vocab.js'
 /* ============================================================
    Daily Vocabulary Config
    ============================================================ */
-const DAILY_WORD_COUNT = 10
-const REVIEW_TARGET = 5
+const DAILY_WORD_COUNT = 12
 const REVIEW_INTERVALS = [1, 2, 4, 7, 15, 30]
+const DAILY_ROTATION_SEED = 'legal-vocab-daily-rotation'
 
 /* ============================================================
    User Data
@@ -377,31 +377,45 @@ function buildTodayWords() {
     }
   }
 
-  const now = Date.now()
-  const dueWords = seededShuffle(pool.filter(w => {
-    const p = progressMap.value[w.id]
-    return p && p.learnedAt && p.reviewAt && p.reviewAt <= now
-  }), hashString(`review:${dateKey}`))
-  const newWordsPool = seededShuffle(pool.filter(w => {
-    const p = progressMap.value[w.id]
-    return !p || !p.learnedAt
-  }), hashString(`new:${dateKey}`))
-  const selected = []
-
-  selected.push(...dueWords.slice(0, REVIEW_TARGET))
-  let need = DAILY_WORD_COUNT - selected.length
-  if (need > 0) selected.push(...newWordsPool.slice(0, need))
-
-  need = DAILY_WORD_COUNT - selected.length
-  if (need > 0) {
-    const usedIds = new Set(selected.map(w => w.id))
-    const rest = seededShuffle(pool.filter(w => !usedIds.has(w.id)), hashString(`fill:${dateKey}`))
-    selected.push(...rest.slice(0, need))
-  }
-
+  const selected = buildDailyRotation(dateKey)
   words.value = selected
   saveDailyPlan(dateKey, selected.map(w => w.id))
   syncVocabTab()
+}
+
+/**
+ * 按天轮换选取今日词汇：
+ * 1. 用固定种子将词库排成稳定队列，保证同一天内顺序不变；
+ * 2. 每天沿队列滑动一个窗口（DAILY_WORD_COUNT 个），连续多天不重复；
+ * 3. 优先挑选尚未学习过的词，池中未学词不足时回退补充已学词（作为复习）。
+ */
+function buildDailyRotation(dateKey) {
+  const pool = vocabPool.value
+  if (!pool.length) return []
+  const poolMap = new Map(pool.map(w => [w.id, w]))
+  const queue = seededShuffle(pool.map(w => w.id), hashString(DAILY_ROTATION_SEED))
+  const learnedSet = new Set(
+    Object.keys(progressMap.value).filter(id => progressMap.value[id] && progressMap.value[id].learnedAt)
+  )
+  const dayIndex = Math.floor(new Date(`${dateKey}T00:00:00`).getTime() / 86400000)
+  const start = (dayIndex * DAILY_WORD_COUNT) % queue.length
+  const ids = []
+  let cursor = start
+  let scanned = 0
+  while (ids.length < DAILY_WORD_COUNT && scanned < queue.length * 2) {
+    const id = queue[cursor % queue.length]
+    if (!learnedSet.has(id) && !ids.includes(id)) ids.push(id)
+    cursor += 1
+    scanned += 1
+  }
+  // 未学词不足时，回退补充已学词，保证每日数量达标
+  cursor = start
+  while (ids.length < DAILY_WORD_COUNT && ids.length < queue.length) {
+    const id = queue[cursor % queue.length]
+    if (!ids.includes(id)) ids.push(id)
+    cursor += 1
+  }
+  return ids.map(id => poolMap.get(id)).filter(Boolean)
 }
 
 function syncVocabTab() {

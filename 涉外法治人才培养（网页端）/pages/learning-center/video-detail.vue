@@ -115,12 +115,7 @@
                   <button class="vd-retry-btn" type="button" @click.stop="retryLoad">重试</button>
                 </div>
 
-                <!-- 中央播放按钮 -->
-                <div v-if="!isPlaying && !isBuffering && !videoError" class="vd-play-circle" @click="togglePlay">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                    <polygon points="6 3 20 12 6 21 6 3"></polygon>
-                  </svg>
-                </div>
+
               </template>
 
               <!-- B站官方嵌入播放器 -->
@@ -252,26 +247,30 @@
             <span class="doc-section-meta">共 {{ recommendedVideos.length }} 门课程</span>
           </div>
           <div class="vd-rec-grid">
-            <div v-for="(video, index) in recommendedVideos" 
-                 :key="index" 
-                 class="video-card"
+            <div v-for="video in recommendedVideos" 
+                 :key="video.id" 
+                 class="rec-card"
                  @click="navigateTo('/pages/learning-center/video-detail?id=' + video.id)">
-              <div class="video-thumb">
-                <div class="video-thumb-gradient" :style="{background: video.gradient}"></div>
-                <div class="video-play-overlay">
-                  <div class="video-play-btn">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                      <polygon points="6 3 20 12 6 21 6 3"></polygon>
-                    </svg>
+              <div class="rec-thumb">
+                <div class="rec-thumb-bg" :style="recThumbStyle(video)"></div>
+                <div class="rec-play-overlay">
+                  <div class="rec-play-btn">
+                    <div class="rec-play-triangle"></div>
                   </div>
                 </div>
-                <span class="video-duration">{{ video.duration }}</span>
+                <span class="rec-duration">{{ video.duration }}</span>
               </div>
-              <div class="video-info">
-                <h3 class="video-title">{{ video.title }}</h3>
-                <div class="video-meta">
-                  <span>{{ video.instructor }}</span>
-                  <span>{{ video.duration }}</span>
+              <div class="rec-info">
+                <h3 class="rec-title">{{ video.title }}</h3>
+                <div class="rec-meta">
+                  <span class="rec-meta-item">
+                    <div class="rec-user-icon"></div>
+                    {{ video.category }}
+                  </span>
+                  <span class="rec-meta-item">
+                    <div class="rec-eye-icon"></div>
+                    {{ video.date || '已上线' }}
+                  </span>
                 </div>
               </div>
             </div>
@@ -487,8 +486,8 @@ const togglePlay = () => {
 
 // 点击播放区域（视频画面 / 空白区）切换播放
 const onPlayerAreaClick = (e) => {
-  // 排除播放圈、缓冲遮罩、错误遮罩，避免事件冒泡导致 togglePlay 被执行两次
-  if (e.target.closest('.vd-buffering, .vd-error, .vd-play-circle')) return
+  // 排除缓冲遮罩、错误遮罩，避免事件冒泡导致 togglePlay 被执行两次
+  if (e.target.closest('.vd-buffering, .vd-error')) return
   togglePlay()
 }
 
@@ -873,42 +872,78 @@ onLoad(async (options) => {
     }
   } catch (e) {}
   if (options && options.id) {
-    await loadResource(options.id)
-    await loadRecommended(options.id)
+    // 两个请求互相独立，并行加载减少等待时间
+    await Promise.all([
+      loadResource(options.id),
+      loadRecommended(options.id)
+    ])
   }
 })
 
 async function loadResource(id) {
-  try {
-    const resourcesObj = uniCloud.importObject('resources', { customUI: true })
-    const r = (await resourcesObj.get({ id })) || {}
-    if (r.errCode !== 0) {
-      uni.showToast({ title: r.errMsg || '资源加载失败', icon: 'none' })
+  // id 未变 + 已经有资源：直接跳过网络请求
+  if (id === lastLoadedId && currentResource.value) {
+    return
+  }
+
+  const now = Date.now()
+  let doc = null
+
+  // 1) 内存中命中
+  const cachedDoc = docCache.get(id)
+  if (cachedDoc && cachedDoc.expireAt > now) {
+    doc = cachedDoc.doc
+  }
+
+  // 2) 内存未命中：从共享列表缓存里找（详情字段通常已完整），省一次 get 请求
+  if (!doc) {
+    try {
+      const listCached = uni.getStorageSync(RESOURCES_CACHE_KEY)
+      if (listCached && listCached.expireAt && listCached.expireAt > now && listCached.data) {
+        const hit = (listCached.data.list || []).find(d => d._id === id)
+        if (hit && hit.fileUrl) doc = hit
+      }
+    } catch (e) {}
+  }
+
+  // 3) 仍然没有：发起 get 请求
+  if (!doc) {
+    try {
+      const resourcesObj = uniCloud.importObject('resources', { customUI: true })
+      const r = (await resourcesObj.get({ id })) || {}
+      if (r.errCode !== 0) {
+        uni.showToast({ title: r.errMsg || '资源加载失败', icon: 'none' })
+        return
+      }
+      doc = r.doc
+      // 写入详情缓存
+      docCache.set(id, { expireAt: now + DOC_CACHE_TTL, doc })
+    } catch (e) {
+      uni.showToast({ title: (e && e.errMsg) || '资源加载失败', icon: 'none' })
       return
     }
-    const doc = r.doc
-    currentResource.value = doc
-    currentTitle.value = doc.title || '未命名视频'
-    currentCategory.value = doc.cat || '未分类'
-    currentDuration.value = doc.meta || '--:--'
-    videoError.value = ''
-    const embedUrl = buildBilibiliEmbedUrl(doc.fileUrl)
-    bilibiliEmbedUrl.value = embedUrl
-    if (embedUrl) {
-      videoSrc.value = ''
-    } else {
-      const resolved = resolveResourceUrl(doc.fileUrl)
-      videoSrc.value = resolved
-      if (!resolved) {
-        videoError.value = '该资源暂未配置文件地址'
-      }
-    }
-    progressKey = `vd_progress_${id}`
-    // 使用 AI 根据课程信息生成简介与讲师介绍（带本地缓存，避免重复调用）
-    generateAiVideoIntro(id, doc)
-  } catch (e) {
-    uni.showToast({ title: (e && e.errMsg) || '资源加载失败', icon: 'none' })
   }
+
+  currentResource.value = doc
+  currentTitle.value = doc.title || '未命名视频'
+  currentCategory.value = doc.cat || '未分类'
+  currentDuration.value = doc.meta || '--:--'
+  videoError.value = ''
+  const embedUrl = buildBilibiliEmbedUrl(doc.fileUrl)
+  bilibiliEmbedUrl.value = embedUrl
+  if (embedUrl) {
+    videoSrc.value = ''
+  } else {
+    const resolved = resolveResourceUrl(doc.fileUrl)
+    videoSrc.value = resolved
+    if (!resolved) {
+      videoError.value = '该资源暂未配置文件地址'
+    }
+  }
+  progressKey = `vd_progress_${id}`
+  lastLoadedId = id
+  // 使用 AI 根据课程信息生成简介与讲师介绍（带本地缓存，避免重复调用）
+  generateAiVideoIntro(id, doc)
 }
 
 // 调用 AI 生成课程简介；同视频缓存到本地，命中则直接使用
@@ -948,30 +983,113 @@ async function generateAiVideoIntro(id, doc) {
   }
 }
 
-async function loadRecommended(currentId) {
+function recThumbStyle(video) {
+  if (video.cover) {
+    return {
+      backgroundImage: `linear-gradient(rgba(15,23,42,.06), rgba(15,23,42,.38)), url("${video.cover}")`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat'
+    }
+  }
+  return { background: video.gradient }
+}
+
+// Fisher-Yates 洗牌
+function shuffle(arr) {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
+/* ============================================================
+   Cache helpers (shared with learning-center page)
+   ============================================================ */
+const RESOURCES_CACHE_KEY = 'lc_resources_all_cache'
+const RESOURCES_CACHE_TTL = 5 * 60 * 1000
+
+// 模块级：推荐用全部视频缓存，一次生命周期内只请求一次
+let allVideosCache = null
+// 模块级：单个资源详情缓存（map<id, {expireAt, doc}>）
+const docCache = new Map()
+const DOC_CACHE_TTL = 10 * 60 * 1000
+// 上一次加载的 id，用于同 id 快速短路
+let lastLoadedId = null
+
+async function loadVideoListAll() {
+  // 已在内存中，直接复用
+  if (allVideosCache) return allVideosCache
+
+  const now = Date.now()
+  // 尝试从本地存储共享学习中心的缓存
+  try {
+    const cached = uni.getStorageSync(RESOURCES_CACHE_KEY)
+    if (cached && cached.expireAt && cached.expireAt > now && cached.data && cached.data.errCode === 0) {
+      const videoList = (cached.data.list || []).filter(d => d.type === 'video')
+      if (videoList.length) {
+        allVideosCache = videoList
+        return allVideosCache
+      }
+    }
+  } catch (e) {}
+
+  // 回退：自己拉取，并写入共享缓存
   try {
     const resourcesObj = uniCloud.importObject('resources', { customUI: true })
-    const r = (await resourcesObj.listPublic({ type: 'video' })) || {}
-    if (r.errCode !== 0) return
-    const gradients = [
-      'linear-gradient(135deg, #CCFBF1, #99F6E4)',
-      'linear-gradient(135deg, #EDE9FE, #DDD6FE)',
-      'linear-gradient(135deg, #FEF3C7, #FDE68A)',
-      'linear-gradient(135deg, #DBEAFE, #BFDBFE)'
-    ]
-    recommendedVideos.value = (r.list || [])
-      .filter(d => d._id !== currentId)
-      .slice(0, 4)
-      .map((doc, idx) => ({
-        id: doc._id,
-        title: doc.title,
-        duration: doc.meta || '--:--',
-        instructor: doc.description || '',
-        gradient: gradients[idx % gradients.length]
-      }))
+    const r = (await resourcesObj.listPublic({ type: 'all' })) || {}
+    if (r.errCode === 0) {
+      try {
+        uni.setStorageSync(RESOURCES_CACHE_KEY, {
+          expireAt: Date.now() + RESOURCES_CACHE_TTL,
+          data: r
+        })
+      } catch (e) {}
+      allVideosCache = (r.list || []).filter(d => d.type === 'video')
+      return allVideosCache
+    }
+  } catch (e) {
+    console.error('[video-detail] video list load error:', e)
+  }
+  return []
+}
+
+async function loadRecommended(currentId) {
+  try {
+    const list = await loadVideoListAll()
+    allVideosCache = list.filter(d => d._id !== currentId)
+    pickRecommended()
   } catch (e) {
     console.error('[video-detail] recommended load error:', e)
   }
+}
+
+function pickRecommended() {
+  const gradients = [
+    'linear-gradient(135deg, #1E40AF, #3B82F6)',
+    'linear-gradient(135deg, #0F766E, #14B8A6)',
+    'linear-gradient(135deg, #7C3AED, #A78BFA)',
+    'linear-gradient(135deg, #B45309, #F59E0B)',
+    'linear-gradient(135deg, #DB2777, #F472B6)',
+    'linear-gradient(135deg, #2563EB, #0EA5E9)'
+  ]
+  recommendedVideos.value = shuffle(allVideosCache)
+    .slice(0, 4)
+    .map((doc, idx) => ({
+      id: doc._id,
+      title: doc.title,
+      category: doc.cat || '未分类',
+      duration: doc.meta || '--:--',
+      date: doc.date || '',
+      cover: doc.cover || '',
+      gradient: gradients[idx % gradients.length]
+    }))
+}
+
+function refreshRecommended() {
+  pickRecommended()
 }
 </script>
 
@@ -1429,30 +1547,10 @@ async function loadRecommended(currentId) {
   background: var(--rule-primary-hover);
 }
 
-.vd-play-circle {
-  position: relative;
-  z-index: 2;
-  width: 84px;
-  height: 84px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.9);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: transform 0.2s ease, background 0.2s ease;
-}
-
-.vd-play-circle:hover {
-  transform: scale(1.1);
-  background: #fff;
-}
-
-.vd-play-circle svg {
-  width: 38px;
-  height: 38px;
-  color: var(--rule-primary);
-  margin-left: 4px;
+/* 隐藏 uni-video 自带的中央默认播放按钮：H5 端 controls=false 时 uni-video 会额外渲染
+   一个中央播放按钮，此处隐藏 */
+.vd-player-wrap :deep(.uni-video-default) {
+  display: none !important;
 }
 
 .vd-player-controls {
@@ -1823,115 +1921,154 @@ async function loadRecommended(currentId) {
   color: var(--rule-muted-foreground);
 }
 
-/* === Recommended grid === */
-.vd-rec-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-}
-
-.video-card {
+/* === Recommended cards (redesigned, matching video-list) === */
+.rec-card {
   background: var(--rule-card);
   border: 1px solid var(--rule-border);
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
   cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  transition: transform 0.2s cubic-bezier(.2,.8,.2,1), box-shadow 0.2s ease, border-color 0.2s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
-.video-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--rule-shadow-2);
-  border-color: var(--rule-primary-tint-2);
+.rec-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(37,99,235,.3);
+  box-shadow: 0 20px 40px -18px rgba(37,99,235,.35);
 }
 
-.video-thumb {
+.rec-thumb {
   position: relative;
-  height: 130px;
+  aspect-ratio: 16 / 9;
   overflow: hidden;
 }
 
-.video-thumb-gradient {
+.rec-thumb-bg {
   position: absolute;
   inset: 0;
   transition: transform 0.3s ease;
 }
 
-.video-card:hover .video-thumb-gradient {
+.rec-card:hover .rec-thumb-bg {
   transform: scale(1.05);
 }
 
-.video-play-overlay {
+.rec-play-overlay {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   background: rgba(15,23,42,0);
-  transition: background 0.2s ease;
+  transition: background 0.25s ease;
 }
 
-.video-card:hover .video-play-overlay {
-  background: rgba(15,23,42,0.3);
-}
-
-.video-play-btn {
-  width: 44px;
-  height: 44px;
+.rec-play-btn {
+  width: 54px;
+  height: 54px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.9);
+  background: rgba(255,255,255,.92);
   display: flex;
   align-items: center;
   justify-content: center;
-  transform: scale(0.8);
+  box-shadow: 0 12px 24px -8px rgba(15,23,42,.35);
   opacity: 0;
-  transition: all 0.2s ease;
+  transform: scale(.85);
+  transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
-.video-card:hover .video-play-btn {
-  transform: scale(1);
+.rec-card:hover .rec-play-overlay {
+  background: rgba(15,23,42,.28);
+}
+
+.rec-card:hover .rec-play-btn {
   opacity: 1;
+  transform: scale(1);
 }
 
-.video-play-btn svg {
-  width: 16px;
-  height: 16px;
-  color: var(--rule-primary);
-  margin-left: 2px;
+.rec-play-triangle {
+  width: 0;
+  height: 0;
+  border-top: 9px solid transparent;
+  border-bottom: 9px solid transparent;
+  border-left: 14px solid var(--rule-primary);
+  margin-left: 3px;
 }
 
-.video-duration {
+.rec-duration {
   position: absolute;
-  bottom: 8px;
-  right: 8px;
-  background: rgba(15,23,42,0.7);
+  right: 10px;
+  bottom: 10px;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  background: rgba(15,23,42,.78);
   color: #fff;
-  font-size: 11px;
-  font-weight: 500;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  font-weight: 600;
 }
 
-.video-info {
-  padding: 14px 16px;
+.rec-info {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.video-title {
-  font-size: 14px;
+.rec-title {
+  font-size: 15px;
   font-weight: 600;
   color: var(--rule-foreground);
-  line-height: 1.4;
-  margin-bottom: 6px;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0;
 }
 
-.video-meta {
+.rec-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.rec-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   font-size: 12px;
   color: var(--rule-muted-foreground);
-  display: flex;
-  gap: 12px;
+}
+
+.rec-user-icon,
+.rec-eye-icon {
+  width: 14px;
+  height: 14px;
+  background: currentColor;
+}
+
+.rec-user-icon {
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2'/><circle cx='12' cy='7' r='4'/></svg>") center/contain no-repeat;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2'/><circle cx='12' cy='7' r='4'/></svg>") center/contain no-repeat;
+}
+
+.rec-eye-icon {
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z'/><circle cx='12' cy='12' r='3'/></svg>") center/contain no-repeat;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z'/><circle cx='12' cy='12' r='3'/></svg>") center/contain no-repeat;
+}
+
+/* === Recommended grid (4 per row default) === */
+.vd-rec-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  box-sizing: border-box;
+}
+
+.rec-card {
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 /* === Scroll reveal === */
@@ -2004,10 +2141,6 @@ async function loadRecommended(currentId) {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .vd-play-circle:hover {
-    transform: none;
-  }
-  
   .video-card:hover {
     transform: none;
   }

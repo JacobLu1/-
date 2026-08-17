@@ -329,6 +329,33 @@
               </view>
             </view>
           </view>
+
+          <view v-if="uploadType === 'vocabulary'" class="rm-upload-card rm-batch-card">
+            <view class="rm-batch-head">
+              <view class="rm-batch-title-wrap">
+                <text class="rm-batch-title">批量导入词汇</text>
+                <text class="rm-batch-subtitle">粘贴词表或选择 txt 文件，格式：英文词 + 空格/Tab + 中文释义，可加第三列分类；重复词汇自动跳过，导入后直接上线</text>
+                <text class="rm-batch-lang">导入语言：{{ uploadLang }}（可在上方「语言分类」切换）</text>
+              </view>
+              <view class="rm-batch-actions">
+                <view class="rm-file-btn rm-file-btn-sm" @tap="chooseBatchFile">选择 txt 文件</view>
+              </view>
+            </view>
+            <textarea
+              class="rm-textarea rm-batch-textarea"
+              v-model="batchText"
+              placeholder="每行一条，例如：&#10;arbitration  仲裁  国际仲裁&#10;burden of proof  举证责任&#10;plaintiff  原告  诉讼法律"
+            ></textarea>
+            <view class="rm-batch-foot">
+              <text v-if="batchParseCount > 0" class="rm-batch-count">已识别 {{ batchParseCount }} 条词条</text>
+              <text v-else class="rm-batch-count rm-batch-count-muted">尚未识别到词条</text>
+              <view class="qb-create-btn qb-create-btn-success" :class="{ 'is-disabled': batchImporting }" @tap="handleBatchImport">
+                <view class="navi-icon navi-icon-check-circle"></view>
+                <text>{{ batchImporting ? '导入中...' : '一键导入' }}</text>
+              </view>
+            </view>
+            <text v-if="batchResult" class="rm-batch-result" :class="{ 'is-error': batchResult.error }">{{ batchResult.message }}</text>
+          </view>
         </section>
 
         <!-- ===== Section 3: 学习资源管理 ===== -->
@@ -604,6 +631,110 @@ const uploadingPdf = ref(false)
 const uploadCoverName = ref('')
 const uploadingCover = ref(false)
 
+/* ===== 批量导入词汇 ===== */
+const batchText = ref('')
+const batchImporting = ref(false)
+const batchResult = ref(null)
+
+const batchParseCount = computed(() => parseBatchVocabText(batchText.value).length)
+
+function parseBatchVocabText(text) {
+  const lines = String(text || '').split(/\r?\n/).map(l => l.trim()).filter(Boolean)
+  const items = []
+  for (const line of lines) {
+    let title = ''
+    let description = ''
+    let cat = ''
+    const tabs = line.split('\t')
+    if (tabs.length >= 2) {
+      title = tabs[0].trim()
+      description = (tabs[1] || '').trim()
+      cat = (tabs[2] || '').trim()
+    } else {
+      // 无 Tab 时按空格拆分：英文在前，中文释义在后
+      const m = line.match(/^(.*?)\s+([\u4e00-\u9fff].*)$/)
+      if (m) {
+        title = m[1].trim()
+        description = m[2].trim()
+      } else {
+        title = line
+      }
+    }
+    if (!title) continue
+    items.push({ title, description, cat })
+  }
+  return items
+}
+
+function chooseBatchFile() {
+  uni.chooseFile({
+    count: 1,
+    extension: ['txt', 'text', 'tsv'],
+    success(res) {
+      const file = res.tempFiles && res.tempFiles[0]
+      if (!file) return
+      if (file.size > 2 * 1024 * 1024) {
+        batchResult.value = { error: true, message: '文件过大，请控制在 2MB 以内' }
+        return
+      }
+      const path = file.path || file.tempFilePath
+      if (path && path.startsWith('blob:')) {
+        fetch(path).then(r => r.text()).then(t => {
+          batchText.value = t
+          batchResult.value = null
+        }).catch(() => {
+          batchResult.value = { error: true, message: '读取文件失败，请改为复制粘贴文本' }
+        })
+        return
+      }
+      // 小程序端
+      uni.getFileSystemManager().readFile({
+        filePath: path,
+        encoding: 'utf8',
+        success(r) {
+          batchText.value = r.data || ''
+          batchResult.value = null
+        },
+        fail() {
+          batchResult.value = { error: true, message: '读取文件失败，请改为复制粘贴文本' }
+        }
+      })
+    }
+  })
+}
+
+async function handleBatchImport() {
+  if (batchImporting.value) return
+  const items = parseBatchVocabText(batchText.value).map(item => ({
+    ...item,
+    lang: uploadLang.value
+  }))
+  if (!items.length) {
+    batchResult.value = { error: true, message: '请先粘贴或选择词汇文本' }
+    return
+  }
+  if (items.length > 2000) {
+    batchResult.value = { error: true, message: `共 ${items.length} 条，超出单次 2000 条上限，请分批导入` }
+    return
+  }
+  batchImporting.value = true
+  batchResult.value = null
+  try {
+    const resourcesObj = uniCloud.importObject('resources', { customUI: true })
+    const r = (await resourcesObj.batchCreateVocabulary({ adminToken: getAdminToken(), items })) || {}
+    if (r.errCode !== 0) {
+      batchResult.value = { error: true, message: r.errMsg || '批量导入失败' }
+    } else {
+      batchResult.value = { error: false, message: `导入完成：新增 ${r.added} 条，跳过重复 ${r.skipped} 条` }
+      await loadAll()
+    }
+  } catch (e) {
+    batchResult.value = { error: true, message: (e && e.message) || '批量导入失败，请确认 resources 云对象已重新部署' }
+  } finally {
+    batchImporting.value = false
+  }
+}
+
 /* ===== 编辑弹窗 ===== */
 const editVisible = ref(false)
 const editSaving = ref(false)
@@ -820,11 +951,55 @@ function chooseOneFile(extension) {
   })
 }
 
+/* 根据文件大小 & 类型推算需要的超时时间，避免大文件被默认的 60s 超时掐断 */
+function calcUploadTimeout(file, label) {
+  const size = Number(file && file.size) || 0
+  const name = String(file && file.name || '').toLowerCase()
+  // 粗略假定上传速率下限 0.5 MB/s（公司网/弱网），给 2.5 倍冗余；最少 2 分钟
+  const minRateBps = 0.5 * 1024 * 1024
+  const bySizeMs = size > 0 ? Math.ceil((size / minRateBps) * 2.5 * 1000) : 0
+
+  // 不同文件类型的兜底上限
+  let typeCapMs = 2 * 60 * 1000 // 默认 2 分钟（小图）
+  if (label === '封面') typeCapMs = 10 * 60 * 1000           // 大图 10 分钟
+  else if (label === '音频') typeCapMs = 60 * 60 * 1000     // 音频 1 小时
+  else if (['视频', '文件'].indexOf(label) >= 0) typeCapMs = 2 * 60 * 60 * 1000  // 视频 / PDF → 2 小时
+
+  // 如果是音视频后缀，进一步放宽
+  if (/\.(mp4|mov|m4v|webm|mkv|avi|flv)$/i.test(name)) typeCapMs = Math.max(typeCapMs, 2 * 60 * 60 * 1000)
+  if (/\.(mp3|m4a|wav|aac|flac|ogg)$/i.test(name)) typeCapMs = Math.max(typeCapMs, 60 * 60 * 1000)
+  if (/\.(pdf|zip|rar|7z|doc|docx|ppt|pptx|xls|xlsx)$/i.test(name)) typeCapMs = Math.max(typeCapMs, 90 * 60 * 1000)
+
+  const result = Math.max(2 * 60 * 1000, Math.max(bySizeMs, typeCapMs))
+  return result
+}
+
+/* 选择大文件时，提前给出警告提示，让管理员做好长时间等待的心理准备 */
+function warnIfLargeFile(file, label) {
+  if (!file || typeof file.size !== 'number' || file.size <= 0) return true
+  // 视频/PDF > 200MB，音频 > 50MB，封面 > 10MB 视为大文件
+  const thresholds = {
+    '视频': 200 * 1024 * 1024,
+    '音频':  50 * 1024 * 1024,
+    '文件': 100 * 1024 * 1024,
+    '封面':  10 * 1024 * 1024
+  }
+  const limit = thresholds[label] || (100 * 1024 * 1024)
+  if (file.size >= limit) {
+    const msg = `${label}文件较大（${formatFileSize(file.size)}），上传时间较长。\n建议：\n① 保持当前页面不要关闭/切换；\n② 若反复失败，可先使用 OSS / COS / Bilibili 等上传工具，把返回的公开 URL 直接粘贴到旁边的输入框即可跳过本地上传。\n\n是否继续？`
+    return confirm(msg)
+  }
+  return true
+}
+
 function uploadToCloud(file, dir, options = {}) {
+  const label = options.label || '文件'
+  const timeout = options.timeout || calcUploadTimeout(file, label)
   return uniCloud.uploadFile({
     filePath: file.path,
     cloudPath: `${dir}/${safeFileName(file.name)}`,
     cloudPathAsRealPath: true,
+    timeout,
     onUploadProgress: (progressEvent) => {
       if (progressEvent && Number(progressEvent.total) > 0 && options.onProgress) {
         const percent = Math.min(99, Math.max(0, Math.round((Number(progressEvent.loaded) / Number(progressEvent.total)) * 100)))
@@ -846,23 +1021,33 @@ function isRetryableUploadError(err) {
     msg.indexOf('network') >= 0 ||
     msg.indexOf('etimedout') >= 0 ||
     msg.indexOf('请求超时') >= 0 ||
-    msg.indexOf('上传超时') >= 0
+    msg.indexOf('上传超时') >= 0 ||
+    msg.indexOf('econnreset') >= 0 ||
+    msg.indexOf('socket hang up') >= 0 ||
+    msg.indexOf('broken pipe') >= 0
 }
 
 async function uploadWithRetry(file, dir, label, onProgress) {
-  const maxAttempts = 3
+  const maxAttempts = 5
+  const timeout = calcUploadTimeout(file, label)
   let lastError = null
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      return await uploadToCloud(file, dir, { onProgress })
+      return await uploadToCloud(file, dir, { label, timeout, onProgress })
     } catch (e) {
       lastError = e
       if (!isRetryableUploadError(e) || attempt >= maxAttempts) break
-      if (onProgress) onProgress(0, `上传超时，正在第 ${attempt + 1} 次重试...`)
-      await new Promise((resolve) => setTimeout(resolve, 1200 * attempt))
+      const waitSec = Math.min(10, attempt * 2)
+      if (onProgress) onProgress(0, `第${attempt}次${isRetryableUploadError(e) ? '超时' : '失败'}，${waitSec}s后重试(${attempt}/${maxAttempts})`)
+      await new Promise((resolve) => setTimeout(resolve, waitSec * 1000))
     }
   }
-  if (lastError) throw lastError
+  if (lastError) {
+    const rawMsg = String((lastError && (lastError.errMsg || lastError.message)) || lastError || '未知错误')
+    const hint = `\n\n若持续失败：可把文件先上传到阿里云 OSS / 腾讯云 COS / B站等可生成公开 HTTPS 链接的平台，将链接复制粘贴到"${label === '封面' ? '封面 URL' : '云存储 URL'}"输入框即可继续发布。`
+    const err = new Error(rawMsg + hint)
+    throw err
+  }
   throw new Error(`${label}上传失败`)
 }
 
@@ -930,6 +1115,7 @@ async function chooseVideoFile() {
   if (uploadingVideo.value) return
   try {
     const file = await chooseOneFile(['.mp4', '.mov', '.m4v', '.webm'])
+    if (!warnIfLargeFile(file, '视频')) return
     const duration = await probeVideoDuration(file)
     uploadingVideo.value = true
     uni.showLoading({ title: `视频上传中${file.size ? ' ' + formatFileSize(file.size) : ''}`, mask: true })
@@ -950,7 +1136,7 @@ async function chooseVideoFile() {
     uni.showToast({ title: '视频已上传', icon: 'success' })
   } catch (e) {
     if (!isCancelError(e)) {
-      uni.showToast({ title: (e && e.message) || (e && e.errMsg) || '视频上传失败', icon: 'none' })
+      uni.showToast({ title: (e && e.message) || (e && e.errMsg) || '视频上传失败', icon: 'none', duration: 5000 })
     }
   } finally {
     uploadingVideo.value = false
@@ -962,6 +1148,7 @@ async function chooseAudioFile() {
   if (uploadingAudio.value) return
   try {
     const file = await chooseOneFile(['.mp3', '.m4a', '.wav', '.aac'])
+    if (!warnIfLargeFile(file, '音频')) return
     uploadingAudio.value = true
     uni.showLoading({ title: `音频上传中${file.size ? ' ' + formatFileSize(file.size) : ''}`, mask: true })
     const url = await uploadWithRetry(file, 'upload/audio', '音频', (percent, message) => {
@@ -975,7 +1162,7 @@ async function chooseAudioFile() {
     uni.showToast({ title: '音频已上传', icon: 'success' })
   } catch (e) {
     if (!isCancelError(e)) {
-      uni.showToast({ title: (e && e.message) || (e && e.errMsg) || '音频上传失败', icon: 'none' })
+      uni.showToast({ title: (e && e.message) || (e && e.errMsg) || '音频上传失败', icon: 'none', duration: 5000 })
     }
   } finally {
     uploadingAudio.value = false
@@ -987,6 +1174,7 @@ async function choosePdfFile() {
   if (uploadingPdf.value) return
   try {
     const file = await chooseOneFile(['.pdf'])
+    if (!warnIfLargeFile(file, '文件')) return
     uploadingPdf.value = true
     uni.showLoading({ title: `文件上传中${file.size ? ' ' + formatFileSize(file.size) : ''}`, mask: true })
     const url = await uploadWithRetry(file, 'upload/file', '文件', (percent, message) => {
@@ -1000,7 +1188,7 @@ async function choosePdfFile() {
     uni.showToast({ title: '文件已上传', icon: 'success' })
   } catch (e) {
     if (!isCancelError(e)) {
-      uni.showToast({ title: (e && e.message) || (e && e.errMsg) || '文件上传失败', icon: 'none' })
+      uni.showToast({ title: (e && e.message) || (e && e.errMsg) || '文件上传失败', icon: 'none', duration: 5000 })
     }
   } finally {
     uploadingPdf.value = false
@@ -1012,6 +1200,7 @@ async function chooseCoverFile() {
   if (uploadingCover.value) return
   try {
     const file = await chooseOneFile(['.jpg', '.jpeg', '.png', '.webp'])
+    if (!warnIfLargeFile(file, '封面')) return
     uploadingCover.value = true
     uni.showLoading({ title: `封面上传中${file.size ? ' ' + formatFileSize(file.size) : ''}`, mask: true })
     const url = await uploadWithRetry(file, 'upload/cover', '封面', (percent, message) => {
@@ -1029,7 +1218,7 @@ async function chooseCoverFile() {
     uni.showToast({ title: '封面已上传', icon: 'success' })
   } catch (e) {
     if (!isCancelError(e)) {
-      uni.showToast({ title: (e && e.message) || (e && e.errMsg) || '封面上传失败', icon: 'none' })
+      uni.showToast({ title: (e && e.message) || (e && e.errMsg) || '封面上传失败', icon: 'none', duration: 5000 })
     }
   } finally {
     uploadingCover.value = false
@@ -1732,6 +1921,48 @@ onMounted(() => {
   max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .rm-form-label-soft { font-size: 12px; color: var(--rule-muted-foreground); font-weight: 500; }
+
+/* ===== 批量导入词汇 ===== */
+.rm-batch-card {
+  margin-top: 16px;
+  border: 1px dashed color-mix(in srgb, var(--rule-primary) 45%, transparent);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--rule-primary-tint-1) 35%, transparent), transparent 70%);
+}
+.rm-batch-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.rm-batch-title-wrap { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.rm-batch-title {
+  font-size: 16px; font-weight: 700; color: var(--rule-ink);
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.rm-batch-title::before {
+  content: ''; width: 4px; height: 16px; border-radius: 4px;
+  background: linear-gradient(180deg, var(--rule-primary), var(--rule-primary-active));
+}
+.rm-batch-subtitle { font-size: 12px; color: var(--rule-muted-foreground); line-height: 1.6; }
+.rm-batch-lang { font-size: 12px; font-weight: 600; color: var(--rule-primary); }
+.rm-batch-actions { flex-shrink: 0; }
+.rm-batch-textarea { min-height: 180px; font-family: inherit; line-height: 1.7; }
+.rm-batch-foot {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  margin-top: 12px;
+}
+.rm-batch-count { font-size: 12px; color: var(--rule-primary); font-weight: 600; }
+.rm-batch-count-muted { color: var(--rule-muted-foreground); font-weight: 400; }
+.rm-batch-result {
+  display: block; margin-top: 12px; padding: 10px 14px;
+  border-radius: var(--rule-radius, 10px);
+  font-size: 13px; font-weight: 600;
+  color: var(--rule-success, #16a34a);
+  background: color-mix(in srgb, #16a34a 10%, transparent);
+}
+.rm-batch-result.is-error {
+  color: var(--rule-danger, #dc2626);
+  background: color-mix(in srgb, #dc2626 10%, transparent);
+}
+.qb-create-btn.is-disabled { opacity: .6; pointer-events: none; }
 
 /* ===== Edit Modal ===== */
 .rm-modal-mask {

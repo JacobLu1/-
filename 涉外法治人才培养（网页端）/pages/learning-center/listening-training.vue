@@ -84,13 +84,46 @@
 
         <!-- ===== Hero Title Block ===== -->
         <section class="lt-hero" aria-label="听力实训概览">
-          <h2 class="lt-hero-title">每周法律英语听力实训</h2>
-          <p class="lt-hero-subtitle">坚持每日听力训练，巩固涉外法律英语能力</p>
-          <p v-if="weeklyTasks.length" class="lt-hero-progress">
-            <i data-lucide="check-circle-2"></i>
-            本周已完成 {{ weeklyTasks.filter(t => t.status === 'done').length }}/{{ weeklyTasks.length }} 项听力任务
-          </p>
-          <p v-else class="lt-hero-progress">暂无听力任务数据</p>
+          <div class="lt-hero-main">
+            <span class="lt-hero-tag">
+              <span class="lt-hero-tag-icon"></span>
+              听力实训
+            </span>
+            <h2 class="lt-hero-title">每周法律英语听力实训</h2>
+            <p class="lt-hero-subtitle">坚持每日听力训练，巩固涉外法律英语能力</p>
+            <div class="lt-hero-stats">
+              <div class="lt-stat">
+                <span class="lt-stat-num">{{ weeklyTasks.length }}</span>
+                <span class="lt-stat-label">本周任务</span>
+              </div>
+              <span class="lt-stat-sep"></span>
+              <div class="lt-stat">
+                <span class="lt-stat-num">{{ completedCount }}/{{ weeklyTasks.length }}</span>
+                <span class="lt-stat-label">已完成</span>
+              </div>
+              <span class="lt-stat-sep"></span>
+              <div class="lt-stat">
+                <span class="lt-stat-num">{{ averageAccuracy }}%</span>
+                <span class="lt-stat-label">平均正确率</span>
+              </div>
+            </div>
+          </div>
+          <div class="lt-hero-art">
+            <div class="lt-earphones">
+              <div class="lt-earphone lt-earphone-band"></div>
+              <div class="lt-earphone lt-earphone-left"></div>
+              <div class="lt-earphone lt-earphone-right"></div>
+              <div class="lt-eq">
+                <span class="lt-eq-bar" :class="{'is-playing': isPlaying}"></span>
+                <span class="lt-eq-bar" :class="{'is-playing': isPlaying}"></span>
+                <span class="lt-eq-bar" :class="{'is-playing': isPlaying}"></span>
+                <span class="lt-eq-bar" :class="{'is-playing': isPlaying}"></span>
+                <span class="lt-eq-bar" :class="{'is-playing': isPlaying}"></span>
+              </div>
+            </div>
+            <span class="lt-art-dot lt-art-dot-1"></span>
+            <span class="lt-art-dot lt-art-dot-2"></span>
+          </div>
         </section>
 
         <!-- ===== Section 1: 本周听力任务 ===== -->
@@ -153,7 +186,15 @@
                   </svg>
                 </button>
                 <div class="lt-player-info">
-                  <div class="lt-player-title">{{ playerTitle }}</div>
+                  <div class="lt-player-head">
+                    <div class="lt-player-title">{{ playerTitle }}</div>
+                    <div class="lt-eq lt-eq-sm" :class="{'is-on': isPlaying}">
+                      <span class="lt-eq-bar"></span>
+                      <span class="lt-eq-bar"></span>
+                      <span class="lt-eq-bar"></span>
+                      <span class="lt-eq-bar"></span>
+                    </div>
+                  </div>
                   <div class="lt-player-bar">
                     <div class="lt-progress-bar">
                       <div class="lt-progress-fill lt-player-fill" :style="{width: playerProgress + '%'}"></div>
@@ -310,12 +351,31 @@ const quizQuestions = ref([])
 // 历史记录数据
 const historyRecords = ref([])
 
+// 统计计算
+const completedCount = computed(() => weeklyTasks.value.filter(t => t.status === 'done').length)
+const averageAccuracy = computed(() => {
+  if (!historyRecords.value.length) return 0
+  return Math.round(historyRecords.value.reduce((sum, r) => sum + r.accuracy, 0) / historyRecords.value.length)
+})
+
 // 方法
 function formatTime(seconds) {
   if (!Number.isFinite(seconds) || seconds < 0) return '00:00'
   const m = Math.floor(seconds / 60)
   const s = Math.floor(seconds % 60)
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+}
+
+function mapDifficulty(meta) {
+  const m = (meta || '').toLowerCase()
+  if (m.includes('初') || m.includes('beginner')) return 'beginner'
+  if (m.includes('高') || m.includes('advanced') || m.includes('hard')) return 'advanced'
+  return 'intermediate'
+}
+
+function mapDifficultyText(meta) {
+  const key = mapDifficulty(meta)
+  return key === 'beginner' ? '初级' : key === 'advanced' ? '高级' : '中级'
 }
 
 function selectLesson(index) {
@@ -354,8 +414,8 @@ async function loadListeningLessons() {
       id: doc._id,
       dayNum: String(index + 1).padStart(2, '0'),
       day: `第${index + 1}天`,
-      difficulty: 'mid',
-      difficultyText: doc.meta || '中级',
+      difficulty: mapDifficulty(doc.meta),
+      difficultyText: mapDifficultyText(doc.meta),
       title: doc.title || '未命名听力',
       progress: 0,
       status: 'active',
@@ -861,9 +921,13 @@ onLoad(() => {
 .lt-hero {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, var(--rule-primary-active), var(--rule-primary));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  background: linear-gradient(120deg, #0F2E6B 0%, #1D4ED8 55%, #2563EB 100%);
   border-radius: 20px;
-  padding: 44px 48px;
+  padding: 40px 48px;
   margin-bottom: 64px;
   box-shadow: 0 20px 50px -20px rgba(37, 99, 235, 0.5);
 }
@@ -879,9 +943,46 @@ onLoad(() => {
   background: radial-gradient(circle, rgba(255,255,255,0.14), transparent 70%);
 }
 
+.lt-hero::after {
+  content: '';
+  position: absolute;
+  left: -60px;
+  bottom: -140px;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,0.08), transparent 65%);
+}
+
 .lt-hero > * {
   position: relative;
   z-index: 1;
+}
+
+.lt-hero-main {
+  min-width: 0;
+}
+
+.lt-hero-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: rgba(255,255,255,0.16);
+  border: 1px solid rgba(255,255,255,0.28);
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--rule-primary-foreground);
+  backdrop-filter: blur(4px);
+}
+
+.lt-hero-tag-icon {
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z'/><path d='M16 9a5 5 0 0 1 0 6'/><path d='M19.364 18.364a9 9 0 0 0 0-12.728'/></svg>") center/contain no-repeat;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z'/><path d='M16 9a5 5 0 0 1 0 6'/><path d='M19.364 18.364a9 9 0 0 0 0-12.728'/></svg>") center/contain no-repeat;
 }
 
 .lt-hero-title {
@@ -889,30 +990,153 @@ onLoad(() => {
   font-weight: 700;
   color: var(--rule-primary-foreground);
   letter-spacing: -0.02em;
-  margin: 0 0 8px;
+  margin: 16px 0 8px;
   line-height: 1.3;
 }
 
 .lt-hero-subtitle {
-  font-size: 15px;
+  font-size: 14px;
   color: var(--rule-primary-tint-1);
-  margin: 0 0 16px;
+  margin: 0;
   line-height: 1.6;
 }
 
-.lt-hero-progress {
-  font-size: 13px;
-  color: var(--rule-primary-tint-2);
-  display: inline-flex;
+.lt-hero-stats {
+  display: flex;
   align-items: center;
-  gap: 6px;
-  margin: 0;
+  gap: 28px;
+  margin-top: 24px;
 }
 
-.lt-hero-progress svg {
-  width: 16px;
-  height: 16px;
+.lt-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
+
+.lt-stat-num {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--rule-primary-foreground);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.lt-stat-label {
+  font-size: 12px;
+  color: rgba(255,255,255,0.7);
+}
+
+.lt-stat-sep {
+  width: 1px;
+  height: 32px;
+  background: rgba(255,255,255,0.25);
+}
+
+/* === Hero 耳机装饰 === */
+.lt-hero-art {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 220px;
+}
+
+.lt-earphones {
+  position: relative;
+  width: 170px;
+  height: 150px;
+  filter: drop-shadow(0 22px 28px rgba(2,20,70,0.45));
+  animation: lt-float 4.5s ease-in-out infinite;
+}
+
+@keyframes lt-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.lt-earphone {
+  position: absolute;
+  background: linear-gradient(160deg, #93C5FD, #DBEAFE);
+  border-radius: 14px;
+}
+
+.lt-earphone-band {
+  top: 4px;
+  left: 26px;
+  width: 118px;
+  height: 46px;
+  border-radius: 60px 60px 12px 12px;
+  background: linear-gradient(160deg, #60A5FA, #2563EB);
+  border: none;
+}
+
+.lt-earphone-left {
+  top: 44px;
+  left: 4px;
+  width: 44px;
+  height: 72px;
+  border-radius: 18px 18px 30px 30px;
+}
+
+.lt-earphone-right {
+  top: 44px;
+  right: 4px;
+  width: 44px;
+  height: 72px;
+  border-radius: 18px 18px 30px 30px;
+}
+
+.lt-eq {
+  position: absolute;
+  left: 50%;
+  top: 58px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 40px;
+  padding: 8px 10px;
+  background: rgba(255,255,255,0.9);
+  border-radius: 12px;
+  box-shadow: 0 8px 20px -6px rgba(2,20,70,0.35);
+}
+
+.lt-eq-bar {
+  width: 5px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, var(--rule-primary), #60A5FA);
+  height: 6px;
+  transform-origin: bottom;
+}
+
+.lt-eq .lt-eq-bar.is-playing {
+  animation: lt-eq-bounce 0.9s ease-in-out infinite;
+}
+
+.lt-eq .lt-eq-bar.is-playing:nth-child(1) { animation-delay: 0s; }
+.lt-eq .lt-eq-bar.is-playing:nth-child(2) { animation-delay: 0.15s; }
+.lt-eq .lt-eq-bar.is-playing:nth-child(3) { animation-delay: 0.3s; }
+.lt-eq .lt-eq-bar.is-playing:nth-child(4) { animation-delay: 0.45s; }
+.lt-eq .lt-eq-bar.is-playing:nth-child(5) { animation-delay: 0.6s; }
+
+@keyframes lt-eq-bounce {
+  0%, 100% { height: 8px; }
+  30% { height: 32px; }
+  60% { height: 16px; }
+  80% { height: 26px; }
+}
+
+.lt-art-dot {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.18);
+}
+
+.lt-art-dot-1 { width: 46px; height: 46px; top: 10px; right: 0; }
+.lt-art-dot-2 { width: 26px; height: 26px; bottom: 16px; left: 8px; background: rgba(255,255,255,0.12); }
 
 /* === Task cards === */
 .lt-task-grid {
@@ -1156,11 +1380,55 @@ onLoad(() => {
   min-width: 0;
 }
 
+.lt-player-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
 .lt-player-title {
   font-size: 16px;
   font-weight: 600;
   color: var(--rule-primary-foreground);
-  margin-bottom: 12px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lt-eq-sm {
+  position: static;
+  transform: none;
+  height: 26px;
+  padding: 6px 8px;
+  background: rgba(255,255,255,0.16);
+  border: 1px solid rgba(255,255,255,0.22);
+  box-shadow: none;
+  flex-shrink: 0;
+}
+
+.lt-eq-sm .lt-eq-bar {
+  width: 3px;
+  height: 5px;
+  background: #fff;
+}
+
+.lt-eq-sm.is-on .lt-eq-bar {
+  animation: lt-eq-bounce-sm 0.8s ease-in-out infinite;
+}
+
+.lt-eq-sm.is-on .lt-eq-bar:nth-child(1) { animation-delay: 0s; }
+.lt-eq-sm.is-on .lt-eq-bar:nth-child(2) { animation-delay: 0.2s; }
+.lt-eq-sm.is-on .lt-eq-bar:nth-child(3) { animation-delay: 0.4s; }
+.lt-eq-sm.is-on .lt-eq-bar:nth-child(4) { animation-delay: 0.6s; }
+
+@keyframes lt-eq-bounce-sm {
+  0%, 100% { height: 5px; }
+  30% { height: 18px; }
+  60% { height: 9px; }
+  80% { height: 14px; }
 }
 
 .lt-player-bar {
@@ -1612,6 +1880,23 @@ onLoad(() => {
   
   .app-content {
     padding: 20px;
+  }
+  
+  .lt-hero {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 28px;
+    padding: 32px 24px;
+  }
+  
+  .lt-hero-art {
+    width: 100%;
+    height: 170px;
+    transform: scale(0.9);
+  }
+  
+  .lt-hero-stats {
+    gap: 20px;
   }
   
   .lt-player-top {

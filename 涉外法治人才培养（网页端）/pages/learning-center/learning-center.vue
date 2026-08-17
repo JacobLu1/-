@@ -97,8 +97,10 @@
                 </view>
               </view>
               <view v-if="videos.length" class="more-videos-btn" @tap="showMoreVideos">
+                <view class="more-videos-icon-wrap">
+                  <view class="more-videos-icon"></view>
+                </view>
                 <text>更多视频</text>
-                <view class="chev-r-sm"></view>
               </view>
             </view>
             <view class="video-grid">
@@ -178,9 +180,11 @@
                   <text class="lc-section-subtitle">基于你的学习记录和测评结果，个性化推荐</text>
                 </view>
               </view>
-              <view v-if="recommendations.length" class="more-videos-btn" @tap="refreshRecommendations">
-                <view class="refresh-icon"></view>
-                <text>刷新</text>
+              <view v-if="recommendations.length" class="rec-refresh-btn" @tap="refreshRecommendations">
+                <view class="rec-refresh-icon-wrap">
+                  <view class="rec-refresh-icon"></view>
+                </view>
+                <text>换一批</text>
               </view>
             </view>
             <view class="rec-grid">
@@ -188,10 +192,6 @@
                 <text class="rec-tag" :class="rec.tagClass">{{ rec.tag }}</text>
                 <text class="rec-title">{{ rec.title }}</text>
                 <text class="rec-reason">{{ rec.reason }}</text>
-                <view class="rec-level">
-                  <view v-for="n in 3" :key="n" class="star-icon" :class="{ filled: n <= rec.level }"></view>
-                  <text class="rec-level-label">{{ rec.levelLabel }}</text>
-                </view>
                 <view class="rec-btn" @tap="startLearning(rec)">
                   <text>开始学习</text>
                   <view class="arrow-r"></view>
@@ -455,13 +455,18 @@ async function loadResources() {
   if (resourceLoading.value) return
   resourceLoading.value = true
   try {
-    const resourcesObj = uniCloud.importObject('resources', { customUI: true })
-    const r = (await resourcesObj.listPublic({ type: 'all' })) || {}
-    if (r.errCode !== 0) {
+    // 并行拉取：资源列表（带缓存）与统计（带缓存）互不依赖
+    const [r, ovr] = await Promise.all([
+      loadResourcesWithCache(),
+      loadOverviewWithCache()
+    ])
+
+    if (r && r.errCode !== 0) {
       uni.showToast({ title: r.errMsg || '资源加载失败', icon: 'none' })
       return
     }
-    const list = r.list || []
+
+    const list = (r && r.list) || []
     const videoList = list
       .filter(d => d.type === 'video')
       .sort((a, b) => (b.createDate || 0) - (a.createDate || 0))
@@ -471,10 +476,9 @@ async function loadResources() {
     statRaw.courses = videos.value.length
 
     recommendationPool.value = videos.value.map(toRecommendation)
-    currentRecommendationIds.value = recommendationPool.value.slice(0, 4).map(r => r.id)
+    currentRecommendationIds.value = recommendationPool.value.slice(0, 4).map(rc => rc.id)
     recommendations.value = recommendationPool.value.slice(0, 4)
 
-    const ovr = await loadOverviewWithCache()
     if (ovr && ovr.errCode === 0) {
       STAT_CONFIG.studyCount.to = ovr.surveyCount || 0
       STAT_CONFIG.completionRate.to = ovr.knowledgeCount || 0
@@ -518,6 +522,51 @@ async function loadOverviewWithCache() {
     console.error('[learning-center] overview load error:', e)
     return null
   }
+}
+
+/* ============================================================
+   Resources list cache + in-flight de-dup
+   ============================================================ */
+const RESOURCES_CACHE_KEY = 'lc_resources_all_cache'
+const RESOURCES_CACHE_TTL = 5 * 60 * 1000
+
+// in-flight：同一页面会话内多次触发时复用同一个 Promise，避免重复请求
+let resourcesInFlight = null
+
+async function loadResourcesWithCache() {
+  // 1) 会话内去重：正在请求中则复用
+  if (resourcesInFlight) return resourcesInFlight
+
+  const now = Date.now()
+
+  // 2) 本地存储缓存：5 分钟内有效，直接返回
+  try {
+    const cached = uni.getStorageSync(RESOURCES_CACHE_KEY)
+    if (cached && cached.expireAt && cached.expireAt > now && cached.data) {
+      return cached.data
+    }
+  } catch (e) {}
+
+  // 3) 真实请求，并缓存结果
+  resourcesInFlight = (async () => {
+    try {
+      const resourcesObj = uniCloud.importObject('resources', { customUI: true })
+      const r = (await resourcesObj.listPublic({ type: 'all' })) || {}
+      if (r.errCode === 0) {
+        try {
+          uni.setStorageSync(RESOURCES_CACHE_KEY, {
+            expireAt: Date.now() + RESOURCES_CACHE_TTL,
+            data: r
+          })
+        } catch (e) {}
+      }
+      return r
+    } finally {
+      resourcesInFlight = null
+    }
+  })()
+
+  return resourcesInFlight
 }
 
 function playVideo(video) {
@@ -1244,19 +1293,29 @@ onLoad(() => {
 }
 .video-info {
   padding: 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 .video-title {
-  display: block;
   font-size: 14px; font-weight: 600;
   color: var(--rule-foreground);
   line-height: 1.4;
-  margin-bottom: 8px;
+  /* 固定两行高度，单行标题自动空出第二行；超过两行省略 */
+  min-height: calc(14px * 1.4 * 2);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  flex: none;
 }
 .video-meta {
   display: flex; gap: 12px;
   flex-wrap: wrap;
   font-size: 12px;
   color: var(--rule-muted-foreground);
+  margin-top: auto;
 }
 .video-meta-item {
   display: flex; align-items: center; gap: 4px;
@@ -1274,21 +1333,44 @@ onLoad(() => {
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z'/><circle cx='12' cy='12' r='3'/></svg>") center/contain no-repeat;
 }
 
+/* === Vertical "更多视频" button (same style as "换一批") === */
 .more-videos-btn {
-  font-size: 14px; font-weight: 500;
-  color: var(--rule-primary);
-  background: none;
-  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 14px;
+  border: 1px solid var(--rule-border);
+  border-radius: 10px;
+  background: var(--rule-card);
   cursor: pointer;
-  padding: 4px 0;
-  transition: color 0.15s ease;
+  transition: all 0.2s ease;
+  font-size: 12px;
+  color: var(--rule-ink-2);
+  line-height: 1;
   white-space: nowrap;
-  display: inline-flex; align-items: center; gap: 4px;
+  font-weight: 500;
 }
 .more-videos-btn:hover {
-  color: var(--rule-primary-hover);
-  text-decoration: underline;
+  border-color: var(--rule-primary);
+  color: var(--rule-primary);
+  background: var(--rule-primary-tint-3);
 }
+.more-videos-icon-wrap {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.more-videos-icon {
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 12h14'/><path d='m12 5 7 7-7 7'/></svg>") center/contain no-repeat;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 12h14'/><path d='m12 5 7 7-7 7'/></svg>") center/contain no-repeat;
+}
+
 .refresh-icon {
   width: 15px; height: 15px;
   background: currentColor;
@@ -1471,43 +1553,30 @@ onLoad(() => {
   color: var(--state-warning);
 }
 .rec-title {
-  display: block;
   font-size: 16px; font-weight: 700;
   color: var(--rule-foreground);
   line-height: 1.4;
+  /* 固定两行高度，单行标题自动空出第二行；超过两行省略 */
+  min-height: calc(16px * 1.4 * 2);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 .rec-reason {
   display: block;
   font-size: 13px;
   color: var(--rule-muted-foreground);
   line-height: 1.5;
-  flex: 1;
-}
-.rec-level {
-  display: flex;
-  align-items: center; gap: 4px;
-  font-size: 12px;
-  color: var(--rule-muted-foreground);
-}
-.star-icon {
-  width: 14px; height: 14px;
-  background: none;
-  border: 1.5px solid #CBD5E1;
-  border-radius: 2px;
-  transition: all 0.15s ease;
-}
-.star-icon.filled {
-  background: #F59E0B;
-  border-color: #F59E0B;
-}
-.rec-level-label {
-  margin-left: 4px;
+  /* 让 reason 固定在标题正下方，不伸缩；最后用按钮的 margin-top:auto 推到卡片底部 */
+  flex: none;
 }
 .rec-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   font-size: 13px; font-weight: 600;
   background: var(--rule-primary); color: var(--rule-primary-foreground);
   padding: 8px 16px; border-radius: 8px;
+  margin-top: auto;
   border: none; cursor: pointer;
   transition: background 0.15s ease, transform 0.15s ease;
   width: fit-content;
@@ -1521,6 +1590,42 @@ onLoad(() => {
   background: currentColor;
   -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 12h14'/><path d='m12 5 7 7-7 7'/></svg>") center/contain no-repeat;
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 12h14'/><path d='m12 5 7 7-7 7'/></svg>") center/contain no-repeat;
+}
+
+/* === Vertical "换一批" refresh button === */
+.rec-refresh-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 14px;
+  border: 1px solid var(--rule-border);
+  border-radius: 10px;
+  background: var(--rule-card);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 12px;
+  color: var(--rule-ink-2);
+  line-height: 1;
+}
+.rec-refresh-btn:hover {
+  border-color: var(--rule-primary);
+  color: var(--rule-primary);
+  background: var(--rule-primary-tint-3);
+}
+.rec-refresh-icon-wrap {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.rec-refresh-icon {
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8'/><path d='M21 3v5h-5'/><path d='M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16'/><path d='M3 21v-5h5'/></svg>") center/contain no-repeat;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8'/><path d='M21 3v5h-5'/><path d='M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16'/><path d='M3 21v-5h5'/></svg>") center/contain no-repeat;
 }
 
 /* =========================================================

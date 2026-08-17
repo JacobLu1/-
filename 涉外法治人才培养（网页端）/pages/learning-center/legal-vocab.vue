@@ -1,16 +1,64 @@
 <template>
-  <view class="legal-vocab">
-    <view class="page-shell">
-      <header class="page-topbar">
-        <view class="back-btn" @tap="goBack">
-          <view class="back-arrow"></view>
-          <text>返回</text>
+  <view class="app-shell">
+    <aside class="app-sidebar">
+      <view class="app-sidebar-logo">
+        <view class="app-sidebar-logo-icon">
+          <view class="ls-svg-glyph" aria-hidden="true"></view>
         </view>
-        <text class="page-title">词汇积累</text>
-        <text class="page-total">{{ currentLang }} · 共 {{ vocabTotal }} 词</text>
+        <text class="app-sidebar-logo-text">涉外法治人才培养</text>
+      </view>
+
+      <nav class="app-sidebar-nav">
+        <view class="app-nav-item" @tap="navigateTo('/pages/survey/survey')">
+          <view class="navi-icon navi-icon-survey"></view>
+          <text>问卷测评</text>
+        </view>
+        <view class="app-nav-item" @tap="navigateTo('/pages/report/report')">
+          <view class="navi-icon navi-icon-chart"></view>
+          <text>数据中心</text>
+        </view>
+        <view class="app-nav-item" @tap="navigateTo('/pages/legal-db/legal-db')">
+          <view class="navi-icon navi-icon-book"></view>
+          <text>法律库</text>
+        </view>
+        <view class="app-nav-item" @tap="navigateTo('/pages/ai-assistant/ai-assistant')">
+          <view class="navi-icon navi-icon-bot"></view>
+          <text>AI助手</text>
+        </view>
+        <view class="app-nav-item is-active" data-nav-key="learning-center" @tap="navigateTo('/pages/learning-center/learning-center')">
+          <view class="navi-icon navi-icon-book-open"></view>
+          <text>学习中心</text>
+        </view>
+      </nav>
+
+      <view class="app-sidebar-user">
+        <view class="app-sidebar-user-inner" @tap="navigateTo('/pages/profile/profile')">
+          <view class="app-sidebar-user-avatar">{{ userInitial }}</view>
+          <view style="min-width:0;flex:1">
+            <text class="app-sidebar-user-name">{{ userName }}</text>
+            <text class="app-sidebar-user-role">{{ userRole }}</text>
+          </view>
+        </view>
+        <view class="app-sidebar-logout" @tap="handleLogout">
+          <view class="app-sidebar-logout-icon"></view>
+          <text class="app-sidebar-logout-text">退出登录</text>
+        </view>
+      </view>
+    </aside>
+
+    <view class="app-main">
+      <header class="app-topbar">
+        <view class="app-topbar-left">
+          <view class="app-back-btn" @tap="goBack">
+            <view class="back-arrow-icon"></view>
+            <text>返回</text>
+          </view>
+          <text class="app-topbar-title">词汇积累</text>
+        </view>
+        <text class="app-topbar-meta">{{ currentLang }} · 共 {{ vocabTotal }} 词</text>
       </header>
 
-      <main class="page-content">
+      <main class="app-content">
         <view class="lang-switch">
           <view
             class="lang-chip"
@@ -76,7 +124,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { requireLogin } from '@/utils/auth.js'
+import { requireLogin, getDisplayName, getLevelText } from '@/utils/auth.js'
 import {
   loadVocabProgress,
   saveVocabProgress,
@@ -96,6 +144,10 @@ const progressMap = ref({})
 const activeCard = ref('unlearned')
 const loading = ref(false)
 const currentLang = ref('英语')
+
+const userName = ref(getDisplayName())
+const userRole = ref(getLevelText())
+const userInitial = computed(() => (userName.value || '用').slice(0, 1))
 
 const stats = computed(() => getVocabStats(vocabPool.value, progressMap.value))
 const vocabTotal = computed(() => stats.value.total)
@@ -197,6 +249,30 @@ function goBack() {
   })
 }
 
+function navigateTo(url) {
+  uni.navigateTo({ url })
+}
+
+function handleLogout() {
+  uni.showModal({
+    title: '确认退出',
+    content: '您确定要退出登录吗？',
+    success: (res) => {
+      if (res.confirm) {
+        try {
+          uni.removeStorageSync('token')
+          uni.removeStorageSync('userInfo')
+          uni.removeStorageSync('adminToken')
+          uni.removeStorageSync('adminInfo')
+        } catch (e) {
+          console.error('清除存储失败:', e)
+        }
+        uni.reLaunch({ url: '/pages/login/login' })
+      }
+    }
+  })
+}
+
 onLoad((options) => {
   if (!requireLogin()) return
   currentLang.value = parseLang(options && options.lang)
@@ -206,66 +282,326 @@ onLoad((options) => {
 </script>
 
 <style scoped>
-.legal-vocab {
+.app-shell {
+  /* === Brand Primary === */
+  --rule-primary: #2563EB;
+  --rule-primary-hover: #1D4ED8;
+  --rule-primary-active: #1E40AF;
+  --rule-primary-tint-1: #DBEAFE;
+  --rule-primary-tint-2: #BFDBFE;
+  --rule-primary-tint-3: #EFF6FF;
+  --rule-foreground: #0F172A;
+  --rule-card: #FFFFFF;
+  --rule-muted: #F1F5F9;
+  --rule-muted-foreground: #64748B;
+  --rule-ink-2: #475569;
+  --rule-border: #E2E8F0;
+  --state-error: #DC2626;
+  --state-error-tint: #FEE2E2;
+  display: flex;
   min-height: 100vh;
+  width: 100%;
   background: #F8FAFC;
   color: #0F172A;
   font-family: "Inter", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-.page-shell {
-  min-height: 100vh;
-}
-
-.page-topbar {
-  position: sticky;
+/* ===== 左侧导航栏 ===== */
+.app-sidebar {
+  position: fixed;
+  left: 0;
   top: 0;
-  z-index: 10;
+  height: 100vh;
+  width: 240px;
+  display: flex;
+  flex-direction: column;
+  background: var(--rule-card);
+  border-right: 1px solid var(--rule-border);
+  z-index: 40;
+  flex-shrink: 0;
+}
+
+.app-sidebar-logo {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  height: 64px;
-  padding: 0 24px;
-  background: rgba(255, 255, 255, .94);
-  border-bottom: 1px solid #E2E8F0;
-  backdrop-filter: blur(8px);
+  gap: 10px;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--rule-border);
 }
 
-.back-btn {
-  display: inline-flex;
+.app-sidebar-logo-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--rule-primary);
+  display: flex;
   align-items: center;
-  gap: 6px;
-  min-width: 72px;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.ls-svg-glyph {
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
+}
+
+.app-sidebar-logo-text {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--rule-foreground);
+  white-space: nowrap;
+}
+
+.app-sidebar-nav {
+  flex: 1;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+}
+
+.app-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
   font-size: 14px;
-  color: #475569;
+  font-weight: 500;
+  color: var(--rule-ink-2);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.app-nav-item:hover {
+  background: var(--rule-muted);
+  color: var(--rule-foreground);
+}
+
+.app-nav-item.is-active {
+  background: var(--rule-primary);
+  color: #FFFFFF;
+}
+
+.app-nav-item.is-active:hover {
+  background: var(--rule-primary-hover);
+  color: #fff;
+}
+
+.navi-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  background: currentColor;
+  display: inline-block;
+}
+
+.app-nav-item.is-active .navi-icon { background: #fff; }
+
+.navi-icon-survey {
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><rect width='8' height='4' x='8' y='2' rx='1'/><path d='M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'/><path d='M12 11h4'/><path d='M12 16h4'/><circle cx='9' cy='11' r='1.2'/><circle cx='9' cy='16' r='1.2'/></svg>") center/contain no-repeat;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><rect width='8' height='4' x='8' y='2' rx='1'/><path d='M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'/><path d='M12 11h4'/><path d='M12 16h4'/><circle cx='9' cy='11' r='1.2'/><circle cx='9' cy='16' r='1.2'/></svg>") center/contain no-repeat;
+}
+
+.navi-icon-chart {
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M3 3v18h18'/><path d='M18 17V9'/><path d='M13 17V5'/><path d='M8 17v-3'/></svg>") center/contain no-repeat;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M3 3v18h18'/><path d='M18 17V9'/><path d='M13 17V5'/><path d='M8 17v-3'/></svg>") center/contain no-repeat;
+}
+
+.navi-icon-book {
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z'/><path d='M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z'/></svg>") center/contain no-repeat;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z'/><path d='M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z'/></svg>") center/contain no-repeat;
+}
+
+.navi-icon-bot {
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 8V4H8'/><rect width='16' height='12' x='4' y='8' rx='2'/><path d='M2 14h2'/><path d='M20 14h2'/><path d='M15 13v2'/><path d='M9 13v2'/></svg>") center/contain no-repeat;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 8V4H8'/><rect width='16' height='12' x='4' y='8' rx='2'/><path d='M2 14h2'/><path d='M20 14h2'/><path d='M15 13v2'/><path d='M9 13v2'/></svg>") center/contain no-repeat;
+}
+
+.navi-icon-book-open {
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z'/%3E%3Cpath d='M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z'/%3E%3C/svg%3E") center/contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z'/%3E%3Cpath d='M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+
+.app-sidebar-user {
+  padding: 16px 12px;
+  border-top: 1px solid var(--rule-border);
+}
+
+.app-sidebar-user-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.app-sidebar-user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  background: var(--rule-primary-tint-1);
+  color: var(--rule-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.app-sidebar-user-name {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--rule-foreground);
+}
+
+.app-sidebar-user-role {
+  display: block;
+  font-size: 12px;
+  color: var(--rule-muted-foreground);
+}
+
+.app-sidebar-logout {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: var(--rule-ink-2);
+  font-size: 13px;
   cursor: pointer;
 }
 
-.back-arrow {
-  width: 18px;
-  height: 18px;
-  background: #475569;
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m12 19-7-7 7-7'/><path d='M19 12H5'/></svg>") center/contain no-repeat;
-  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m12 19-7-7 7-7'/><path d='M19 12H5'/></svg>") center/contain no-repeat;
+.app-sidebar-logout:hover {
+  background: var(--state-error-tint);
+  color: var(--state-error);
 }
 
-.page-title {
-  font-size: 18px;
-  font-weight: 700;
-  color: #0F172A;
+.app-sidebar-logout-icon {
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'/><polyline points='16 17 21 12 16 7'/><line x1='21' y1='12' x2='9' y2='12'/></svg>") center/contain no-repeat;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'/><polyline points='16 17 21 12 16 7'/><line x1='21' y1='12' x2='9' y2='12'/></svg>") center/contain no-repeat;
 }
 
-.page-total {
-  min-width: 72px;
-  text-align: right;
+/* ===== 主区域与顶栏 ===== */
+.app-main {
+  flex: 1;
+  margin-left: 240px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-width: 0;
+}
+
+.app-topbar {
+  height: 64px;
+  border-bottom: 1px solid var(--rule-border);
+  background: var(--rule-card);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+.app-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.app-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 13px;
-  color: #64748B;
+  font-weight: 600;
+  color: var(--rule-muted-foreground);
+  cursor: pointer;
+  transition: color 0.2s ease;
 }
 
-.page-content {
-  max-width: 1160px;
+.app-back-btn:hover {
+  color: var(--rule-primary);
+}
+
+.back-arrow-icon {
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><path d='m15 18-6-6 6-6'/></svg>") center/contain no-repeat;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><path d='m15 18-6-6 6-6'/></svg>") center/contain no-repeat;
+}
+
+.app-topbar-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--rule-foreground);
+}
+
+.app-topbar-meta {
+  font-size: 13px;
+  color: var(--rule-muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.app-content {
+  flex: 1;
+  padding: 28px 32px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 24px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.lang-switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.lang-chip {
+  height: 34px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #E2E8F0;
+  border-radius: 9999px;
+  background: #FFFFFF;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748B;
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease, color .15s ease;
+}
+
+.lang-chip:hover {
+  border-color: #BFDBFE;
+  color: #2563EB;
+}
+
+.lang-chip.is-active {
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
 }
 
 .lang-switch {
@@ -509,11 +845,17 @@ onLoad((options) => {
 }
 
 @media (max-width: 768px) {
-  .page-topbar {
-    padding: 0 16px;
+  .app-sidebar {
+    transform: translateX(-100%);
   }
-  .page-content {
-    padding: 16px;
+  .app-main {
+    margin-left: 0;
+  }
+  .app-topbar {
+    padding: 0 20px;
+  }
+  .app-content {
+    padding: 20px;
   }
   .vocab-cards {
     grid-template-columns: 1fr;
@@ -529,7 +871,7 @@ onLoad((options) => {
 }
 
 @media (max-width: 480px) {
-  .page-total {
+  .app-topbar-meta {
     min-width: auto;
   }
   .card-num {

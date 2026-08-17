@@ -1,0 +1,1590 @@
+court acceptance fee	案件受理费	律师部分
+important and complicated case	案情重大、复杂	律师部分
+cause of action	案由	律师部分
+case	案子	律师部分
+monopolize lawsuits	包揽诉讼	律师部分
+defendant; the accused	被告用于民事、行政案件用于刑事案件	律师部分
+appellee	被上诉人	律师部分
+respondent; defendant	被诉人	律师部分
+councel pro hac vice	本案律师	律师部分
+local counsel	本地律师	律师部分
+diploma; graduation certificate	毕业证	律师部分
+defense; pleadings	辩护词	律师部分
+defense lawyer	辩护律师	律师部分
+point of defense	辩护要点	律师部分
+submission	辩护意见	律师部分
+property tenancy	财产租赁	律师部分
+order; ruling; determination	裁定书（指终审裁定）	律师部分
+award	裁决书（用于仲裁）	律师部分
+verdict	裁决书（用于陪审团）	律师部分
+admitted evidence; established evidence	采信的证据	律师部分
+drafting agreement of assignment of equity interests	草拟股权转让协议	律师部分
+source legal provisions	查阅法条	律师部分
+conveyancing	产权转让	律师部分
+go on errand; go on a business trip	出差	律师部分
+further study abroad	出国深造	律师部分
+providing legal opinion	出具律师意见书	律师部分
+exhibit	出示的证据	律师部分
+appear in court	出庭	律师部分
+summons; subpoena	传票	律师部分
+answer; reply	答辩状	律师部分
+representation	代理词	律师部分
+agency for sale and transfer of real estate	代理房地产买卖与转让	律师部分
+agency for notarization, trademark, patent, copyright, and registration of real estate and incorporations	代理公证、商标、专利、版权、房地产、工商登记	律师部分
+agency for arbitration	代理仲裁	律师部分
+drafting of legal instruments	代写文书	律师部分
+pending case	待决案件	律师部分
+statement of the parties	当事人陈述	律师部分
+third party	第三人	律师部分
+revocation of lawyer license	吊销执业证	律师部分
+investigative record	调查笔录	律师部分
+investigation and gathering for evidence	调查取证	律师部分
+mediation	调解	律师部分
+case of trial of second instance	二审案件	律师部分
+send e-mail	发送电子邮件	律师部分
+legal consultants	法律顾问	律师部分
+legal opinions	法律意见书	律师部分
+legal aid	法律援助	律师部分
+legal counseling	法律咨询	律师部分
+division; tribunal	法庭	律师部分
+LL.D (Doctor of Laws)	法学博士学位	律师部分
+law society	法学会	律师部分
+legal courses	法学课程	律师部分
+LL.M (Master of Laws)	法学硕士学位	律师部分
+faculty of law; department of law	法学系	律师部分
+LL.B (Bachelor of Laws)	法学学士学位	律师部分
+J.D	juris doctor 缩写，美国法学学士	律师部分
+law school	法学院	律师部分
+court announcement	法院公告	律师部分
+counterclaim	反诉状	律师部分
+real estate lawyer; real property lawyer	房地产律师	律师部分
+associate lawyer	非合伙律师	律师部分
+non-litigation practice	非诉讼业务	律师部分
+senior partner	高级合伙人	律师部分
+senior lawyer	高级律师	律师部分
+agreements and contracts	各类协议和合同	律师部分
+Public Security Bureau	公安局	律师部分
+company listing	公司上市	律师部分
+public-prosecuting case	公诉案件	律师部分
+notarial certificate	公证书	律师部分
+state-run law office	国办律师事务所	律师部分
+international trade	国际贸易	律师部分
+international litigation	国际诉讼	律师部分
+domestic litigation	国内诉讼	律师部分
+partner lawyer	合伙律师	律师部分
+law office in partner-ship; cooperating law ofice	合伙制律师事务所	律师部分
+contract review, drafting and revision	合同审查、草拟、修改	律师部分
+interview a client	会见当事人	律师部分
+interview a criminal suspect	会见犯罪嫌疑人	律师部分
+part-time lawyer	兼职律师	律师部分
+prison; jail	监狱	律师部分
+expert conclusion	鉴定结论	律师部分
+membership dues	缴纳会费	律师部分
+burden of proof; onus probandi	举证责任	律师部分
+decision	决定书	律师部分
+record of request	勘验笔录	律师部分
+detention house	看守所	律师部分
+protest	抗诉书	律师部分
+accuser; complainant	控告人	律师部分
+transnational litigation	跨国诉讼	律师部分
+labor disputes	劳动争议	律师部分
+arbitration committee for labor disputes	劳动争议仲裁委员会	律师部分
+reform-through-labor farm; prison farm	劳改场	律师部分
+interested party; party in interest	利害关系人	律师部分
+director of lawyer control department	律管处处长	律师部分
+lawyer attorney; attorney at law	律师	律师部分
+lawyer discipline	律师惩戒	律师部分
+Lawyer Law	律师法	律师部分
+lawyer fee	律师费	律师部分
+lawyer’s letter	律师函	律师部分
+lawyer attestation/authentication	律师见证	律师部分
+lawyer certification/authentication/witness	律师见证书	律师部分
+lawyer’s docile; file	律师卷宗	律师部分
+lawyer’s journal	律师刊物	律师部分
+contact phone number of a lawyer	律师联系电话	律师部分
+law office; law firm	律师事务所	律师部分
+billing by lawyer	律师收费	律师部分
+lawyer website	律师网站	律师部分
+National Bar (Lawyer) Association	律师协会	律师部分
+member of Lawyer Association	律师协会会员	律师部分
+secretary general of Bar (Lawyer) Association	律师协会秘书长	律师部分
+Articles of Lawyer Assocition	律师协会章程	律师部分
+lawyer’s office	律师业务室	律师部分
+lawyer license	律师执业证	律师部分
+assistant lawyer	律师助理	律师部分
+bar exam; lawyer qualification exam	律师资格考试	律师部分
+lawyer qualification certificate	律师资格证	律师部分
+civil case	民事案件	律师部分
+civil mediation	民事调解	律师部分
+civil litigation	民事诉讼	律师部分
+local police station; police substation	派出所	律师部分
+judgement	判决用于民事、行政案件	律师部分
+determination	用于终审	律师部分
+sentence	用于刑事案	律师部分
+circumstantial evidence	旁证	律师部分
+articles of association; articles of incorporation; bylaw	企业章程	律师部分
+corporate restructure	企业重组	律师部分
+information; indictment	起诉状	律师部分
+disbar	取消律师资格	律师部分
+National Lawyer Congress	全国律师代表大会	律师部分
+pronounce judgement or determination by default	缺席宣判	律师部分
+People’s Court	人民法院	律师部分
+People’s Procuratorate	人民检察院	律师部分
+determine facts	认定事实	律师部分
+case of trial of second instance; appellate case	上诉案件	律师部分
+appellant	上诉人	律师部分
+petition for appeal	上诉状	律师部分
+lawyers specially handling foreign-related matters	涉外律师	律师部分
+administrative reconsideration petition	申请复议	律师部分
+application for admission to Law Association	申请加入律师协会	律师部分
+petitioner; claimant	申请人	律师部分
+appeal case	申诉案件	律师部分
+claimant; plaintiff	申诉人（仲裁）	律师部分
+appeal for revision, petition for revision	申诉书	律师部分
+apprentice lawyer; lawyer in probation period	实习律师	律师部分
+certificate of apprentice lawyer	实习律师证	律师部分
+audio-visual reference material	视听证据	律师部分
+apply law to facts	适用法律	律师部分
+victim	受害人	律师部分
+documentary evidence	书证	律师部分
+Ministry of Justice	司法部	律师部分
+judicial advise	司法建议书	律师部分
+Judicial Bureau	司法局	律师部分
+deputy director of Judicial Bureau	司法局副局长	律师部分
+director of Judicial Bureau	司法局局长	律师部分
+uniform judicial exam	司法统一考试	律师部分
+service of process	送达	律师部分
+litigation; action; lawsuit	诉讼	律师部分
+litigation party; litigious party	诉讼当事人	律师部分
+litigation practice	诉讼业务	律师部分
+complaint; bill of complaint; statement of claim	诉状	律师部分
+promote/market legal service	推销法律服务	律师部分
+foreign law office	外国律师事务所	律师部分
+authorized representation contract	委托代理合同	律师部分
+agent ad litem; entrusted agent	委托代理人	律师部分
+power of attorney	委托授权书	律师部分
+material evidence	物证	律师部分
+criminal suspect	嫌疑人	律师部分
+project financing	项目融资	律师部分
+project negotiating	项目谈判	律师部分
+criminal case	刑事案件	律师部分
+criminal litigation	刑事诉讼	律师部分
+administrative litigation	行政诉讼	律师部分
+adjourn the court; recess	休庭	律师部分
+pronounce judgement; determination	宣判	律师部分
+affidavit	宣誓书	律师部分
+attendance in advanced studies	业务进修	律师部分
+case of trial of first instance	一审案件	律师部分
+communicate with foreign law firms	与国外律师事务所交流	律师部分
+plaintiff	原告	律师部分
+securities lawyer	证券律师	律师部分
+testimony of witness; affidavit	证人证言	律师部分
+execution record	执行笔录	律师部分
+registration for practice	执业登记	律师部分
+scope of practice; sphere of practice; practice area	执业范围	律师部分
+practice application	执业申请	律师部分
+annual inspection of lawyer license	执业证年检	律师部分
+arbitration	仲裁	律师部分
+arbitration case	仲裁案件	律师部分
+arbitration agency	仲裁机构	律师部分
+specialized lawyer	专门律师	律师部分
+professional lawyer; full-time lawyer	专职律师	律师部分
+write legal thesis	撰写法律文章	律师部分
+credit standing investigation	资信调查	律师部分
+private prosecuting case	自诉案件	律师部分
+remand/rimit a case (to a low court)	案件发回	诉讼法律
+title of a case	案件名称	诉讼法律
+materials in the case	案卷材料	诉讼法律
+statement of case	案情陈述书	诉讼法律
+person other than involved in the case	案外人	诉讼法律
+total value involved in the case	案值	诉讼法律
+losing party	败诉方	诉讼法律
+personnel handling a case	办案人员	诉讼法律
+application for protective measures	保全措施申请书	诉讼法律
+report a case (to security authorities)	报案	诉讼法律
+final statement of the accused	被告人最后陈述	诉讼法律
+rejoinder	被告向原告第二次答辩	诉讼法律
+victim’s agent ad litem	被害人的诉讼代理人	诉讼法律
+respondent; the appellee	被上诉人	诉讼法律
+respondent	被申请人	诉讼法律
+party against whom execution is filed	被申请执行人	诉讼法律
+person subject to enforcement	被执行人	诉讼法律
+principal action	本诉	诉讼法律
+party in necessary co-litigation	必要共同诉讼人	诉讼法律
+jurisdiction by accord	变通管辖	诉讼法律
+defense	辩护	诉讼法律
+defense attorney/lawyer	辩护律师	诉讼法律
+defender	辩护人	诉讼法律
+exculpatory evidence; defense evidence	辩护证据	诉讼法律
+stage of court debate	辩论阶段	诉讼法律
+dismiss a counterclaim; reject a counterclaim	驳回反诉	诉讼法律
+deny/dismiss a motion	驳回请求	诉讼法律
+reject/dismiss the appeal and sustain the original judgement/ruling	驳回上诉、维持原判	诉讼法律
+dismiss an action/suit	驳回诉讼	诉讼法律
+notice of dismissal	驳回通知书	诉讼法律
+dismiss/reject a private prosecution	驳回自诉	诉讼法律
+ruling of dismissing private-prosecuting case	驳回自诉裁定书	诉讼法律
+supplementary answer	补充答辩	诉讼法律
+supplementary judgement	补充判决	诉讼法律
+supplementary investigation	补充侦查	诉讼法律
+trial in camera	不公开审理	诉讼法律
+written decision of no case-filing	不立案决定书	诉讼法律
+written decision of disapproving an arrest	不批准逮捕决定书	诉讼法律
+nol pros	不起诉	诉讼法律
+notice of dismissal of accusation by the court	不予受理起诉通知书	诉讼法律
+application for attachment; application for property preservation	财产保全申请书	诉讼法律
+order; determination	裁定指最终裁定	诉讼法律
+jurisdiction by order	裁定管辖	诉讼法律
+order; ruling	裁定书	诉讼法律
+admitted evidence	采信的证据	诉讼法律
+seal up	查封	诉讼法律
+withdraw appeal	撤回上诉	诉讼法律
+withdraw a lawsuit	撤诉	诉讼法律
+revoke a case placed on file	撤销立案	诉讼法律
+rescind the original judgement and remand the case ro the original court for retrial	撤销原判，发回重审	诉讼法律
+invalidating judgement (for negotiable instruments)	除权判决	诉讼法律
+summon; call	传唤	诉讼法律
+hearsay	传闻证据	诉讼法律
+statement of defence	答辩陈述书	诉讼法律
+associate justices; justice	大法官	诉讼法律
+deputy chief procurator	大检察官	诉讼法律
+agency for accusation	代理控告	诉讼法律
+agency for appeal	代理申诉	诉讼法律
+acting judge	代理审判员	诉讼法律
+agency for application of the bail pending trial with restricted liberty of moving	代为申请取保候审	诉讼法律
+accusatory procedure	弹劾式诉讼	诉讼法律
+pronouncement of judgement or sentence in court	当庭宣判	诉讼法律
+territorial jurisdiction	地区管辖	诉讼法律
+inter-mediate People’s Procuratorate	地区检察分院	诉讼法律
+record of investigation	调查笔录	诉讼法律
+pronouncement of judgement or sentence later on a fixed date	定期宣判	诉讼法律
+incriminating evidence; inculpatory evidence	定罪证据	诉讼法律
+freeze	冻结	诉讼法律
+procedure of supervision and urge	督促程序	诉讼法律
+sole-judge bench	独任庭	诉讼法律
+sole arbitrator	独任仲裁员	诉讼法律
+compulsory measures against impairment of civil action	对妨碍民事诉讼的强制措施	诉讼法律
+judgement inter parties	对席判决	诉讼法律
+trial of second instance	二审	诉讼法律
+case of trial of second insurance	二审案件	诉讼法律
+impose a fine	罚款	诉讼法律
+statutory legal evidence	法定证据	诉讼法律
+system of legal evidence	法定证据制度	诉讼法律
+judges	法官	诉讼法律
+bailiff; court police	法警	诉讼法律
+legal instruments/papers	法律文书	诉讼法律
+legal consulting	法律咨询	诉讼法律
+court debate	法庭辩论	诉讼法律
+court investigation	法庭调查	诉讼法律
+court record	法庭审理笔录	诉讼法律
+mode of court trial	法庭审理方式	诉讼法律
+chief judge of a tribunal	法庭庭长	诉讼法律
+court	法院	诉讼法律
+answer with counterclaim	反诉答辩状	诉讼法律
+a collateral civil action	附带民事诉讼案件	诉讼法律
+defendant of collateral civil action	附带民事诉讼被告	诉讼法律
+reexamination; recheck	复查	诉讼法律
+reinspect	复验	诉讼法律
+senior judge	高级法官	诉讼法律
+senior procurator	高级检察官	诉讼法律
+Higher People’s Court	高级人民法院	诉讼法律
+case of complaint	告诉案件	诉讼法律
+case accepted at complaint	告诉才处理的案件	诉讼法律
+complaint and petition division	告诉申诉庭	诉讼法律
+work-study school for delinquent children	工读学校	诉讼法律
+Ministry of Public Security	公安部	诉讼法律
+public security sub-bureau	公安分局	诉讼法律
+public security bureau at the levels of provinces, autonomous regions and cities under direct jurisdiction of central government	公安厅	诉讼法律
+trial in public	公开审理	诉讼法律
+open trial system	公开审判制度	诉讼法律
+procedure of public summons for exhortation	公示催告程序	诉讼法律
+statement of public prosecution	公诉词	诉讼法律
+public notary office	公证机关	诉讼法律
+concurrent jurisdiction	共同管辖	诉讼法律
+jurisdiction	管辖	诉讼法律
+international judicial assistance	国际司法协助	诉讼法律
+maritime court	海事法院	诉讼法律
+collegial panel	合议庭	诉讼法律
+record of deliberating by the collegiate bench	合议庭评议笔录	诉讼法律
+composition; compromise	和解	诉讼法律
+check identity of litigious parties	核对诉讼当事人身份	诉讼法律
+resumption of execution	恢复执行	诉讼法律
+withdrawal	回避	诉讼法律
+mixed action	混合式诉讼	诉讼法律
+basic People’s Court	基层人民法院	诉讼法律
+term in custody	羁押期限	诉讼法律
+subject matter jurisdiction of courts at different levels	级别管辖	诉讼法律
+living at home under surveillance	监视居住	诉讼法律
+prison	监狱	诉讼法律
+procurator	检察官	诉讼法律
+prosecutorial power	检察权	诉讼法律
+procuratorial/prosecutorial committee	检察委员会	诉讼法律
+procuratorate	检察院	诉讼法律
+outpost tribunal of procuratorate	检察院派出机构	诉讼法律
+summary procedure	简易程序	诉讼法律
+economic tribunal	经济审判庭	诉讼法律
+direct adjudication without sessions; judgement without notice	径行判决	诉讼法律
+inquisitional proceedings	纠问式诉讼	诉讼法律
+summon by force; summon by warrant	拘传	诉讼法律
+information/report of an offence	举报	诉讼法律
+military procuratorate	军事法院	诉讼法律
+open a court session	开庭审理	诉讼法律
+notice of court session	开庭通知	诉讼法律
+record of inquest	勘验笔录	诉讼法律
+executable property	可执行财产	诉讼法律
+accusatory proceedings	控告式诉讼	诉讼法律
+incriminating evidence	控诉证据	诉讼法律
+accusation function	控诉职能	诉讼法律
+distrain on; attachment	扣押	诉讼法律
+distress/distraint	扣押物	诉讼法律
+period of grace	宽限期	诉讼法律
+petition for labor dispute arbitration	劳动争议仲裁申请书	诉讼法律
+reform-through-labor farm	劳改场	诉讼法律
+reeducation-through-labor office	劳教所	诉讼法律
+procedure for examination and approval of analogical sentence	类推判决的核准程序	诉讼法律
+cumulative evidence	累积证据	诉讼法律
+place a case on file	立案报告	诉讼法律
+functional jurisdiction	立案管辖	诉讼法律
+written decision of case-filing	立案决定书	诉讼法律
+report of placing a case on file	立案侦查	诉讼法律
+interested party	利害关系人	诉讼法律
+interim award	临时裁决书	诉讼法律
+lawyer’s written attestation; lawyer’s written authentication	律师见证书	诉讼法律
+prior intervention by lawyer	律师提前介入	诉讼法律
+exemption from criminal penalty	免于刑事处分	诉讼法律
+civil tribunal	民事审判庭	诉讼法律
+civil action	民事诉讼	诉讼法律
+Civil Procedural Law	民事诉讼法	诉讼法律
+seize and deliver a suspect to the police	扭送	诉讼法律
+detached tribunal	派出法庭	诉讼法律
+police station	派出所	诉讼法律
+judgement; determination	判决	诉讼法律
+judgement; determination; verdict	判决书指陪审团作出的	诉讼法律
+juror	陪审员	诉讼法律
+approval of arrest	批准逮捕	诉讼法律
+clear up a criminal case; solve a criminal case	破案	诉讼法律
+bankruptcy; insolvency	破产	诉讼法律
+general/ordinary procedure	普通程序	诉讼法律
+general jurisdiction	普通管辖	诉讼法律
+procedure of bankruptcy and liquidation of a business corporation	企业法人破产还债程序	诉讼法律
+filing of a lawsuit	起诉	诉讼法律
+sue; litigate; prosecute; institution of proceedings	起诉	诉讼法律
+indictment; information	起诉状	诉讼法律
+grassroots People’s Procuratorate	区县检察院	诉讼法律
+the bail pending trial with restricted liberty of moving	取保候审	诉讼法律
+default judgement	缺席判决	诉讼法律
+People’s Mediation Committee	人民调解委员会	诉讼法律
+cases concerning determination of property as qwnerless	认定财产无主案件	诉讼法律
+cases concerning determination of a citizen as incompetent or with limited disposing capacity	认定公民无民事行为能力、限制民事行为能力案件	诉讼法律
+appeal	上诉	诉讼法律
+juvenile prison	少管所	诉讼法律
+comprehensive treatment of social security	社会治安综合治理	诉讼法律
+cases involving foreign interests	涉外案件	诉讼法律
+foreign civil proceedings	涉外民事诉讼	诉讼法律
+foreign criminal proceedings	涉外刑事诉讼	诉讼法律
+applicant; petitioner	申请人	诉讼法律
+petition; application for arbitration	申请书	诉讼法律
+execution applicant	申请执行人	诉讼法律
+claimant’s affidavit of authenticity	申诉人宣誓书	诉讼法律
+appeal for revision; petition for revision	申诉书	诉讼法律
+system of divinity evidence	神示证据制度	诉讼法律
+ordeal system	神示制度	诉讼法律
+case review	审查案件	诉讼法律
+examine and decide arrest	审查并决定逮捕	诉讼法律
+stage of review and prosecution	审查起诉阶段	诉讼法律
+notice of hearing	审理通知书	诉讼法律
+presiding judge	审判长	诉讼法律
+presiding judge announce court in session	审判长宣布开庭	诉讼法律
+adjudgement/trial jurisdiction	审判管辖	诉讼法律
+procedure for trial supervision	审判监督程序	诉讼法律
+judicial committee	审判委员会	诉讼法律
+judge	审判员	诉讼法律
+legally effective judgement/order	生效判决裁定	诉讼法律
+winning party	胜诉方	诉讼法律
+higher People’s Procuratorate	省市自治区检察院	诉讼法律
+declaration of disappearance and death	失踪和死亡宣告	诉讼法律
+substantial evidence	实（质）体证据	诉讼法律
+tangible evidence	实物证据	诉讼法律
+real evidence	实在证据	诉讼法律
+demonstrative evidence	示意证据	诉讼法律
+audio-visual evidence	视听证据	诉讼法律
+collecting post; safe retreat	收容所	诉讼法律
+chief justice	首席大法官	诉讼法律
+chief procurator	首席检察官	诉讼法律
+victim’s immediate family	受害人的近亲属	诉讼法律
+acceptance	受理	诉讼法律
+registration form of acceptance of criminal case	受理刑事案件审批表	诉讼法律
+the addressee	受送达人	诉讼法律
+court clerk	书记员	诉讼法律
+court clerk reads court rules	书记员宣读法庭纪律	诉讼法律
+judicial organizatons	司法机关	诉讼法律
+judicial police	司法警察	诉讼法律
+judicial bureau at the levels of provinces, autonomous regions, and cities under direct jurisdiction of central government	司法厅	诉讼法律
+judicial assistance	司法协助	诉讼法律
+judicial review of death sentence with a retrieve	死缓的复核	诉讼法律
+procedure for judicial review of death sentence	死刑复核程序	诉讼法律
+competence for judicial review of death sentence	死刑复核权	诉讼法律
+service of summons/subpoena	送达传票	诉讼法律
+service of bill of complaint	送达诉状	诉讼法律
+search	搜查	诉讼法律
+sue; suit; action; lawsuit	诉	诉讼法律
+property attachment prior to lawsuit	诉前财产保全	诉讼法律
+litigation; lawsuit; sue; action	诉讼	诉讼法律
+attachment	诉讼保全	诉讼法律
+litigious participants	诉讼参加人	诉讼法律
+agent ad litem	诉讼代理人	诉讼法律
+complaint; bill of complaint; state of claim	诉状	诉讼法律
+special procedures	特别程序	诉讼法律
+institute a public prosecution	提起公诉	诉讼法律
+railway court	铁路法院	诉讼法律
+railroad transport procuratorate	铁路检察院	诉讼法律
+procedure of court trial	庭审程序	诉讼法律
+wanted for arrest	通缉	诉讼法律
+appearance	投案	诉讼法律
+return of a case for supplementary investigation	退回补充侦查	诉讼法律
+entrusted defense	委托辩护	诉讼法律
+juvenile court	未成年人法庭	诉讼法律
+associate judge	无行政职务的法官	诉讼法律
+refuse to appear in court without due cause	无正当理由拒不到庭	诉讼法律
+acquittal, finding of “ not guilty ”	无罪判决	诉讼法律
+application for advanced execution	先予执行申请书	诉讼法律
+advanced execution	先予执行	诉讼法律
+criminal detention	刑事拘留	诉讼法律
+criminal coercive/compulsory measures	刑事强制拘留	诉讼法律
+criminal tribunal	刑事审判庭	诉讼法律
+criminal proceedings	刑事诉讼	诉讼法律
+Criminal Procedural Law	刑事诉讼法	诉讼法律
+self-incriminating criminal complaint	刑事自诉状	诉讼法律
+administrative case	行政案件	诉讼法律
+administrative tribunal	行政审判庭	诉讼法律
+administrative proceedings	行政诉讼	诉讼法律
+Administrative Procedural Law	行政诉讼法	诉讼法律
+cases concerning the declaration of disappearance and death	宣告失踪、宣告死亡案件	诉讼法律
+record of rendition of judgement	宣判笔录	诉讼法律
+cases concerning qualifications of voters	选民资格案件	诉讼法律
+inquire/question a witness	询问证人	诉讼法律
+reprimand	训诫	诉讼法律
+record of interrogation	讯问笔录	诉讼法律
+interrogate criminal suspect	询问犯罪嫌疑人	诉讼法律
+verbal evidence	言词证据	诉讼法律
+application for subpoena	要求传唤证人申请书	诉讼法律
+arbitration award shall be final and binding	一裁终局	诉讼法律
+trial of first instance	一审	诉讼法律
+notice of respondence to action	应诉通知书	诉讼法律
+sentence; finding of “guilty”	有罪判决	诉讼法律
+preliminary examinantion; pretrial	予审	诉讼法律
+court president	院长	诉讼法律
+record of file review (by lawyers)	阅卷笔录	诉讼法律
+case of retrial	再审案件	诉讼法律
+petition for retrial	再审申请书	诉讼法律
+order to sign a statement of repentance	责令具结悔过	诉讼法律
+creditors’ meeting	债权人会议	诉讼法律
+investigation stage	侦查阶段	诉讼法律
+conclusion of investigation	侦查终结	诉讼法律
+consulting final opinion of the plaintiff and defendant	征询原、被告最后意见	诉讼法律
+evidence	证据	诉讼法律
+preserve evidence	证据保全	诉讼法律
+application for evidence preservation	证据保全申请书	诉讼法律
+payment order/warrant	支付令	诉讼法律
+intellectual property tribunal	知识产权庭	诉讼法律
+procedure execution	执行程序	诉讼法律
+execution of arrest	执行逮捕	诉讼法律
+conciliation of execution	执行和解	诉讼法律
+recovery of execution	执行回转	诉讼法律
+executive tribunal	执行庭	诉讼法律
+objection to execution	执行异议	诉讼法律
+executor	执行员	诉讼法律
+discontinuance of execution	执行中止	诉讼法律
+conclusion of execution	执行终结	诉讼法律
+appointed defense	指定辩护	诉讼法律
+statement of appointing arbitrator	指定仲裁员声明	诉讼法律
+intermediate People’s Court	中级人民法院	诉讼法律
+retreat during court session without permission	中途退庭	诉讼法律
+arbitration tribunal	仲裁庭	诉讼法律
+arbitration committee	仲裁委员会	诉讼法律
+arbitration agreement; clauses of arbitration	仲裁协议	诉讼法律
+arbitrator	仲裁员	诉讼法律
+principal procurator	主诉检察官	诉讼法律
+assistant procurator	助理检察官	诉讼法律
+assistant judge	助理审判员	诉讼法律
+special court	专门法院	诉讼法律
+specific jurisdiction	专门管辖	诉讼法律
+exclusive jurisdiction	专属管辖	诉讼法律
+investigate for criminal responsibility	追究刑事责任	诉讼法律
+confession to justice	自首	诉讼法律
+private-prosecuting case	自诉案件	诉讼法律
+self-defense	自行辩护	诉讼法律
+doctrine of discretional evaluation of evidence	自由心证制度	诉讼法律
+self-investigating case	自侦案件	诉讼法律
+the Supreme People’s Court	最高人民法院	诉讼法律
+the Supreme People’s Procuratorate	最高人民检察院	诉讼法律
+final award	最后裁决书	诉讼法律
+source of law	法律渊源	民事法律
+statute	制定法	民事法律
+case law; precedent	判例法	民事法律
+common law	普通法	民事法律
+special law	特别法	民事法律
+native law; indigenous law	固有法	民事法律
+adopted law	继受法	民事法律
+substantial law	实体法	民事法律
+procedural law	程序法	民事法律
+fundamental law	原则法	民事法律
+exception law	例外法	民事法律
+judicial interpretation	司法解释	民事法律
+customary law	习惯法	民事法律
+public order and moral	公序良俗	民事法律
+natural law	自然法	民事法律
+Roman Law	罗马法	民事法律
+private law	私法	民事法律
+public law	公法	民事法律
+jus civile	市民法	民事法律
+jus gentium	万民法	民事法律
+civil law system	民法法系	民事法律
+system of Anglo-American law	英美法系	民事法律
+continental law	大陆法	民事法律
+Roman law system	罗马法系	民事法律
+English law	英吉利法	民事法律
+equity; law of equity	衡平法	民事法律
+Germantic law	日尔曼法	民事法律
+ecclesiastical law	教会法	民事法律
+canon law	寺院法	民事法律
+Islamic law	伊斯兰法	民事法律
+norm of civil law	民法法律规范	民事法律
+authorization norm	授权规范	民事法律
+forbidding norm	禁止规范	民事法律
+obligatory norm	义务性规范	民事法律
+commanding norm	命令性规范	民事法律
+fundamental principles of civil law	民法基本原则	民事法律
+principle of equality	平等原则	民事法律
+principle of free will	自愿原则	民事法律
+principle of justice	公平原则	民事法律
+principle of equal value exchange	等价有偿原则	民事法律
+principle of good faith	诚实信用原则	民事法律
+act	行为	民事法律
+omission	不作为	民事法律
+lawful act	合法行为	民事法律
+unlawful act	违法行为	民事法律
+civil right	民事权利权利能力	民事法律
+absolute right	绝对权	民事法律
+relative right	相对权	民事法律
+right of priority	优先权	民事法律
+preemption	先买权	民事法律
+antecedent right	原权	民事法律
+right of relief	救济权	民事法律
+right of dominion	支配权	民事法律
+right of claim	请求权	民事法律
+right of claim for real thing	物上请求权	民事法律
+right of formation	形成权	民事法律
+right of claiming cancellation	撤销权	民事法律
+right of renouncement	解除权	民事法律
+subrogated right	代位权	民事法律
+right of choice	选择权	民事法律
+right of admission	承认权	民事法律
+right of termination	终止权	民事法律
+right of defense	抗辩权	民事法律
+momentary right of defense	一时性抗辩权	民事法律
+permanent counter-argument right	永久性抗辩权	民事法律
+unstable counter-argument right	不安抗辩权	民事法律
+defense right of simultaneous performance	同时履行抗辩权	民事法律
+tested right	既得权	民事法律
+expectant right	期待权	民事法律
+exclusive right	专属权	民事法律
+non-exclusive right	非专属权	民事法律
+personal right	人身权利	民事法律
+human right	人权	民事法律
+right of personality	人格权	民事法律
+right of life and health	生命健康权	民事法律
+right of name	姓名权	民事法律
+right of portraiture	肖像权	民事法律
+right of freedom	自由权	民事法律
+right reputation	名誉权	民事法律
+right of privacy	隐私权	民事法律
+virginity right	贞操权	民事法律
+right of status	身份权	民事法律
+parental power; parental right	亲权	民事法律
+right of relative	亲属权	民事法律
+visitation right	探视权	民事法律
+right of spouse	配偶权	民事法律
+right of honor	荣誉权	民事法律
+protection of right	权利的保护	民事法律
+public protection	公力救济	民事法律
+self-protection	私力救济	民事法律
+standard of right	权利本位	民事法律
+standard of society	社会本位	民事法律
+irresponsible right	无责任行为	民事法律
+justifiable right; ligitimate defence	正当防卫	民事法律
+act of defence	防卫行为	民事法律
+self-conducting act	自为行为	民事法律
+act of rescue; necessity	紧急避险	民事法律
+act of self-help	自助行为	民事法律
+force majeure	不可抗力	民事法律
+accident	意外事件	民事法律
+capacity for act	行为能力	民事法律
+capacity of will	意思能力	民事法律
+civil act	民事行为	民事法律
+declaration of intention	意思表示	民事法律
+meeting of minds; consensus	意思表示一致	民事法律
+perfect capacity for act	完全行为能力	民事法律
+restrictive capacity for act	限制行为能力	民事法律
+quasi-interdicted person	准禁治产人	民事法律
+protection	保佐	民事法律
+minor who is capable of administering his own capacity	自治产人	民事法律
+incapacity for act	无行为能力	民事法律
+interdicted person	禁治产人	民事法律
+natural person	自然人	民事法律
+citizen	公民	民事法律
+domicile	住所	民事法律
+residence	居所	民事法律
+frequently dwelling place	经常居住地	民事法律
+census register	户籍	民事法律
+guardianship	监护	民事法律
+individual business	个体工商户	民事法律
+leaseholding rural household	农村承包经营户	民事法律
+partnership	合伙	民事法律
+partner	合伙人	民事法律
+partnership agreement	合伙协议	民事法律
+property of partnership	合伙财产	民事法律
+debt of partnership	合伙债务	民事法律
+join partnership	入伙	民事法律
+withdrawal from partnership	退伙	民事法律
+partnership business establishment	合伙企业	民事法律
+partnership of legal person	法人合伙	民事法律
+special partnership	特别合伙	民事法律
+general partnership	普通合伙	民事法律
+limited partnership	有限合伙	民事法律
+civil partnership	民事合伙	民事法律
+sleeping partnership; dormant partnership	隐名合伙	民事法律
+private enterprise; proprietorship	私营企业	民事法律
+legal person	法人	民事法律
+legal body of enterprise	企业法人	民事法律
+group of enterprise	企业集团	民事法律
+affiliate enterprise	关联企业	民事法律
+individual business establishment	个人独资企业	民事法律
+solely state-owned enterprise	国有独资企业	民事法律
+Sino-foreign joint venture enterprise	中外合资企业	民事法律
+Sino-foreign contractual enterprise	中外合作企业	民事法律
+legal body of mass organization	社团法人	民事法律
+legal body of financial group	财团法人	民事法律
+joint venture	联营	民事法律
+association of legal persons	法人型联营	民事法律
+coordinated management in partnership	合伙型联营	民事法律
+cooperation-type coordinated management	协作型联营	民事法律
+cooperative	合作社	民事法律
+civil legal act	民事法律行为	民事法律
+unilateral civil legal act	单方民事法律行为	民事法律
+bilateral civil legal act	双方民事法律行为	民事法律
+joint act civil legal act	多方民事法律行为	民事法律
+civil legal act with consideration	有偿民事法律行为	民事法律
+civil legal act without consideration; civil legal act without award	无偿民事法律行为	民事法律
+practical civil legal act	实践性民事法律行为	民事法律
+consental civil legal act	诺成性民事法律行为	民事法律
+formal civil legal act	要式民事法律行为	民事法律
+informal civil legal act	不要式民事法律行为	民事法律
+causative civil legal act	要因民事法律行为	民事法律
+noncausative civil legal act	不要因民事法律行为	民事法律
+principal civil legal act	主民事法律行为	民事法律
+accessory civil legal act	从民事法律行为	民事法律
+conditional civil legal act	附条件民事法律行为	民事法律
+civil legal act with term	附期限民事法律行为	民事法律
+civil legal act before death	生前民事法律行为	民事法律
+civil legal act after death	死后民事法律行为	民事法律
+quasi-civil legal act	准民事法律行为	民事法律
+ineffective act	无效行为	民事法律
+revocable civil act	可撤销民事行为	民事法律
+illegal act; unlawful act	违法行为	民事法律
+tort	侵权行为	民事法律
+fraud	欺诈	民事法律
+duress	胁迫	民事法律
+taking advantage of others’ precarious position	乘人之危	民事法律
+legal form concealing illegal intention	以合法形式掩盖非法目的	民事法律
+malicious collaboration	恶意串通	民事法律
+gross misunderstanding	重大误解	民事法律
+obvious unjust	显失公平	民事法律
+misrepresentation	误传	民事法律
+agency	代理	民事法律
+principal	本人	民事法律
+trustee	受托人	民事法律
+agent	代理人	民事法律
+original agent	本代理人	民事法律
+statutory agent; legal agent	法定代理人	民事法律
+agent by mandate	委托代理人	民事法律
+designated agent	指定代理人	民事法律
+subagent	复代理人	民事法律
+right of agency	代理权	民事法律
+act of authorization	授权行为	民事法律
+act of agency	代理行为	民事法律
+agency by mandate	委托代理	民事法律
+original agency	本代理	民事法律
+subagency	复代理	民事法律
+authorized agency	有权代理	民事法律
+agency by estoppel; apparent agency	表见代理	民事法律
+agency by lawyer	律师代理	民事法律
+general agency	普通代理	民事法律
+general power of attorney	全权代理委托书	民事法律
+joint agency	共同代理	民事法律
+sole agency	独家代理	民事法律
+brokerage	居间	民事法律
+broker	居间人	民事法律
+commission; broker house	行纪	民事法律
+trust	信托	民事法律
+time limit; prescription; limitation	时效	民事法律
+suspension of prescription/limitation	时效中止	民事法律
+interruption of limitation/prescription	时效中断	民事法律
+extension of limitation	时效延长	民事法律
+acquisitive prescription	取得时效	民事法律
+lapse of time; termination of prescription	时效终止	民事法律
+date	期日	民事法律
+term	期间	民事法律
+civil relations with foreign elements	涉外民事关系	民事法律
+rule of conflict	冲突规范	民事法律
+applicable law; governing law	准据法	民事法律
+renvoi; remission	反致	民事法律
+transmission	转致	民事法律
+identification	识别	民事法律
+reserve of public order	公共秩序保留	民事法律
+evasion of law	法律规避	民事法律
+nationality	国籍	民事法律
+nationalization	国有化	民事法律
+legal liability	法律责任	民事法律
+civil liability/responsibility	民事责任	民事法律
+administrative liability/responsibility	行政责任	民事法律
+criminal liability/responsibility	刑事责任	民事法律
+liability of breach of contract; responsibility of default	违约责任	民事法律
+limited liability	有限责任	民事法律
+unlimited liability	无限责任	民事法律
+shared/several liability	按份责任	民事法律
+joint and several liability	连带责任	民事法律
+liability for negligence; negligent liability	过失责任	民事法律
+fault liability; liability for fault	过错责任	民事法律
+sole fault	单独过错	民事法律
+joint fault	共同过错	民事法律
+mixed fault	混合过错	民事法律
+victim’s fault	被害人过错	民事法律
+third party’s fault	第三人过错	民事法律
+presumptive fault	推定过错	民事法律
+bad faith; malice	恶意	民事法律
+deliberate intention; intention; willfulness	故意	民事法律
+negligence	过失	民事法律
+gross negligence	重大过失	民事法律
+careless and inadvertent negligence	疏忽大意的过失	民事法律
+negligence with undue assumption	过于自信的过失	民事法律
+facts of damage	损害事实	民事法律
+tangible damage/loss	有形损失	民事法律
+intangible damage/loss	无形损失	民事法律
+property damage/loss	财产损失	民事法律
+personal damage/loss	人身损失	民事法律
+spiritual damage/loss	精神损失	民事法律
+methods of bearing civil liability	民事责任承担方式	民事法律
+cease the infringing act	停止侵害	民事法律
+exclusion of hindrance; removal of obstacle	排除妨碍	民事法律
+elimination of danger	消除危险	民事法律
+restitution of property	返还财产	民事法律
+restitution; restitution of original state	恢复原状	民事法律
+compensate for a loss; indemnify for a loss	赔偿损失	民事法律
+payment of liquidated damage	支付违约金	民事法律
+eliminate ill effects	消除影响	民事法律
+rehabilitate one’s reputation	恢复名誉	民事法律
+extend a formal apology	赔礼道歉	民事法律
+jus ad rem; right in rem; real right	物权	民事法律
+real right system; right in rem system	物权制度	民事法律
+the principal of One thing, One Right	一物一权原则	民事法律
+principal of legality of right in rem	物权法定主义	民事法律
+principal of public summons of right in rem	物权公示原则	民事法律
+jus rerem	物权法	民事法律
+property	物	民事法律
+raw material for production	生产资料	民事法律
+means of livelihood; means of subsistence	生活资料	民事法律
+res in commercium; a thing in commerce	流通物	民事法律
+limited merchantable thing	限制流通物	民事法律
+res extra commercium; a thing out of commerce	禁止流通物	民事法律
+asset	资产	民事法律
+fixed asset	固定资产	民事法律
+current asset; floating asset	流动资产	民事法律
+movables; chattel	动产	民事法律
+immovable; real estate	不动产	民事法律
+res certae; a certain thing	特定物	民事法律
+genus; indefinite thing	种类物	民事法律
+res divisibiles; divisible things	可分物	民事法律
+res indivisibiles; indivisible things	不可分物	民事法律
+res capitalis; a principal thing	主物	民事法律
+res accessoria; an accessory thing	从物	民事法律
+original thing	原物	民事法律
+fruits	孳息	民事法律
+natural fruits	天然孳息	民事法律
+legal fruits	法定孳息	民事法律
+bona vacatia; vacant goods; ownerless goods	无主物	民事法律
+lost property	遗失物	民事法律
+drifting object	漂流物	民事法律
+fortuna; hidden property	埋藏物	民事法律
+currency	货币	民事法律
+securities	证券	民事法律
+bond	债券	民事法律
+classification of right in rem/real right	物权分类	民事法律
+jus in re propria; right of full ownership	自物权	民事法律
+dominium; ownership; title	所有权	民事法律
+document of title; title of ownership	所有权凭证	民事法律
+dominium utile; equitable ownership	占有权	民事法律
+right of use; right to use of	使用权	民事法律
+right to earnings; right to yields	收益权	民事法律
+right of disposing; jus dispodendi	处分权	民事法律
+possession in good faith	善意占有	民事法律
+malicious possession	恶意占有	民事法律
+several possession	按份共有	民事法律
+joint possession	共同共有	民事法律
+jus in re aliena	他物权	民事法律
+real right for usufruct	用益物权	民事法律
+right to use; right of use	使用权	民事法律
+right to the use of land	土地使用权	民事法律
+forest ownership	林权	民事法律
+mining ownership	采矿权	民事法律
+managerial authority; power of management	经营权	民事法律
+right to contracted management	承包经营权	民事法律
+neighboring right; relatedright	相邻权	民事法律
+superficies	地上权	民事法律
+jus emphyteuticum; right to landed estate granted in perpetuity through a contract	永佃权	民事法律
+servitude; easement	地役权	民事法律
+servitus personarum; personal servitude	人役权	民事法律
+real right for security	担保物权	民事法律
+security for thing	物的担保	民事法律
+warranty against defect of a thing	物的瑕疵担保	民事法律
+hypotheca; hypothecation; right to mortgage	抵押权	民事法律
+creation of right to mortgage	抵押权的设定	民事法律
+mortgagor	抵押人	民事法律
+mortgagee	抵押权人	民事法律
+collateral; estate under mortgage	抵押标的物	民事法律
+deffect of right to mortgage	抵押权的效力	民事法律
+sequence of right to mortgage	抵押权的次序	民事法律
+abandonment of right to mortgage	抵押权的抛弃	民事法律
+alienation of right to mortgage	抵押权的让与	民事法律
+materialization of right to mortgage	抵押权的实现	民事法律
+extinction of right to mortgage	抵押权的消灭	民事法律
+registration of estate under mortgage	抵押物登记	民事法律
+priority of mortgage	抵押优先权	民事法律
+lien	留置权	民事法律
+general lien	一般留置权	民事法律
+special lien	特别留置权	民事法律
+hypotheque; pledge; right of pledge	质权	民事法律
+tenant right	佃权	民事法律
+jus in personam; right to give or procure; claim; creditor’s right	债权	民事法律
+creditor	债权人	民事法律
+debtor	债务人	民事法律
+counterpart; offeree	相对人	民事法律
+give; pay	给付	民事法律
+debt; liability; obligation	债务	民事法律
+payment of debt	债务的偿还	民事法律
+discharge of debt	债务的偿清	民事法律
+guarantee of debt	债务的担保	民事法律
+consolidation of debt	债务的合并	民事法律
+debt maturity	债务的给付日期	民事法律
+exemption of debt	债务的免除	民事法律
+obligatio; obligation	债的分类	民事法律
+legal obligation	法定之债	民事法律
+voluntary obligation	任意之债	民事法律
+simple obligation	简单之债	民事法律
+alternative obligation	选择之债	民事法律
+prime/principal obligation	主债	民事法律
+accessory obligation	从债	民事法律
+single obligation	单一之债	民事法律
+several obligation	按份之债	民事法律
+joint obligation	连带之债	民事法律
+certain obligation	特定之债	民事法律
+indefinite obligation	种类之债	民事法律
+contractual obligation	合同之债	民事法律
+tort obligation	侵权行为之债	民事法律
+obligation of compensation for injury; obligation of damages	损害赔偿之债	民事法律
+damage to person	人身损害	民事法律
+moral/mental/spiritual damage	精神损害	民事法律
+hospital treatment expense	医药费	民事法律
+medical charge	医疗费	民事法律
+pension	抚恤金	民事法律
+consolation money	慰问金	民事法律
+defect of product	产品瑕疵	民事法律
+unjust enrichment	不当得利	民事法律
+voluntary service	无因管理	民事法律
+guarantee of obligation	债的担保	民事法律
+property guarantee	财产担保	民事法律
+credit guarantee	信用担保	民事法律
+alienation guarantee	让与担保	民事法律
+guaranty	保证	民事法律
+express guaranty	明示保证	民事法律
+implied guaranty	默示保证	民事法律
+guarantor	保证人	民事法律
+contract of guaranty/suretyship	保证合同	民事法律
+guaranty bond; security deposit	保证金	民事法律
+deposit; foregift	押金	民事法律
+advanced payment	预付款	民事法律
+earnest money; deposit	定金	民事法律
+liquidated damages	违约金	民事法律
+liquidated damages by law	法定违约金	民事法律
+liquidated damages by agreement	约定违约金	民事法律
+performance of obligation	债的履行	民事法律
+doctrine of specific performance	实际履行原则	民事法律
+doctrine of change of circumstances	情事变更原则	民事法律
+misfeasance	不当履行	民事法律
+discharge; satisfaction	清偿	民事法律
+debtor’s submission of the subject matter of obligation to competent authority	提存	民事法律
+setoff	抵销	民事法律
+intellectual property	知识产权	民事法律
+international protection of intellectual property	知识产权国际保护	民事法律
+doctrine of national treatment	国民待遇原则	民事法律
+a right of priority doctrine	优先权原则	民事法律
+doctrine of automatic protection	自动保护原则	民事法律
+royalties	特许权使用费	民事法律
+copyright	著作权	民事法律
+copyright owner	著作权人	民事法律
+creation	创作	民事法律
+opus; product; work	作品	民事法律
+right of personality of copyright	著作人格权	民事法律
+right of publication	发表权	民事法律
+right of authorship; right of paternity	署名权	民事法律
+right of modification; right of revision	修改权	民事法律
+right to maintain integrity	完整性保持权	民事法律
+inviolability	不可侵犯权	民事法律
+right of recall; right of retrieval	收回权	民事法律
+publish a book at the author’s own expense	自费出版	民事法律
+property right in work	著作财产权	民事法律
+right to share usufruct	使用收益分享权	民事法律
+right to make use of	利用权	民事法律
+right to get payment	获得报酬权	民事法律
+right of rebroadcasting	重播权	民事法律
+right of fixation	录制权	民事法律
+right of mechanograph; right of mechanical reproduction	机械复制权	民事法律
+neighboring right of copyright	著作邻接权	民事法律
+plagiary; plagiarism	剽窃	民事法律
+pirate	盗版	民事法律
+VCD pirated VCD	盗版	民事法律
+forge	伪造	民事法律
+industrial property	工业产权	民事法律
+patent right	专利权	民事法律
+priority date	优先权日	民事法律
+prior application rule	申请在先原则	民事法律
+priority of use	使用在先	民事法律
+novelty	新颖性	民事法律
+creativity	创造性	民事法律
+practicability	实用性	民事法律
+invention and creation	发明创造	民事法律
+utility model	实用新型	民事法律
+design; industrial design	外观设计	民事法律
+right of invention	发明权	民事法律
+right of discovery	发现权	民事法律
+patent application	专利申请	民事法律
+objection to a patent	专利异议	民事法律
+patent gazette	专利公告	民事法律
+renewal fee of patent	专利续展费	民事法律
+patent licensing agreement	专利许可协议	民事法律
+know-how	技术诀窍	民事法律
+certificate of patent	专利证书	民事法律
+patent office	专利事务所	民事法律
+patent agency	专利代理	民事法律
+Patent Office of the People’s Republic of China	中华人民共和国专利局	民事法律
+trademark right	商标权	民事法律
+international registration of trademark	商标国际注册	民事法律
+commodity trademark	商品商标	民事法律
+service trademark	服务商标	民事法律
+reputed trademark	驰名商标	民事法律
+advertisement trademark	广告商标	民事法律
+similar trademark	近似商标	民事法律
+trade review and appraisal board	商标评审委员会	民事法律
+trademark examination	商标审查	民事法律
+trademark infringement	商标侵权	民事法律
+registered trademark	商标注册	民事法律
+trademark gazette	商标公告	民事法律
+licensing of registered trademark	注册商标使用许可	民事法律
+assignment of registered trademark	注册商标转让	民事法律
+trademark licensing agreement	商标使用许可协议	民事法律
+trademark office	商标事务所	民事法律
+trademark agency	商标代理	民事法律
+marriage, family, inheritance, adoption	婚姻、家庭、继承、收养	民事法律
+marital law; marriage law	婚姻法	民事法律
+arranged marriage	包办婚姻	民事法律
+partition; dismemberment of property	财产分割	民事法律
+bigamy	重婚	民事法律
+only child	独生子女	民事法律
+legal marriage	法律婚	民事法律
+illegitimate child	非婚生子女	民事法律
+community property	夫妻共同财产	民事法律
+conjugal relationship	夫妻关系	民事法律
+divorce a mensa et thoro; divorce from bed and board	夫妻分居	民事法律
+resumption of marriage	复婚	民事法律
+incompatibility	感情破裂	民事法律
+notarization of postnuptial properties	婚后财产公证	民事法律
+marriage registration	婚姻登记	民事法律
+ligitimate child	婚生子女	民事法律
+birth control	计划生育	民事法律
+marry	结婚	民事法律
+divorce	离婚	民事法律
+mercenary marriage	买卖婚姻	民事法律
+blood relations in fiction of law	拟制血亲	民事法律
+collateral relation blood relation	旁系血亲	民事法律
+marriage with foreign elements	涉外婚姻	民事法律
+spouse	配偶	民事法律
+de facto marriage	事实婚	民事法律
+divorce by litigation	诉讼离婚	民事法律
+cohabitation	同居	民事法律
+late marriage	晚婚	民事法律
+void marriage	无效婚姻	民事法律
+divorce by agreement	协议离婚	民事法律
+monogamy	一夫一妻制	民事法律
+early marriage	早婚	民事法律
+lineal descent	直系血亲	民事法律
+natural blood relation	自然血亲	民事法律
+adoption law	收养法	民事法律
+adoption agreement	收养协议	民事法律
+adoptive parent	收养人	民事法律
+person or institution placing out a child for adoption	送养人	民事法律
+adoption with foreign elements	涉外收养	民事法律
+inheritance law; law of succession	继承法	民事法律
+legal seccession	法定继承	民事法律
+intestate succession	遗嘱继承	民事法律
+succession by devise	遗赠继承	民事法律
+natural succession	自然继承	民事法律
+representation; succession by subrogation	代位继承	民事法律
+hereditary succession	世袭继承	民事法律
+indirect succession	间接继承	民事法律
+subsuccession	转继承	民事法律
+joint succession	共同继承	民事法律
+single succession	单独继承	民事法律
+heir; successor	继承人	民事法律
+successor second in order	第二顺序继承人	民事法律
+successor first in order	第一顺序继承人	民事法律
+succession participant	继承参与人	民事法律
+inheritance; heritage	遗产	民事法律
+heir to property; inheritor	遗产继承人	民事法律
+last will and testament	遗言	民事法律
+last words	遗书	民事法律
+bequest; legacy; devise	遗赠	民事法律
+legacy-support ageement	遗赠抚养协议	民事法律
+accounting law	会计法	商事法律
+tax law; taxation law	税法	商事法律
+anti-unfair competition law	反不正当竞争法	商事法律
+consumer’s interest protection law	消费者权益保护法	商事法律
+production liability law	产品责任法	商事法律
+consumer rights and interests law	消费者权益法	商事法律
+company law; corporate law	公司法	商事法律
+company; corporation	公司	商事法律
+limited liability company	有限责任公司	商事法律
+company limited by shares	股份有限公司	商事法律
+unlimited company	无限公司	商事法律
+joint stock limited liability partnership	股份两合公司	商事法律
+joint liability company	两合公司	商事法律
+holding company	控股公司	商事法律
+group company	集团公司	商事法律
+joint venture company	合资公司	商事法律
+associated company; affiliated company	联营公司	商事法律
+state-own company	国营公司	商事法律
+state-owned company	国有公司	商事法律
+civilian-run company	民营公司	商事法律
+national/domestic company	本国公司	商事法律
+foreign company	外国公司	商事法律
+listed company	上市公司	商事法律
+parent company	母公司	商事法律
+subsidiary	子公司	商事法律
+briefcase company; fundless company	皮包公司	商事法律
+incorporation by stock floatation	募集设立	商事法律
+floater; initiator	发起人	商事法律
+name of company	公司名称	商事法律
+domicile of company	公司住址	商事法律
+contribution; capital subscription	出资	商事法律
+investment in cash	现金出资	商事法律
+investment in kind	实物出资	商事法律
+investment in industrial property right	工业产权出资	商事法律
+investment in non-patent technology	非专有技术出资	商事法律
+investment in labor	劳务出资	商事法律
+investment in hi-tech achievements	高新技术成果出资	商事法律
+registered capital	注册资本	商事法律
+paid-in capital	实缴资本	商事法律
+capital verification report	验资报告	商事法律
+certified public accountants	会计师事务所	商事法律
+certified public accountant	注册会计师	商事法律
+three doctrine of capital	资本三原则	商事法律
+doctrine of capital determination	资本确定原则	商事法律
+doctrine of capital maintenance	资本维持原则	商事法律
+doctrine of unchanging capital	资本不变原则	商事法律
+minimum capital system	最低资本额制度	商事法律
+incorporation; corporate registration	公司登记	商事法律
+existence of company	公司存续	商事法律
+merger and split of company	公司合并分立	商事法律
+corporate merger and acquisition	公司并购	商事法律
+corporate governance; company management	公司管理	商事法律
+corporate counsel	公司法律顾问	商事法律
+company rectification	公司整顿	商事法律
+closure of business	公司歇业	商事法律
+company composition	公司和解	商事法律
+company dissolution	公司解散	商事法律
+company liquidation	公司清算	商事法律
+company winding-up	公司清理	商事法律
+non-commpete; competition prohibition	竞业禁止	商事法律
+prospectus	招股章程	商事法律
+stock capital	股本	商事法律
+shareholder	股东	商事法律
+shareholders’ meeting	股东大会	商事法律
+resolution of shareholders’ meeting	股东大会决议	商事法律
+rule of procedure of shareholders’ meeting	股东大会议事规则	商事法律
+voting right; right to vote	表决权	商事法律
+director	董事	商事法律
+president/chairman of the board	董事长	商事法律
+chief executive officer(CEO)	首席执行官	商事法律
+chief operation officer(COO)	首席运营官	商事法律
+executive director	执行董事	商事法律
+managing director	常务董事	商事法律
+board of directors	董事会	商事法律
+responsibility system of the chief executive officer under the leadership of the board of directors	董事会领导下的经理负责制	商事法律
+manager independent responsibility system	经理独立负责制	商事法律
+supervisor	监事	商事法律
+board of supervisors	监事会	商事法律
+share; stock	股	商事法律
+common stock	普通股	商事法律
+special stock	特别股	商事法律
+qualification stock	资格股	商事法律
+preferred stock	优先股	商事法律
+inferior stock	劣后股	商事法律
+stock with voting power	表决权股	商事法律
+premium stock	溢价股	商事法律
+converting stock	折价股	商事法律
+state-owned share	国家股	商事法律
+collective share	集体股	商事法律
+corporate share	法人股	商事法律
+enterprise share	企业股	商事法律
+individual share	个人股	商事法律
+dividend	股息	商事法律
+bonus stock; dividend stock	红股	商事法律
+legal accumulation fund	法定公积金	商事法律
+capital accumulation fund	资本公积金	商事法律
+surplus accumulation fund	盈余公积金	商事法律
+optional accumulation fund	任意公积金	商事法律
+corporate crime	公司犯罪	商事法律
+securities law	证券法	商事法律
+issuance of securities	证券发行	商事法律
+list securities; float an issue	证券上市	商事法律
+stock exchange	证券交易所	商事法律
+securities dealer	证券商	商事法律
+securities company	证券公司	商事法律
+consortium of underwriters	证券承销商	商事法律
+underwriting contract	证券承销合同	商事法律
+securities broker	证券经纪人	商事法律
+disclosing system	披露制度	商事法律
+closing date	交割日	商事法律
+venture capital fund	风险投资基金	商事法律
+Shanghai Stock Exchange	上海证券交易所	商事法律
+Shenzhen Stock Exchange	深圳证券交易所	商事法律
+securities supervision committee	证券监督委员会	商事法律
+law of negotiable instrument	票据法	商事法律
+notes; bills; commercial instruments	票据	商事法律
+bill; commercial instrument	商业票据	商事法律
+time bill;; long-dated bill	远期票据	商事法律
+matured bill	到期票据	商事法律
+sight bill	即期票据	商事法律
+bill payable to order; note to order	记名票据	商事法律
+bearer instrument	不记名票据	商事法律
+promissory note	本票	商事法律
+cheque	支票	商事法律
+bill of exchange	汇票	商事法律
+ticket day	发票日	商事法律
+date of draft/issue	出票日	商事法律
+place of draft/issue	发票地	商事法律
+bill to mature	票据到期日	商事法律
+sum of bill	票据金额	商事法律
+face value	票面价额	商事法律
+drawer	票据出票人	商事法律
+bill holder	票据持票人	商事法律
+bill acceptor	票据承兑人	商事法律
+act on commercial paper	票据行为	商事法律
+honor a bill	承兑票据	商事法律
+negotiation	票据议付	商事法律
+protest a bill	拒付票据	商事法律
+drawee	票据付款人	商事法律
+payer on commercial instrument	票据支付人	商事法律
+bill collector	票据收款人	商事法律
+endorser/indorser of a bill	票据背书人	商事法律
+endorsee	被背书人	商事法律
+bill guarantor	票据保证人	商事法律
+bill pledgee/warrantee	票据被保证人	商事法律
+renewed recourser	再追索人	商事法律
+remote holder	前手	商事法律
+subsequent endorser	后手	商事法律
+right of bill	票据权利	商事法律
+term of bill; tenor	票据期限	商事法律
+debtor of commercial instrument	票据债务人	商事法律
+right of recourse	追索权	商事法律
+exception to bill	票据抗辩	商事法律
+loss of bill	票据丧失	商事法律
+prescription of exchanges	票据时效	商事法律
+discount of bill	票据贴现	商事法律
+rediscount of bill	再贴现	商事法律
+term of benevolence	恩惠期间	商事法律
+agency for notes/bills/commercial instruments	票据代理	商事法律
+maritime law	海商法	商事法律
+certificate of registry; certificate of ship’s nationality	船舶国籍证书	商事法律
+flag country	船棋国	商事法律
+certificate of ship ownership	船舶所有权证书	商事法律
+register of ship	船舶检验	商事法律
+insurance on hull	船舶保险	商事法律
+hull insurance policy	船舶保险单	商事法律
+certificate of registry	船舶登记证书	商事法律
+tonnage measurement of ships	船舶丈量	商事法律
+groundage	船舶进港费	商事法律
+ship mortgage	船舶抵押	商事法律
+ship chartering	船舶租赁	商事法律
+ship subchartering	船舶转租	商事法律
+limitation of liabilities of ship owners	船舶所有人责任限制	商事法律
+ship collision	船舶碰撞	商事法律
+maritime distress	船舶遇难	商事法律
+perils of the sea	海上灾难	商事法律
+marine towage	海上拖航	商事法律
+detention of ship	船舶扣押	商事法律
+ship’s credit	船舶债权	商事法律
+classification society	船级社	商事法律
+certificate of class	船级证书	商事法律
+maritime lien	海上留置权	商事法律
+maritime mortgage	船舶抵押权	商事法律
+priority claim to seagoing ships	海上优先请求权	商事法律
+priority claim to salvage	救助优先权	商事法律
+priority claim to general average	共同海损优先权	商事法律
+priority claim to service	服务优先权	商事法律
+priority claim to cargo damage	货物损害优先权	商事法律
+priority claim to ship credit and goods credit	传播抵押借款和货物抵押借款优先权	商事法律
+shipping contract	海运合同	商事法律
+bill of lading(B/L)	提单	商事法律
+dead freight	空舱费	商事法律
+charterage	租船费	商事法律
+charter-party contract of affreightment	租船合同	商事法律
+time charter-party; time CP	期租船合同	商事法律
+voyage charter-party	航次租船合同	商事法律
+time charter-party	定期租船合同	商事法律
+bareboat charter-party; bareboat CP	光船租船合同	商事法律
+shipping charter-party	包租运输合同	商事法律
+contract for carriage of passengers by sea	海上旅客运输合同	商事法律
+contract of ocean towage	远洋拖带合同	商事法律
+contract of port towage	港内拖带合同	商事法律
+salvage contract	海难救助合同	商事法律
+master’s protest;; sea protest	海事报告	商事法律
+sea protest	海事声明书	商事法律
+maritime dispute	海事争议	商事法律
+maritime court;; admiralty court	海事法院	商事法律
+maritime proceedings	海事诉讼程序	商事法律
+civil jurisdiction of sea collision	船舶碰撞案件的民事管辖权	商事法律
+criminal jurisdiction of sea collision	船舶碰撞案件的刑事管辖权	商事法律
+hearing/trial of maritime disputes	海事争议的审理	商事法律
+measures for maritime attachment	海事诉讼保全措施	商事法律
+preferential right top maritime claim	海事优先请求权	商事法律
+application/petition for maritime attachment	海事请求保全申请书	商事法律
+service of legal instruments in maritime action/proceedings	海事诉讼法律文书送达	商事法律
+jurisdiction of maritime action involving for elements	涉外海事诉讼管辖权	商事法律
+compulsory realization of the distrained ship	强制变卖被扣押船舶	商事法律
+rules of maritime arbitration procedure	海事仲裁程序规则	商事法律
+insurance law	保险法	商事法律
+voluntary insurance	自愿保险	商事法律
+compulsory insurance	强制保险	商事法律
+commercial insurance	商业保险	商事法律
+property insurance	财产保险	商事法律
+personal insurance	人身保险	商事法律
+life insurance	人寿保险	商事法律
+health insurance	健康保险	商事法律
+accident insurance	意外保险	商事法律
+social insurance	社会保险	商事法律
+endowment insurance	养老保险	商事法律
+medical insurance	医疗保险	商事法律
+unemployment insurance	失业保险	商事法律
+credit insurance	信用保险	商事法律
+guaranty insurance	保证保险	商事法律
+insurance contract	保险合同	商事法律
+insurer; underwriter	保险人	商事法律
+the insured	被保险人	商事法律
+benificiary	受益人	商事法律
+applicant for insurance;; policy holder	投保人	商事法律
+insurance policy	保险单	商事法律
+insurance object	保险标的	商事法律
+premium	保险费	商事法律
+time limit of insurance	保险期限	商事法律
+insurable interest	保险利益	商事法律
+insurance; insurance compensation	保险金额	商事法律
+insurance accident	保险事故	商事法律
+insurance indemnity	保险赔偿	商事法律
+insurance agent	保险代理人	商事法律
+insurance broker	保险经纪人	商事法律
+claim	索赔	商事法律
+claim by subrogation	代位索赔	商事法律
+settlement of claim	理赔	商事法律
+right of subrogation	代位求偿权	商事法律
+abandonment	委付	商事法律
+cancellation/discharging of insurance	退保	商事法律
+criminal law; penal law	刑法学	刑法总论
+criminology	犯罪学	刑法总论
+criminal psychology	犯罪心理学	刑法总论
+reform-through-labor	劳动改造法学	刑法总论
+history of Chinese criminal law	中国刑法史	刑法总论
+comparative criminal law	比较刑法学	刑法总论
+criminal detection	刑事侦查	刑法总论
+forensic psychiatry	司法精神病学	刑法总论
+principal of a legally prescribed punishment for a specified crime	罪刑法定原则	刑法总论
+principal of suiting punishment to crime	罪刑相适应原则	刑法总论
+principal of bearing responsibility solely for one’s own crime	罪责自负原则	刑法总论
+principal of combining punishment with education	惩罚与教育相结合原则	刑法总论
+the doctrine of observing old laws	从旧原则	刑法总论
+the doctrine of observing new laws	从新原则	刑法总论
+the doctrine of observing old laws and new ones when with lighter punishment	从旧兼从轻原则	刑法总论
+the doctrine of observing new laws and old ones when with lighter punishment	从新兼从轻原则	刑法总论
+limitation of prosecution	追诉时效	刑法总论
+age for criminal responsibility	刑事责任年龄	刑法总论
+criminal responsibility; capacity for criminal responsibility	刑事责任能力	刑法总论
+crime; commit a crime	犯罪	刑法总论
+intentional crime; willful crime	故意犯罪	刑法总论
+negligent crime	过失犯罪	刑法总论
+constitution of a crime	犯罪构成	刑法总论
+subject of a crime	犯罪主体	刑法总论
+object of a crime	犯罪客体	刑法总论
+subjective elements of a crime	犯罪的主观方面	刑法总论
+objective elements of a crime	犯罪的客观方面	刑法总论
+target of a crime	犯罪对象	刑法总论
+criminal intent; mens rea	犯罪故意	刑法总论
+actual intent; direct intent	直接故意	刑法总论
+indirect intent	间接故意	刑法总论
+criminal negligence	犯罪过失	刑法总论
+careless negligence	疏忽大意的过失	刑法总论
+unforeseeable; unpredictable	不能预见	刑法总论
+unavoidable	不能避免	刑法总论
+criminal motive	犯罪动机	刑法总论
+criminal intent; criminal purpose	犯罪目的	刑法总论
+unjustifiable self-defense	防卫过当	刑法总论
+completion of a crime	犯罪既遂	刑法总论
+attempted crime	犯罪未遂	刑法总论
+criminal pattern	犯罪形态	刑法总论
+a crime in preparation; preparation for a crime	犯罪预备	刑法总论
+expression for a crime	犯意表示	刑法总论
+abandonment/discontinuance of a crime	犯罪中止	刑法总论
+suspension of a crime	犯罪中断	刑法总论
+behavioral offence	行为犯	刑法总论
+potential damage offence	危险犯	刑法总论
+consequential offence	结果犯	刑法总论
+aggregated consequential offence	结果加重犯	刑法总论
+analogy	类推	刑法总论
+conviction; crimination	定罪	刑法总论
+circumstances for adjudgment	定罪情节	刑法总论
+punishment fits the crime	定罪量刑	刑法总论
+principle of discretionary action of sentencing; principal of sentencing	量刑情节	刑法总论
+dangerous act	危害行为	刑法总论
+causative relation	因果关系	刑法总论
+complicity; joint offence	共同犯罪	刑法总论
+abettor	教唆犯	刑法总论
+accessory	从犯	刑法总论
+accomplice under duress; unwilling follower	胁从犯	刑法总论
+aider; accessory	帮助犯	刑法总论
+recidivist; repeat offence	累犯	刑法总论
+common recidivist	一般累犯	刑法总论
+counter-revolutionary recidivist	反革命累犯	刑法总论
+gang crime	结伙犯罪	刑法总论
+gang of hoodlums	流氓集团	刑法总论
+crime of indecent assault	流氓罪	刑法总论
+organized crime	集团犯罪	刑法总论
+economic crime	经济犯罪	刑法总论
+duty crime; crime by taking advantage of duty	职务犯罪	刑法总论
+assembled a crowd to commit a crime	聚众犯罪	刑法总论
+one crime	一罪	刑法总论
+nemo bis punitur pro eodem delicto; no one is punished twice for the same crime	一罪不二罚	刑法总论
+continuous crime	继续犯	刑法总论
+imaginative joinder of offences	想象竟合犯	刑法总论
+habitual offence	惯犯	刑法总论
+combinative crime; integrated offence	结合犯	刑法总论
+continuing offence	连续犯	刑法总论
+implicated offence	牵连犯	刑法总论
+Inclusive offence; absorbable offence	吸收犯	刑法总论
+plural crimes	数罪	刑法总论
+joinder of punishment for plural crimes	数罪并罚	刑法总论
+maximum statutory penalty	法定最高刑	刑法总论
+minimum statutory penalty	法定最低刑	刑法总论
+total term of sentences	总和刑期	刑法总论
+doctrine of cumulation of punishments	并科原则	刑法总论
+doctrine of accumulation	相加原则	刑法总论
+doctrine of joinder	合并原则	刑法总论
+cumulative principle	累加原则	刑法总论
+absorption principle	吸收原则	刑法总论
+principle of limitative aggravation	限制加重原则	刑法总论
+doctrine of compromise	折衷原则	刑法总论
+dual/double punishment	两罚制	刑法总论
+single punishment	单罚制	刑法总论
+omitted crime	漏罪	刑法总论
+reduction after combined sentence	先并后减	刑法总论
+newly committed crime	新罪	刑法总论
+combination of sentence after reduction	先减后并	刑法总论
+principle of individualization of punishment	刑罚个别化原则	刑法总论
+principle of economization of punishment	刑罚经济原则	刑法总论
+principle of humanitarianism of punishment	刑罚人道主义原则	刑法总论
+principle of utility of punishment	刑罚效益原则	刑法总论
+classification of criminal pennalties	刑罚的种类	刑法总论
+punishment depriving life	生命刑	刑法总论
+punishment against property	财产刑	刑法总论
+punishment of depriving rights	权利刑	刑法总论
+principal penalties	主刑	刑法总论
+public surveillance	管制	刑法总论
+penal servitude	拘役	刑法总论
+fixed-term imprisonment	有期徒刑	刑法总论
+life imprisonment	无期徒刑	刑法总论
+death penalty	死刑	刑法总论
+death sentence with a two-year reprieve	死缓	刑法总论
+accessory penalties	附加刑	刑法总论
+deprivation of political right	剥夺政治权利	刑法总论
+forfeiture of property	没收财产	刑法总论
+criminal fine	罚金	刑法总论
+stripping of medals, decoration or honorary titles	剥夺勋章、奖章和荣誉称号	刑法总论
+renvoi	驱逐出境	刑法总论
+sentencing	量刑	刑法总论
+criminal fact	犯罪事实	刑法总论
+criminal character	犯罪性质	刑法总论
+criminal circumstances of crime	犯罪情节	刑法总论
+grave/serious circumstances	情节严重	刑法总论
+circumstances are particularly serious	情节特别严重	刑法总论
+circumstances are wicked	情节恶劣	刑法总论
+with particularly serious consequence	后果特别严重	刑法总论
+circumstance for sentencing	量刑情节	刑法总论
+statutory circumstances	法定情节	刑法总论
+lighter punishment	从轻处罚	刑法总论
+mitigation of penalty below minimum statutory prescript	减轻处罚	刑法总论
+heavier punishment	从重处罚	刑法总论
+aggravation of penalty below minimum statutory prescript	加重处罚	刑法总论
+exemption from punishment	免予处罚	刑法总论
+discretionary circumstances	酌定情节	刑法总论
+surrender oneself to justice	自首	刑法总论
+confession of one’s offence	坦白	刑法总论
+voluntary surrender to justice	自动投案	刑法总论
+metitorious serviceoffset	立功立功赎罪	刑法总论
+one’s guilt by merit	假释	刑法总论
+probation period for parole	假释考验期	刑法总论
+commutation; mitigation of punishment	减刑	刑法总论
+advisory letter of commutation	减刑建议书	刑法总论
+pardon	赦免	刑法总论
+amnesty; general pardon	大赦	刑法总论
+special pardon	特赦	刑法总论
+deadline of prosecution	追诉期限	刑法总论
+prevention of crime	预防犯罪	刑法总论
+probation; reprieve	缓刑	刑法总论
+system of suspended pronouncement of sentence	缓刑宣告制	刑法总论
+system of suspended prosecution	缓刑起诉制	刑法总论
+probation period	缓刑考验期	刑法总论
+execution; executing punishment	行刑	刑法总论
+execution of sentence outside prison yet under surveillance	监外执行	刑法总论
+labor law	劳动法	劳动与社会保障法律
+labor protection	劳动保护	劳动与社会保障法律
+labor contract system	劳动合同制	劳动与社会保障法律
+collective labor contract	集体劳动合同	劳动与社会保障法律
+term of a labor contract	劳动合同期限	劳动与社会保障法律
+employment contract with unspecified term	不定期劳动合同	劳动与社会保障法律
+time labor contract	有固定期限劳动合同	劳动与社会保障法律
+labor and management	劳资双方	劳动与社会保障法律
+employer	用人单位	劳动与社会保障法律
+employee	劳动者	劳动与社会保障法律
+job age; labor age	劳动年龄	劳动与社会保障法律
+standard labor time system	标准工时制度	劳动与社会保障法律
+working hours	劳动时间	劳动与社会保障法律
+working period	劳动期间	劳动与社会保障法律
+paid annual leave	带薪年休假	劳动与社会保障法律
+legal holiday; official holiday	法定休假日	劳动与社会保障法律
+public holiday	公休日	劳动与社会保障法律
+labor income	劳动收入	劳动与社会保障法律
+wage grading system	工资等级制度	劳动与社会保障法律
+wage of fixed amount	固定工资	劳动与社会保障法律
+floating wage	浮动工资	劳动与社会保障法律
+minimum wage	保底工资	劳动与社会保障法律
+deduction wage	提成工资	劳动与社会保障法律
+labor and personnel management	劳动人事管理	劳动与社会保障法律
+labor discipline	劳动纪律	劳动与社会保障法律
+non-compete rules	竞业禁止规定	劳动与社会保障法律
+confidentiality	保密规定	劳动与社会保障法律
+dismiss; fire	解雇	劳动与社会保障法律
+resign; resignation	辞职	劳动与社会保障法律
+terminate labor relation	终止劳动关系	劳动与社会保障法律
+industrial injury	工伤	劳动与社会保障法律
+welfare	福利	劳动与社会保障法律
+labor insurance	劳动保险	劳动与社会保障法律
+labor indemnity	劳动赔偿	劳动与社会保障法律
+social security	社会保障	劳动与社会保障法律
+employment registration	就业登记	劳动与社会保障法律
+free medical care	公费医疗	劳动与社会保障法律
+lay off	下岗	劳动与社会保障法律
+laid-off worker	下岗职工	劳动与社会保障法律
+administrative department for labor	劳动管理部门	劳动与社会保障法律
+certification of labor contract	劳动合同鉴定	劳动与社会保障法律
+system of inspection for labor safety and hygiene	劳动安全卫生检查制度	劳动与社会保障法律
+verification of degree of physical disability	劳动能力丧失程度鉴定	劳动与社会保障法律
+labor appraisal committee	劳动鉴定委员会	劳动与社会保障法律
+labor supervision system	劳动监察制度	劳动与社会保障法律
+employment agency	劳动介绍所	劳动与社会保障法律
+talent exchange	人才交流中心	劳动与社会保障法律
+labor market	劳动力市场	劳动与社会保障法律
+personnel archive	人事档案	劳动与社会保障法律
+Ministry of Labor and Social Security	劳动与社会保障部	劳动与社会保障法律
+birth insurance	生育保险	劳动与社会保障法律
+arbitration tribunal of labor disputes	劳动争议仲裁庭	劳动与社会保障法律
+labor arbitration law	劳动仲裁法	劳动与社会保障法律
+place where a labor contract is performed	劳动合同履行地	劳动与社会保障法律
+dispute of labor contract	劳动合同争议	劳动与社会保障法律
+complainant; petitioner	申诉人	劳动与社会保障法律
+arbitration petition	仲裁申请书	劳动与社会保障法律
+award (a labor dispute) shall be obtained before litigation	先裁后诉	劳动与社会保障法律
+specific administrative act	具体行政行为	行政法律
+abstract administrative act	抽象行政行为	行政法律
+administrative recuperation	行政补偿	行政法律
+administrative omission	行政不作为	行政法律
+administrative department; executive branch	行政部门	行政法律
+administrative ruling	行政裁定	行政法律
+administrative ruling in writing	行政裁定书	行政法律
+administrative adjudication	行政裁决	行政法律
+administrative discretion	行政裁量	行政法律
+administrative procedure law	行政程序法	行政法律
+administrative procedure	行政程序	行政法律
+administrative procedure ligislation	行政程序立法	行政法律
+violation of law of administrative procedure	行政程序违法	行政法律
+administrative penalty; administrative punishment	行政处罚	行政法律
+summary procedures for administrative penalties	行政处罚的简易程序	行政法律
+procedure on hearing of administrative penalties	行政处罚的听证程序	行政法律
+written decision of administrative penalty	行政处罚决定书	行政法律
+administrative sanction	行政处分	行政法律
+administrative handling	行政处理	行政法律
+administrative measure; executive action	行政措施	行政法律
+administrative reconsideration	行政复议	行政法律
+administrative appeal	行政申诉	行政法律
+administrative examination	行政审查	行政法律
+administrative adjudication; administrative trial	行政审判	行政法律
+written administrative appeal	行政申诉状	行政法律
+administrative penalties restricting the personal liberty	限制人身自由权的行政处罚	行政法律
+administrative penalties restricting the right of personal freedom	限制行为权的行政处罚	行政法律
+administrative interference	行政干涉	行政法律
+administrative intervention	行政干预	行政法律
+administrative notice	行政告知	行政法律
+cession of administration	行政割让	行政法律
+official letter	行政公函	行政法律
+principle of administrative openness	行政公开原则	行政法律
+summary administrative act	行政即决行为	行政法律
+administrative supervision; supervision over administration	行政监察	行政法律
+administrative supervision; supervision by administration; supervision by the executive	行政监督	行政法律
+administrative inspection	行政检查	行政法律
+administrative appraisal	行政鉴定	行政法律
+doctrine of exhaustiveness(of administrative remedies)	行政救济穷尽原则	行政法律
+administrative attachment; administrative detention	行政拘留	行政法律
+administrative decision; executive decision	行政决定	行政法律
+administrative control; executive control	行政控制	行政法律
+administrative resolution	行政决议	行政法律
+administrative order; executive command; executive order	行政命令	行政法律
+administrative judgement	行政判决	行政法律
+administration tort	行政侵权	行政法律
+administrative petition	行政请愿	行政法律
+administrative assistant	行政协理	行政法律
+administrative arrangement	行政安排	行政法律
+administrative act in violation of law	违法行政行为	行政法律
+admonition	警告	行政法律
+judicial advice	司法建议	行政法律
+jurisprudence	法理（学）	其他
+sources of law	法律渊源	其他
+family of law; genealogy of law	法系	其他
+continental genealogy of law; civil law	大陆法系	其他
+protective norm	保护性规范	其他
+prohibitive norm	禁止性规范	其他
+mandatory norm	命令性规范	其他
+compulsory norm	强制性规范	其他
+random norm	任意性规范	其他
+optional norm	选择性规范	其他
+legislation	立法	其他
+rule of men	人治	其他
+rule of law	法治	其他
+justice; ligality	法制	其他
+judicial supervision	司法监督	其他
+substantive law	实体法	其他

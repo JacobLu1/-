@@ -61,10 +61,7 @@
 
         <main class="app-content">
           <section class="vl-hero">
-            <view class="vl-hero-copy">
-              <text class="vl-hero-title">全部视频课程</text>
-              <text class="vl-hero-subtitle">共 {{ videos.length }} 个视频资源，按发布时间倒序展示</text>
-            </view>
+            <text class="vl-count-text">共 <text class="vl-count-num">{{ videos.length }}</text> 个视频资源</text>
             <view class="vl-search">
               <view class="vl-search-icon"></view>
               <input class="vl-search-input" v-model="searchText" placeholder="搜索视频标题" />
@@ -82,9 +79,19 @@
                 @tap="categoryFilter = c"
               >{{ c }}</view>
             </view>
+            <view class="vl-view-toggle" role="tablist" aria-label="视图切换">
+              <view class="vl-view-option" :class="{ 'is-active': viewMode === 'card' }" title="适合预览封面视频" @tap="viewMode = 'card'">
+                <view class="vl-view-icon vl-view-icon-card"></view>
+                <text>卡片视图</text>
+              </view>
+              <view class="vl-view-option" :class="{ 'is-active': viewMode === 'list' }" title="适合批量浏览、对比标题" @tap="viewMode = 'list'">
+                <view class="vl-view-icon vl-view-icon-list"></view>
+                <text>列表视图</text>
+              </view>
+            </view>
           </view>
 
-          <view class="video-grid" v-if="filteredVideos.length">
+          <view v-if="viewMode === 'card' && filteredVideos.length" class="video-grid">
             <view class="video-card" v-for="(video, vIdx) in filteredVideos" :key="video.id" @tap="playVideo(video)">
               <view class="video-thumb">
                 <view class="video-thumb-gradient" :style="videoThumbStyle(video)"></view>
@@ -108,6 +115,23 @@
                   </text>
                 </view>
               </view>
+            </view>
+          </view>
+          <view v-else-if="viewMode === 'list' && filteredVideos.length" class="video-list">
+            <view class="video-list-header">
+              <text class="video-list-col video-list-col-title">视频标题</text>
+              <text class="video-list-col">分类</text>
+              <text class="video-list-col">时长</text>
+              <text class="video-list-col">上线时间</text>
+            </view>
+            <view class="video-list-row" v-for="(video, vIdx) in filteredVideos" :key="video.id" @tap="playVideo(video)">
+              <view class="video-list-col video-list-col-title">
+                <view class="video-list-thumb" :style="videoThumbStyle(video)"></view>
+                <text class="video-list-title-text">{{ video.title }}</text>
+              </view>
+              <text class="video-list-col">{{ video.category }}</text>
+              <text class="video-list-col">{{ video.duration }}</text>
+              <text class="video-list-col">{{ video.date || '已上线' }}</text>
             </view>
           </view>
           <view v-else class="vl-empty">
@@ -140,6 +164,7 @@ const videos = ref([])
 const loading = ref(false)
 const searchText = ref('')
 const categoryFilter = ref('all')
+const viewMode = ref('card')
 
 const videoGradients = [
   'linear-gradient(135deg, #1E40AF, #3B82F6)',
@@ -194,8 +219,34 @@ async function loadVideos() {
   if (loading.value) return
   loading.value = true
   try {
-    const resourcesObj = uniCloud.importObject('resources', { customUI: true })
-    const r = (await resourcesObj.listPublic({ type: 'video' })) || {}
+    const RESOURCES_CACHE_KEY = 'lc_resources_all_cache'
+    const RESOURCES_CACHE_TTL = 5 * 60 * 1000
+    const now = Date.now()
+
+    let r = null
+    // 1) 先读共享缓存（学习中心写过的话直接命中）
+    try {
+      const cached = uni.getStorageSync(RESOURCES_CACHE_KEY)
+      if (cached && cached.expireAt && cached.expireAt > now && cached.data && cached.data.errCode === 0) {
+        r = cached.data
+      }
+    } catch (e) {}
+
+    // 2) 缓存未命中时才请求
+    if (!r) {
+      const resourcesObj = uniCloud.importObject('resources', { customUI: true })
+      r = (await resourcesObj.listPublic({ type: 'all' })) || {}
+      // 写入共享缓存，与其它页面互通
+      if (r.errCode === 0) {
+        try {
+          uni.setStorageSync(RESOURCES_CACHE_KEY, {
+            expireAt: Date.now() + RESOURCES_CACHE_TTL,
+            data: r
+          })
+        } catch (e) {}
+      }
+    }
+
     if (r.errCode !== 0) {
       uni.showToast({ title: r.errMsg || '视频加载失败', icon: 'none' })
       return
@@ -336,7 +387,7 @@ onLoad(() => {
   width: 36px;
   height: 36px;
   border-radius: 8px;
-  background: linear-gradient(135deg, var(--rule-primary), var(--rule-primary-active));
+  background: var(--rule-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -387,9 +438,13 @@ onLoad(() => {
 }
 
 .app-nav-item.is-active {
-  background: linear-gradient(135deg, var(--rule-primary), var(--rule-primary-active));
+  background: var(--rule-primary);
+  color: #FFFFFF;
+}
+
+.app-nav-item.is-active:hover {
+  background: var(--rule-primary-hover);
   color: #fff;
-  box-shadow: 0 6px 14px -4px rgba(37,99,235,.45);
 }
 
 .navi-icon {
@@ -400,14 +455,16 @@ onLoad(() => {
   display: inline-block;
 }
 
+.app-nav-item.is-active .navi-icon { background: #fff; }
+
 .navi-icon-survey {
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M8 6h13'/><path d='M8 12h13'/><path d='M8 18h13'/><path d='M3 6h.01'/><path d='M3 12h.01'/><path d='M3 18h.01'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M8 6h13'/><path d='M8 12h13'/><path d='M8 18h13'/><path d='M3 6h.01'/><path d='M3 12h.01'/><path d='M3 18h.01'/></svg>") center/contain no-repeat;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><rect width='8' height='4' x='8' y='2' rx='1'/><path d='M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'/><path d='M12 11h4'/><path d='M12 16h4'/><circle cx='9' cy='11' r='1.2'/><circle cx='9' cy='16' r='1.2'/></svg>") center/contain no-repeat;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><rect width='8' height='4' x='8' y='2' rx='1'/><path d='M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'/><path d='M12 11h4'/><path d='M12 16h4'/><circle cx='9' cy='11' r='1.2'/><circle cx='9' cy='16' r='1.2'/></svg>") center/contain no-repeat;
 }
 
 .navi-icon-chart {
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M3 3v18h18'/><path d='m19 9-5 5-4-4-3 3'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M3 3v18h18'/><path d='m19 9-5 5-4-4-3 3'/></svg>") center/contain no-repeat;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M3 3v18h18'/><path d='M18 17V9'/><path d='M13 17V5'/><path d='M8 17v-3'/></svg>") center/contain no-repeat;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M3 3v18h18'/><path d='M18 17V9'/><path d='M13 17V5'/><path d='M8 17v-3'/></svg>") center/contain no-repeat;
 }
 
 .navi-icon-book {
@@ -416,13 +473,13 @@ onLoad(() => {
 }
 
 .navi-icon-bot {
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><rect width='16' height='12' x='4' y='8' rx='2'/><path d='M12 4v4'/><circle cx='8' cy='13' r='1'/><circle cx='16' cy='13' r='1'/><path d='M8 17h8'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><rect width='16' height='12' x='4' y='8' rx='2'/><path d='M12 4v4'/><circle cx='8' cy='13' r='1'/><circle cx='16' cy='13' r='1'/><path d='M8 17h8'/></svg>") center/contain no-repeat;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 8V4H8'/><rect width='16' height='12' x='4' y='8' rx='2'/><path d='M2 14h2'/><path d='M20 14h2'/><path d='M15 13v2'/><path d='M9 13v2'/></svg>") center/contain no-repeat;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 8V4H8'/><rect width='16' height='12' x='4' y='8' rx='2'/><path d='M2 14h2'/><path d='M20 14h2'/><path d='M15 13v2'/><path d='M9 13v2'/></svg>") center/contain no-repeat;
 }
 
 .navi-icon-book-open {
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z'/><path d='M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z'/><path d='M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z'/></svg>") center/contain no-repeat;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z'/%3E%3Cpath d='M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z'/%3E%3C/svg%3E") center/contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z'/%3E%3Cpath d='M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z'/%3E%3C/svg%3E") center/contain no-repeat;
 }
 
 .app-sidebar-user {
@@ -443,8 +500,8 @@ onLoad(() => {
   width: 32px;
   height: 32px;
   border-radius: 9999px;
-  background: linear-gradient(135deg, var(--rule-primary), var(--rule-primary-active));
-  color: #fff;
+  background: var(--rule-primary-tint-1);
+  color: var(--rule-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -473,7 +530,7 @@ onLoad(() => {
   margin-top: 12px;
   padding: 8px 12px;
   border-radius: 8px;
-  color: var(--rule-muted-foreground);
+  color: var(--rule-ink-2);
   font-size: 13px;
   cursor: pointer;
 }
@@ -566,42 +623,42 @@ onLoad(() => {
 
 .vl-hero {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
-  gap: 24px;
-  padding: 28px;
+  gap: 20px;
+  padding: 14px 18px;
   margin-bottom: 20px;
-  background: linear-gradient(135deg, #fff, #EFF6FF);
-  border: 1px solid #E2E8F0;
-  border-radius: 16px;
+  background: var(--rule-card);
+  border: 1px solid var(--rule-border);
+  border-radius: 14px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+  flex-wrap: wrap;
 }
 
-.vl-hero-copy {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.vl-hero-title {
-  font-size: 26px;
-  font-weight: 700;
-  color: var(--rule-foreground);
-}
-
-.vl-hero-subtitle {
+.vl-count-text {
   font-size: 14px;
   color: var(--rule-muted-foreground);
+  flex-shrink: 0;
+}
+
+.vl-count-num {
+  font-weight: 600;
+  color: var(--rule-primary);
+  font-size: 16px;
+  margin: 0 2px;
 }
 
 .vl-search {
   position: relative;
   width: min(360px, 100%);
+  flex: 1;
+  min-width: 240px;
 }
 
 .vl-search-input {
   width: 100%;
-  height: 44px;
-  padding: 0 16px 0 42px;
+  height: 40px;
+  padding: 0 14px 0 40px;
   border-radius: 9999px;
   border: 1px solid var(--rule-border);
   background: var(--rule-card);
@@ -619,7 +676,7 @@ onLoad(() => {
 
 .vl-search-icon {
   position: absolute;
-  left: 15px;
+  left: 14px;
   top: 50%;
   width: 18px;
   height: 18px;
@@ -632,7 +689,10 @@ onLoad(() => {
 .vl-toolbar {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 16px;
   margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 
 .qb-pills {
@@ -666,9 +726,58 @@ onLoad(() => {
   box-shadow: 0 4px 10px -2px rgba(37,99,235,.42);
 }
 
+/* ===== 视图切换 ===== */
+.vl-view-toggle {
+  display: inline-flex;
+  gap: 4px;
+  background: var(--rule-muted);
+  padding: 4px;
+  border-radius: 9999px;
+}
+
+.vl-view-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--rule-muted-foreground);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.vl-view-option:hover {
+  color: var(--rule-foreground);
+}
+
+.vl-view-option.is-active {
+  background: linear-gradient(135deg, var(--rule-primary), var(--rule-primary-active));
+  color: #fff;
+  box-shadow: 0 4px 10px -2px rgba(37,99,235,.42);
+}
+
+.vl-view-icon {
+  width: 14px;
+  height: 14px;
+  background: currentColor;
+}
+
+.vl-view-icon-card {
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect width='7' height='9' x='3' y='3' rx='1'/><rect width='7' height='5' x='14' y='3' rx='1'/><rect width='7' height='9' x='14' y='12' rx='1'/><rect width='7' height='5' x='3' y='16' rx='1'/></svg>") center/contain no-repeat;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect width='7' height='9' x='3' y='3' rx='1'/><rect width='7' height='5' x='14' y='3' rx='1'/><rect width='7' height='9' x='14' y='12' rx='1'/><rect width='7' height='5' x='3' y='16' rx='1'/></svg>") center/contain no-repeat;
+}
+
+.vl-view-icon-list {
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='8' x2='21' y1='6' y2='6'/><line x1='8' x2='21' y1='12' y2='12'/><line x1='8' x2='21' y1='18' y2='18'/><line x1='3' x2='3.01' y1='6' y2='6'/><line x1='3' x2='3.01' y1='12' y2='12'/><line x1='3' x2='3.01' y1='18' y2='18'/></svg>") center/contain no-repeat;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='8' x2='21' y1='6' y2='6'/><line x1='8' x2='21' y1='12' y2='12'/><line x1='8' x2='21' y1='18' y2='18'/><line x1='3' x2='3.01' y1='6' y2='6'/><line x1='3' x2='3.01' y1='12' y2='12'/><line x1='3' x2='3.01' y1='18' y2='18'/></svg>") center/contain no-repeat;
+}
+
 .video-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 20px;
 }
 
@@ -678,6 +787,8 @@ onLoad(() => {
   border-radius: 16px;
   overflow: hidden;
   cursor: pointer;
+  display: flex;
+  flex-direction: column;
   transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
@@ -704,7 +815,8 @@ onLoad(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(15,23,42,.22);
+  background: rgba(15,23,42,0);
+  transition: background 0.25s ease;
 }
 
 .video-play-btn {
@@ -716,6 +828,19 @@ onLoad(() => {
   align-items: center;
   justify-content: center;
   box-shadow: 0 12px 24px -8px rgba(15,23,42,.35);
+  opacity: 0;
+  transform: scale(.85);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+/* 播放按钮仅鼠标悬浮在封面上时显示 */
+.video-card:hover .video-play-overlay {
+  background: rgba(15,23,42,.28);
+}
+
+.video-card:hover .video-play-btn {
+  opacity: 1;
+  transform: scale(1);
 }
 
 .play-icon {
@@ -741,6 +866,7 @@ onLoad(() => {
 
 .video-info {
   padding: 16px;
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -751,10 +877,13 @@ onLoad(() => {
   font-weight: 600;
   color: var(--rule-foreground);
   line-height: 1.45;
+  /* 固定两行高度，单行标题自动空出第二行；超过两行省略 */
+  min-height: calc(15px * 1.45 * 2);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  flex: none;
 }
 
 .video-meta {
@@ -762,6 +891,7 @@ onLoad(() => {
   align-items: center;
   gap: 14px;
   flex-wrap: wrap;
+  margin-top: auto;
 }
 
 .video-meta-item {
@@ -789,6 +919,72 @@ onLoad(() => {
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z'/><circle cx='12' cy='12' r='3'/></svg>") center/contain no-repeat;
 }
 
+/* ===== 列表视图 ===== */
+.video-list {
+  display: flex;
+  flex-direction: column;
+  background: var(--rule-card);
+  border: 1px solid var(--rule-border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.video-list-header,
+.video-list-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px 90px 120px;
+  gap: 16px;
+  align-items: center;
+  padding: 12px 20px;
+}
+
+.video-list-header {
+  background: var(--rule-muted);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--rule-muted-foreground);
+}
+
+.video-list-row {
+  border-top: 1px solid var(--rule-border);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.video-list-row:hover {
+  background: var(--rule-primary-tint-3);
+}
+
+.video-list-col {
+  font-size: 13px;
+  color: var(--rule-ink-2);
+  min-width: 0;
+}
+
+.video-list-col-title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.video-list-thumb {
+  width: 96px;
+  height: 54px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  background: var(--rule-muted);
+}
+
+.video-list-title-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--rule-foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .vl-empty {
   display: flex;
   flex-direction: column;
@@ -812,7 +1008,13 @@ onLoad(() => {
   color: var(--rule-muted-foreground);
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1200px) {
+  .video-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1024px) {
   .video-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -831,13 +1033,22 @@ onLoad(() => {
   .vl-hero {
     flex-direction: column;
     align-items: stretch;
-    padding: 22px;
+    padding: 12px 14px;
   }
   .vl-search {
     width: 100%;
   }
   .video-grid {
     grid-template-columns: 1fr;
+  }
+  /* 列表视图窄屏只保留标题 */
+  .video-list-header,
+  .video-list-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .video-list-header .video-list-col:not(.video-list-col-title),
+  .video-list-row .video-list-col:not(.video-list-col-title) {
+    display: none;
   }
 }
 </style>
