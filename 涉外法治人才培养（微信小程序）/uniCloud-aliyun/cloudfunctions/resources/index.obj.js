@@ -271,14 +271,20 @@ module.exports = {
   /**
    * 删除资源（需管理员 token）
    */
-  async remove({ adminToken, id } = {}) {
+  async remove({ adminToken, id, ids } = {}) {
     const check = await checkAdmin(adminToken)
     if (check.errCode !== 0) return check
-    if (!id) {
+    let idList = []
+    if (Array.isArray(ids) && ids.length) {
+      idList = ids
+    } else if (id) {
+      idList = [id]
+    }
+    if (!idList.length) {
       return { errCode: 'PARAM_IS_NULL', errMsg: 'id 不能为空' }
     }
-    await db.collection('resource').doc(id).remove()
-    return { errCode: 0, errMsg: '' }
+    const res = await db.collection('resource').where({ _id: db.command.in(idList) }).remove()
+    return { errCode: 0, errMsg: '', removed: res && res.deleted }
   }
 }
 

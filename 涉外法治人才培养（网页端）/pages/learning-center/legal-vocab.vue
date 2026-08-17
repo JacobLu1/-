@@ -90,16 +90,18 @@
         <view class="list-head">
           <text class="list-title">{{ activeTitle }}</text>
           <text class="list-count">{{ activeWords.length }} 词</text>
+          <view class="vocab-search">
+            <view class="vocab-search-icon"></view>
+            <input class="vocab-search-input" v-model="searchText" placeholder="搜索词汇" confirm-type="search" />
+            <view v-if="searchText" class="vocab-search-clear" @tap="searchText = ''">×</view>
+          </view>
         </view>
 
         <view v-if="activeWords.length">
-          <view class="word-list">
-            <view class="word-row" v-for="word in displayedWords" :key="word.id" @tap="onWordTap(word)">
-              <view class="word-main">
-                <text class="word-en">{{ word.en }}</text>
-                <text class="word-level">{{ word.level || '法律英语' }}</text>
-                <text class="word-cn">{{ word.cn }}</text>
-              </view>
+          <view class="word-grid">
+            <view class="word-card" v-for="word in displayedWords" :key="word.id" @tap="onWordTap(word)">
+              <text class="word-en">{{ word.en }}</text>
+              <text class="word-cn">{{ word.cn }}</text>
               <view class="word-actions">
                 <view class="action-btn star-btn" :class="{ active: isStarredWord(word) }" @tap.stop="toggleStar(word)">
                   {{ isStarredWord(word) ? '已收藏' : '收藏' }}
@@ -115,7 +117,7 @@
           </view>
           <view v-if="activeWords.length > PAGE_SIZE" class="vocab-pagination">
             <view class="vocab-pagination-info">
-              共 {{ activeWords.length }} 词，每页 50 条，当前第 {{ currentPage }} / {{ totalPages }} 页
+              共 {{ activeWords.length }} 词，每页 51 条，当前第 {{ currentPage }} / {{ totalPages }} 页
             </view>
             <view class="vocab-pagination-buttons">
               <view
@@ -128,7 +130,7 @@
                 v-for="page in visiblePageNumbers"
                 :key="page"
               >
-                <view v-if="page === '...'" class="vocab-page-ellipsis">...</view>
+                <view v-if="page === '...'" class="vocab-page-ellipsis" @tap="jumpToPage">...</view>
                 <view
                   v-else
                   class="vocab-page-btn"
@@ -176,7 +178,8 @@ const progressMap = ref({})
 const activeCard = ref('unlearned')
 const loading = ref(false)
 const currentLang = ref('英语')
-const PAGE_SIZE = 50
+const PAGE_SIZE = 51
+const VOCAB_CACHE_TTL = 10 * 60 * 1000
 const currentPage = ref(1)
 
 const userName = ref(getDisplayName())
@@ -186,20 +189,31 @@ const userInitial = computed(() => (userName.value || '用').slice(0, 1))
 const stats = computed(() => getVocabStats(vocabPool.value, progressMap.value))
 const vocabTotal = computed(() => stats.value.total)
 
+const searchText = ref('')
+
 const activeWords = computed(() => {
   const p = progressMap.value
+  const kw = searchText.value.trim().toLowerCase()
+  let base
   if (activeCard.value === 'review') {
-    return vocabPool.value
+    base = vocabPool.value
       .filter(w => isDueReview(p[w.id]))
       .sort((a, b) => ((p[a.id] && p[a.id].reviewAt) || 0) - ((p[b.id] && p[b.id].reviewAt) || 0))
+  } else if (activeCard.value === 'unlearned') {
+    base = vocabPool.value.filter(w => !isLearned(p[w.id]))
+  } else if (activeCard.value === 'starred') {
+    base = vocabPool.value.filter(w => isStarred(p[w.id]))
+  } else {
+    base = []
   }
-  if (activeCard.value === 'unlearned') {
-    return vocabPool.value.filter(w => !isLearned(p[w.id]))
+  // 双向搜索：同时匹配外语词条与中文释义
+  if (kw) {
+    base = base.filter(w =>
+      (w.en || '').toLowerCase().includes(kw) ||
+      (w.cn || '').toLowerCase().includes(kw)
+    )
   }
-  if (activeCard.value === 'starred') {
-    return vocabPool.value.filter(w => isStarred(p[w.id]))
-  }
-  return []
+  return base
 })
 
 const totalPages = computed(() => Math.max(1, Math.ceil(activeWords.value.length / PAGE_SIZE)))
@@ -231,6 +245,24 @@ function changePage(page) {
   uni.pageScrollTo({ scrollTop: 0, duration: 200 })
 }
 
+// 点击省略号"..."弹出输入框，直接跳转到指定页码
+function jumpToPage() {
+  uni.showModal({
+    title: '跳转到指定页',
+    editable: true,
+    placeholderText: `请输入 1-${totalPages.value} 之间的页码`,
+    success: (res) => {
+      if (!res.confirm) return
+      const n = parseInt(res.content, 10)
+      if (Number.isNaN(n)) {
+        uni.showToast({ title: '请输入有效页码', icon: 'none' })
+        return
+      }
+      changePage(n)
+    }
+  })
+}
+
 watch(totalPages, (total) => {
   if (currentPage.value > total) currentPage.value = total
 })
@@ -251,6 +283,7 @@ const emptyText = computed(() => {
 function switchLang(lang) {
   if (currentLang.value === lang) return
   currentLang.value = lang
+  try { uni.setStorageSync('lv_last_lang', lang) } catch (e) {}
   vocabPool.value = []
   currentPage.value = 1
   loadVocabResources()
@@ -294,16 +327,54 @@ function onWordTap(word) {
   uni.showToast({ title: `${word.en}：${word.cn}`, icon: 'none' })
 }
 
+async function fetchVocabByLang(lang) {
+  const resourcesObj = uniCloud.importObject('resources', { customUI: true })
+  // 云数据库单次 get 有 100 条上限，翻页拉全，避免词量大时被截断
+  const pageSize = 1000
+  const all = []
+  let page = 1
+  let total = 0
+  let fetched = 0
+  do {
+    const r = (await resourcesObj.listPublic({ type: 'vocabulary', lang, page, size: pageSize })) || {}
+    if (r.errCode !== 0) break
+    const batch = r.list || []
+    all.push(...batch)
+    fetched += batch.length
+    total = Number(r.total) || fetched
+    page++
+  } while (fetched < total)
+  return all
+    .filter(d => d.type === 'vocabulary' && normalizeLang(d.lang) === currentLang.value)
+    .map(mapWord)
+}
+
 async function loadVocabResources() {
   if (loading.value) return
   loading.value = true
   try {
-    const resourcesObj = uniCloud.importObject('resources', { customUI: true })
-    const r = (await resourcesObj.listPublic({ type: 'vocabulary', lang: currentLang.value })) || {}
-    if (r.errCode === 0) {
-      vocabPool.value = (r.list || []).map(mapWord)
-      currentPage.value = 1
+    // 词库变动不频繁：本地缓存 10 分钟，避免每次进入都重复拉取全量词汇
+    const cacheKey = `lv_vocab_cache_${currentLang.value}`
+    const now = Date.now()
+    let words = null
+    try {
+      const cached = uni.getStorageSync(cacheKey)
+      if (cached && cached.expireAt && cached.expireAt > now && Array.isArray(cached.data)) {
+        words = cached.data
+      }
+    } catch (e) {}
+    if (!words) {
+      // 云函数端按语言过滤，减少传输量；返回空时兼容旧数据（无 lang 字段）回退拉全量再过滤
+      words = await fetchVocabByLang(currentLang.value)
+      if (!words.length) {
+        words = await fetchVocabByLang('')
+      }
+      try {
+        uni.setStorageSync(cacheKey, { expireAt: now + VOCAB_CACHE_TTL, data: words })
+      } catch (e) {}
     }
+    vocabPool.value = words
+    currentPage.value = 1
   } catch (e) {
     uni.showToast({ title: (e && e.errMsg) || '词汇资源加载失败', icon: 'none' })
   } finally {
@@ -345,7 +416,11 @@ function handleLogout() {
 
 onLoad((options) => {
   if (!requireLogin()) return
-  currentLang.value = parseLang(options && options.lang)
+  let lang = parseLang(options && options.lang)
+  if (!['英语', '德语', '法语', '拉丁语', '西班牙语'].includes(lang)) {
+    try { lang = uni.getStorageSync('lv_last_lang') || '英语' } catch (e) { lang = '英语' }
+  }
+  currentLang.value = parseLang(lang)
   progressMap.value = loadVocabProgress()
   loadVocabResources()
 })
@@ -780,79 +855,145 @@ onLoad((options) => {
   color: #64748B;
 }
 
+.vocab-search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 5px 10px;
+  width: 200px;
+  flex-shrink: 0;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.vocab-search:focus-within {
+  border-color: var(--rule-primary, #2563EB);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+}
+
+.vocab-search-icon {
+  width: 13px;
+  height: 13px;
+  border: 2px solid #94A3B8;
+  border-radius: 50%;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.vocab-search-icon::after {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 2px;
+  background: #94A3B8;
+  border-radius: 2px;
+  transform: rotate(45deg);
+  right: -4px;
+  bottom: -2px;
+}
+
+.vocab-search-input {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  color: #0F172A;
+}
+
+.vocab-search-clear {
+  width: 18px;
+  height: 18px;
+  line-height: 16px;
+  text-align: center;
+  border-radius: 50%;
+  background: #F1F5F9;
+  color: #64748B;
+  font-size: 13px;
+  cursor: pointer;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.vocab-search-clear:hover {
+  background: #E2E8F0;
+  color: #334155;
+}
+
 .list-head {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin: 28px 0 12px;
+  align-items: center;
+  gap: 12px;
+  margin: 24px 0 12px;
 }
 
 .list-title {
   font-size: 18px;
   font-weight: 700;
   color: #0F172A;
+  white-space: nowrap;
 }
 
 .list-count {
   font-size: 13px;
   color: #64748B;
+  white-space: nowrap;
 }
 
-.word-list {
+.vocab-search {
+  margin-left: auto;
+}
+
+.word-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.word-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   background: #FFFFFF;
   border: 1px solid #E2E8F0;
   border-radius: 12px;
-  padding: 6px 20px;
-}
-
-.word-row {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 16px 0;
-  border-bottom: 1px solid #E2E8F0;
+  padding: 14px 16px;
   cursor: pointer;
+  transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
 }
 
-.word-row:last-child {
-  border-bottom: none;
-}
-
-.word-main {
-  min-width: 0;
-  flex: 1;
+.word-card:hover {
+  border-color: #BFDBFE;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, .06);
+  transform: translateY(-1px);
 }
 
 .word-en {
   display: block;
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: #0F172A;
-}
-
-.word-level {
-  display: inline-block;
-  margin-top: 6px;
-  padding: 2px 8px;
-  border-radius: 9999px;
-  background: #F1F5F9;
-  font-size: 12px;
-  color: #64748B;
+  line-height: 1.4;
+  overflow-wrap: break-word;
 }
 
 .word-cn {
   display: block;
-  margin-top: 8px;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.6;
-  color: #334155;
+  font-weight: 600;
+  color: var(--rule-primary, #2563EB);
+  flex: 1;
+  min-height: 48px;
 }
 
 .word-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding-top: 8px;
+  border-top: 1px dashed #E2E8F0;
 }
 
 .action-btn {
@@ -871,26 +1012,38 @@ onLoad((options) => {
 }
 
 .star-btn {
-  color: #0F766E;
-  background: #F0FDFA;
-  border: 1px solid #99F6E4;
+  color: #92400E;
+  background: #FEF3C7;
+  border: 1px solid #FCD34D;
+}
+
+.star-btn:hover {
+  background: #FDE68A;
 }
 
 .star-btn.active {
   color: #FFFFFF;
-  background: #0F766E;
-  border-color: #0F766E;
+  background: #D97706;
+  border-color: #D97706;
 }
 
 .known-btn {
   color: #FFFFFF;
-  background: #16A34A;
+  background: #2563EB;
+}
+
+.known-btn:hover {
+  background: #1D4ED8;
 }
 
 .again-btn {
-  color: #DC2626;
-  background: #FEE2E2;
-  border: 1px solid #FECACA;
+  color: #E11D48;
+  background: #FFF1F2;
+  border: 1px solid #FECDD3;
+}
+
+.again-btn:hover {
+  background: #FFE4E6;
 }
 
 .vocab-pagination {
@@ -935,7 +1088,13 @@ onLoad((options) => {
 .vocab-page-ellipsis {
   border-color: transparent;
   background: transparent;
-  cursor: default;
+  cursor: pointer;
+  color: #64748B;
+  user-select: none;
+}
+
+.vocab-page-ellipsis:hover {
+  color: #2563EB;
 }
 .vocab-page-btn:hover:not(.is-disabled):not(.is-active) {
   border-color: #2563EB;
@@ -972,6 +1131,12 @@ onLoad((options) => {
   color: #64748B;
 }
 
+@media (max-width: 1024px) {
+  .word-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
   .app-sidebar {
     transform: translateX(-100%);
@@ -988,13 +1153,8 @@ onLoad((options) => {
   .vocab-cards {
     grid-template-columns: 1fr;
   }
-  .word-row {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .word-actions {
-    width: 100%;
-    justify-content: flex-end;
+  .word-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
@@ -1004,6 +1164,17 @@ onLoad((options) => {
   }
   .card-num {
     font-size: 28px;
+  }
+  .list-head {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .vocab-search {
+    width: 100%;
+    margin-left: 0;
+  }
+  .word-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

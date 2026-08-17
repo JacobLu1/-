@@ -385,6 +385,10 @@
                   <view class="qb-pill" :class="{ 'is-active': resourceFilter === 'listening' }" @tap="resourceFilter = 'listening'">听力</view>
                 </view>
               </view>
+              <view v-if="selectedIds.length" class="qb-batch-del" @tap="batchDelete">
+                <view class="navi-icon navi-icon-trash-2"></view>
+                <text>批量删除（{{ selectedIds.length }}）</text>
+              </view>
             </view>
           </view>
           <view class="qb-table-card">
@@ -392,6 +396,9 @@
               <table class="qb-table">
                 <thead>
                   <tr>
+                    <th scope="col" class="qb-check-col">
+                      <view class="qb-check" :class="{ 'is-checked': isAllSelected }" @tap="toggleSelectAll()"></view>
+                    </th>
                     <th scope="col">编号</th>
                     <th scope="col">类型</th>
                     <th v-if="showLanguageColumn" scope="col">语言</th>
@@ -405,6 +412,9 @@
                 </thead>
                 <tbody>
                   <tr v-for="item in pagedResources" :key="item.id">
+                    <td class="qb-check-col">
+                      <view class="qb-check" :class="{ 'is-checked': selectedIds.includes(item.id) }" @tap="toggleSelect(item.id)"></view>
+                    </td>
                     <td><text class="qb-qid">{{ item.id }}</text></td>
                     <td><text class="qb-type-tag" :class="item.typeClass">{{ resourceTypeLabel(item.type) }}</text></td>
                     <td v-if="showLanguageColumn"><text class="qb-type-tag qb-cat-blue">{{ item.lang || '英语' }}</text></td>
@@ -797,6 +807,51 @@ const resourceFilter = ref('all')
 const resources = ref([])
 const PAGE_SIZE = 50
 const currentPage = ref(1)
+const selectedIds = ref([])
+
+// 当前筛选结果是否全部选中
+const isAllSelected = computed(() => {
+  const list = filteredResources.value
+  return list.length > 0 && list.every(item => selectedIds.value.includes(item.id))
+})
+
+function toggleSelect(id) {
+  const i = selectedIds.value.indexOf(id)
+  if (i >= 0) selectedIds.value.splice(i, 1)
+  else selectedIds.value.push(id)
+}
+
+function toggleSelectAll() {
+  const all = filteredResources.value
+  const allSelected = all.length > 0 && all.every(item => selectedIds.value.includes(item.id))
+  selectedIds.value = allSelected ? [] : all.map(item => item.id)
+}
+
+async function batchDelete() {
+  if (!selectedIds.value.length) return
+  const ids = selectedIds.value.slice()
+  const typeLabel = resourceFilter.value === 'vocabulary' ? '词汇' : resourceFilter.value === 'video' ? '视频' : resourceFilter.value === 'reading' ? '阅读' : resourceFilter.value === 'listening' ? '听力' : ''
+  uni.showModal({
+    title: '确认批量删除',
+    content: `确定要删除选中的 ${ids.length} 条${typeLabel ? `（${typeLabel}）` : ''}资源吗？删除后不可恢复。`,
+    success: async (res) => {
+      if (!res.confirm) return
+      try {
+        const resourcesObj = uniCloud.importObject('resources', { customUI: true })
+        const r = (await resourcesObj.remove({ adminToken: getAdminToken(), ids })) || {}
+        if (r.errCode === 0) {
+          uni.showToast({ title: `已删除 ${r.removed || ids.length} 条`, icon: 'success' })
+          selectedIds.value = []
+          await loadAll()
+        } else {
+          uni.showToast({ title: r.errMsg || '删除失败', icon: 'none' })
+        }
+      } catch (e) {
+        uni.showToast({ title: (e && e.errMsg) || '删除失败', icon: 'none' })
+      }
+    }
+  })
+}
 
 const filteredResources = computed(() => {
   const q = resourceSearch.value.trim().toLowerCase()
@@ -1801,6 +1856,58 @@ onMounted(() => {
 }
 .qb-toolbar-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .qb-search { position: relative; flex: 1 1 240px; min-width: 220px; }
+.qb-batch-del {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  background: #FEE2E2;
+  color: #B91C1C;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s ease;
+  flex-shrink: 0;
+}
+.qb-batch-del:hover { background: #FECACA; }
+.qb-batch-del .navi-icon {
+  width: 14px;
+  height: 14px;
+  background: currentColor;
+}
+.qb-check-col {
+  width: 36px;
+  text-align: center;
+}
+.qb-check {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1.5px solid #CBD5E1;
+  background: #fff;
+  cursor: pointer;
+  position: relative;
+  margin: 0 auto;
+  box-sizing: border-box;
+  transition: border-color .15s ease, background .15s ease;
+}
+.qb-check:hover { border-color: #2563EB; }
+.qb-check.is-checked {
+  background: #2563EB;
+  border-color: #2563EB;
+}
+.qb-check.is-checked::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 5px;
+  height: 9px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
 .qb-search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--rule-muted-foreground); }
 .qb-search-input {
   width: 100%; height: 42px; padding: 0 16px 0 42px;
