@@ -150,7 +150,7 @@
 		{
 			"path": "pages/admin/knowledge-management",
 			"style": {
-				"navigationBarTitleText": "知识库管理",
+				"navigationBarTitleText": "法律库管理",
 				"navigationStyle": "custom"
 			}
 		},

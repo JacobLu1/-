@@ -17,17 +17,17 @@
           <view class="navi-icon navi-icon-dashboard"></view>
           <text>数据总览</text>
         </view>
+        <view class="app-nav-item" @tap="navigateTo('/pages/admin/user-management')">
+          <view class="navi-icon navi-icon-users"></view>
+          <text>用户管理</text>
+        </view>
         <view class="app-nav-item" @tap="navigateTo('/pages/admin/question-bank')">
           <view class="navi-icon navi-icon-file-question"></view>
           <text>题库管理</text>
         </view>
         <view class="app-nav-item is-active" @tap="navigateTo('/pages/admin/knowledge-management')">
           <view class="navi-icon navi-icon-book"></view>
-          <text>知识库管理</text>
-        </view>
-        <view class="app-nav-item" @tap="navigateTo('/pages/admin/user-management')">
-          <view class="navi-icon navi-icon-users"></view>
-          <text>用户管理</text>
+          <text>法律库管理</text>
         </view>
         <view class="app-nav-item" @tap="navigateTo('/pages/admin/resource-management')">
           <view class="navi-icon navi-icon-folder"></view>
@@ -55,7 +55,7 @@
     <view class="app-main">
       <header class="app-topbar">
         <view class="app-topbar-titles">
-          <text class="app-topbar-title">知识库管理</text>
+          <text class="app-topbar-title">法律库管理</text>
           <text class="app-topbar-breadcrumb">管理端 / 知识库</text>
         </view>
         <text class="app-topbar-meta">{{ todayDateText }}</text>
@@ -164,8 +164,9 @@
               <view class="qb-form-field">
                 <text class="qb-form-label">分类</text>
                 <view class="qb-pills" style="flex-wrap:wrap">
-                  <view class="qb-pill" :class="{ 'is-active': formCategory === item }" v-for="item in categoryOptions" :key="item" @tap="formCategory = item">{{ item }}</view>
+                  <view class="qb-pill" :class="{ 'is-active': formCategory === item }" v-for="item in categoryOptions" :key="item" @tap="formCategory = item; formCategoryCustom = ''">{{ item }}</view>
                 </view>
+                <input class="qb-input" style="margin-top:8px;max-width:260px" v-model="formCategoryCustom" placeholder="新分类（可选）" @input="formCategory = formCategoryCustom" />
               </view>
               <view class="qb-form-field">
                 <text class="qb-form-label">状态</text>
@@ -345,12 +346,12 @@ const pageSize = ref(8)
 const documents = ref([])
 const statsData = reactive({ total: 0, online: 0, review: 0, category: 0 })
 
-const categoryOptions = ['国际公法', '国际私法', '涉外民商法', '国际贸易法', '国际投资法', '海商法', '国际仲裁', '综合']
+const categoryOptions = ref(['综合'])
 
 const kpiTotal = computed(() => statsData.total)
 const kpiOnline = computed(() => statsData.online)
 const kpiReview = computed(() => statsData.review)
-const kpiCategory = computed(() => statsData.category || categoryOptions.length)
+const kpiCategory = computed(() => statsData.category || categoryOptions.value.length)
 
 const filteredDocs = computed(() => {
   const q = searchQuery.value.trim().toLowerCase()
@@ -380,6 +381,7 @@ const formVisible = ref(false)
 const editingId = ref('')
 const formTitle = ref('')
 const formCategory = ref('综合')
+const formCategoryCustom = ref('')
 const formDocType = ref('')
 const formSource = ref('')
 const formDate = ref('')
@@ -516,12 +518,27 @@ function toRow(doc) {
   }
 }
 
+async function loadCategoryOptions() {
+  try {
+    const knowledgeObj = uniCloud.importObject('knowledge', { customUI: true })
+    const r = (await knowledgeObj.getCategories({ status: '' })) || {}
+    if (r.errCode === 0 && Array.isArray(r.list)) {
+      const names = r.list.map(x => String(x || '').trim()).filter(Boolean)
+      categoryOptions.value = names.length ? names : ['综合']
+      return
+    }
+  } catch (e) {}
+  const names = [...new Set(documents.value.map(d => d.category || '综合'))]
+  categoryOptions.value = names.length ? names : ['综合']
+}
+
 async function loadDocs() {
   try {
     const knowledgeObj = uniCloud.importObject('knowledge', { customUI: true })
     const r = (await knowledgeObj.list({ adminToken: getAdminToken(), category: 'all', keyword: '', status: '', page: 1, pageSize: 200 })) || {}
     if (r.errCode === 0) {
       documents.value = (r.list || []).map(toRow)
+      await loadCategoryOptions()
     } else {
       uni.showToast({ title: r.errMsg || '知识条目加载失败', icon: 'none' })
     }
@@ -573,6 +590,7 @@ function resetForm() {
   editingId.value = ''
   formTitle.value = ''
   formCategory.value = '综合'
+  formCategoryCustom.value = ''
   formDocType.value = ''
   formSource.value = ''
   formDate.value = ''
@@ -594,6 +612,7 @@ const handleEdit = (doc) => {
   editingId.value = doc.id
   formTitle.value = doc.title || ''
   formCategory.value = doc.category || '综合'
+  formCategoryCustom.value = ''
   formDocType.value = doc.docType || ''
   formSource.value = doc.source || ''
   formDate.value = doc.date || ''
@@ -618,13 +637,14 @@ const saveDoc = async () => {
     uni.showToast({ title: '请输入标题', icon: 'none' })
     return
   }
-  if (!categoryOptions.includes(formCategory.value)) {
-    uni.showToast({ title: '请选择知识分类', icon: 'none' })
+  const categoryValue = String(formCategoryCustom.value || formCategory.value || '').trim()
+  if (!categoryValue) {
+    uni.showToast({ title: '请选择或填写知识分类', icon: 'none' })
     return
   }
   const data = {
     title,
-    category: formCategory.value,
+    category: categoryValue,
     docType: formDocType.value.trim(),
     source: formSource.value.trim(),
     date: formDate.value.trim(),

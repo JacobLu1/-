@@ -10,13 +10,37 @@
 
 const db = uniCloud.database()
 
-const CATEGORIES = ['国际公法', '国际私法', '涉外民商法', '国际贸易法', '国际投资法', '海商法', '国际仲裁', '综合']
-
 function splitList(value) {
   if (Array.isArray(value)) {
     return value.map(s => String(s || '').trim()).filter(Boolean)
   }
   return String(value || '').split(/[,，、]/).map(s => s.trim()).filter(Boolean)
+}
+
+function normalizeCategory(value) {
+  return String(value || '').trim() || '综合'
+}
+
+async function fetchCategoryList(status = '已上线') {
+  const table = db.collection('legal_doc')
+  const where = status ? { status } : {}
+  const countRes = await table.where(where).count()
+  const total = countRes.total || 0
+  const set = new Set()
+  const MAX = 500
+  for (let i = 0; i < total; i += MAX) {
+    const res = await table
+      .where(where)
+      .field({ category: true })
+      .skip(i)
+      .limit(MAX)
+      .get()
+    ;(res.data || []).forEach(doc => {
+      const c = normalizeCategory(doc.category)
+      if (c) set.add(c)
+    })
+  }
+  return Array.from(set).sort((a, b) => a.localeCompare(b, 'zh-CN'))
 }
 
 function buildWhere(status, category, keyword) {
@@ -72,6 +96,14 @@ module.exports = {
   },
 
   /**
+   * 获取知识分类列表（用户端法律库和管理端搜索共用）
+   */
+  async getCategories({ status = '已上线' } = {}) {
+    const list = await fetchCategoryList(status)
+    return { errCode: 0, errMsg: '', list }
+  },
+
+  /**
    * 管理端知识库列表（需管理员 token）
    */
   async list({ adminToken, category = 'all', keyword = '', status = '', page = 1, pageSize = 50 } = {}) {
@@ -103,7 +135,8 @@ module.exports = {
     const table = db.collection('legal_doc')
     const count = async (where = {}) => (await table.where(where).count()).total
     const categories = {}
-    for (const name of CATEGORIES) {
+    const categoryList = await fetchCategoryList('')
+    for (const name of categoryList) {
       categories[name] = await count({ category: name })
     }
     return {
@@ -125,14 +158,11 @@ module.exports = {
     if (!data.title || !String(data.title).trim()) {
       return { errCode: 'PARAM_IS_NULL', errMsg: '标题不能为空' }
     }
-    if (!CATEGORIES.includes(data.category)) {
-      return { errCode: 'PARAM_ERROR', errMsg: '知识分类不合法' }
-    }
-
+    const category = normalizeCategory(data.category)
     const now = Date.now()
     const doc = {
       title: String(data.title).trim(),
-      category: data.category || '综合',
+      category,
       docType: data.docType || '',
       summary: data.summary || '',
       content: data.content || '',
@@ -167,8 +197,8 @@ module.exports = {
     if (patch.title !== undefined && !String(patch.title).trim()) {
       return { errCode: 'PARAM_ERROR', errMsg: '标题不能为空' }
     }
-    if (patch.category !== undefined && !CATEGORIES.includes(patch.category)) {
-      return { errCode: 'PARAM_ERROR', errMsg: '知识分类不合法' }
+    if (patch.category !== undefined) {
+      patch.category = normalizeCategory(patch.category)
     }
     if (patch.status !== undefined && !['已上线', '审核中'].includes(patch.status)) {
       return { errCode: 'PARAM_ERROR', errMsg: '状态不合法' }
@@ -212,7 +242,7 @@ module.exports = {
     const now = Date.now()
     const toAdd = docs.map(d => ({
       title: d.title,
-      category: CATEGORIES.includes(d.category) ? d.category : '综合',
+      category: normalizeCategory(d.category),
       docType: d.docType || '',
       summary: d.summary || '',
       content: d.content,

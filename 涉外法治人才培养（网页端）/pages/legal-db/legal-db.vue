@@ -229,16 +229,7 @@ const userRole = ref(getLevelText())
 /* ============================================================
    Data
    ============================================================ */
-const categories = [
-  { key: 'all', name: '全部' },
-  { key: 'treaty', name: '国际公法' },
-  { key: 'private', name: '国际私法' },
-  { key: 'civil', name: '涉外民商法' },
-  { key: 'trade', name: '国际贸易法' },
-  { key: 'invest', name: '国际投资法' },
-  { key: 'maritime', name: '海商法' },
-  { key: 'arbitration', name: '国际仲裁' }
-]
+const categories = ref([{ key: 'all', name: '全部' }])
 
 const legalFields = ['国际贸易法', '国际私法', '国际仲裁', '反垄断法', '数据保护法', '知识产权法', '投资法', '税法']
 const regions = ['中国', '欧盟', '美国', '英国', '新加坡', '国际']
@@ -246,6 +237,31 @@ const docTypes = ['法律', '行政法规', '部门规章', '司法解释', '国
 
 const results = ref([])
 const loading = ref(false)
+
+function mergeCategoryOptions(extra = []) {
+  const names = [...new Set([
+    ...extra,
+    ...results.value.map(r => r.category || '综合')
+  ].map(x => String(x || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'zh-CN'))
+  categories.value = [{ key: 'all', name: '全部' }, ...names.map(name => ({ key: name, name }))]
+  if (activeCategory.value !== 'all' && !names.includes(activeCategory.value)) {
+    activeCategory.value = 'all'
+  }
+}
+
+async function loadCategories() {
+  try {
+    const knowledgeObj = uniCloud.importObject('knowledge', { customUI: true })
+    const r = (await knowledgeObj.getCategories({ status: '已上线' })) || {}
+    if (r.errCode === 0 && Array.isArray(r.list)) {
+      mergeCategoryOptions(r.list)
+    } else {
+      mergeCategoryOptions([])
+    }
+  } catch (e) {
+    mergeCategoryOptions([])
+  }
+}
 
 async function loadDocs() {
   loading.value = true
@@ -268,6 +284,7 @@ async function loadDocs() {
         date: doc.date || ''
       }))
       currentPage.value = 1
+      await loadCategories()
     } else {
       uni.showToast({ title: r.errMsg || '知识库加载失败', icon: 'none' })
     }
@@ -304,19 +321,7 @@ const filteredResults = computed(() => {
 
   // Category filter (tag-pill)
   if (activeCategory.value !== 'all') {
-    const catMap = {
-      treaty: '国际公法',
-      private: '国际私法',
-      civil: '涉外民商法',
-      trade: '国际贸易法',
-      invest: '国际投资法',
-      maritime: '海商法',
-      arbitration: '国际仲裁'
-    }
-    const targetCat = catMap[activeCategory.value]
-    if (targetCat) {
-      list = list.filter(item => (item.category || '') === targetCat)
-    }
+    list = list.filter(item => (item.category || '综合') === activeCategory.value)
   }
 
   // Advanced filters

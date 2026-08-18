@@ -17,17 +17,17 @@
           <view class="navi-icon navi-icon-dashboard"></view>
           <text>数据总览</text>
         </view>
+        <view class="app-nav-item" @tap="navigateTo('/pages/admin/user-management')">
+          <view class="navi-icon navi-icon-users"></view>
+          <text>用户管理</text>
+        </view>
         <view class="app-nav-item" @tap="navigateTo('/pages/admin/question-bank')">
           <view class="navi-icon navi-icon-file-question"></view>
           <text>题库管理</text>
         </view>
         <view class="app-nav-item" @tap="navigateTo('/pages/admin/knowledge-management')">
           <view class="navi-icon navi-icon-book"></view>
-          <text>知识库管理</text>
-        </view>
-        <view class="app-nav-item" @tap="navigateTo('/pages/admin/user-management')">
-          <view class="navi-icon navi-icon-users"></view>
-          <text>用户管理</text>
+          <text>法律库管理</text>
         </view>
         <view class="app-nav-item is-active" @tap="navigateTo('/pages/admin/resource-management')">
           <view class="navi-icon navi-icon-folder"></view>
