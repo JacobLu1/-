@@ -89,7 +89,7 @@
                 </view>
               </view>
               <view class="overview-stats">
-                <view class="overview-stat" v-for="(stat, i) in stats" :key="i">
+                <view class="overview-stat" v-for="(stat, i) in visibleStats" :key="i">
                   <view class="overview-stat-icon" :class="stat.iconClass"></view>
                   <view class="overview-stat-info">
                     <text class="overview-stat-value">{{ stat.val }}</text>
@@ -102,12 +102,12 @@
             <!-- ===== Learning Modules ===== -->
             <view class="doc-section-header">
               <text class="doc-section-title">学习模块</text>
-              <text class="doc-section-meta">共 {{ modules.length }} 个模块</text>
+              <text class="doc-section-meta">共 {{ visibleModules.length }} 个模块</text>
             </view>
             <view class="mod-grid">
               <view
                 class="mod-card"
-                v-for="(mod, idx) in modules"
+                v-for="(mod, idx) in visibleModules"
                 :key="idx"
                 @tap="onModuleTap(mod)"
               >
@@ -199,6 +199,9 @@ const overallPercent = ref(0)
 const overallLevel = ref('暂无')
 const stats = ref([])
 const modules = ref([])
+// 过滤掉 hidden 的卡片（如暂不展示的"文本阅读"），保留数据方便后续启用
+const visibleStats = computed(() => stats.value.filter(s => !s.hidden))
+const visibleModules = computed(() => modules.value.filter(m => !m.hidden))
 const words = ref([])
 const vocabPool = ref([])
 const progressMap = ref({})
@@ -505,9 +508,10 @@ async function loadEnglishResources() {
     ])
     vocabPool.value = vocabularyList.map(mapWord)
     buildTodayWords()
+    // 文本阅读卡片保留在数据中（hidden: true 默认不显示，后续开发改 false 即可启用）
     stats.value = [
       { iconClass: 'stat-bookmark-icon', val: String(vocabPool.value.length), label: '英语词汇' },
-      { iconClass: 'stat-file-icon', val: String((readRes.list || []).length), label: '文本阅读' },
+      { iconClass: 'stat-file-icon', val: String((readRes.list || []).length), label: '文本阅读', hidden: true },
       { iconClass: 'stat-mic-icon', val: String((listenRes.list || []).length), label: '听力' }
     ]
     modules.value = [
@@ -523,7 +527,8 @@ async function loadEnglishResources() {
         level: 'L2',
         percent: 0,
         iconClass: 'mod-file-icon',
-        route: '/pages/learning-center/reading-list'
+        route: '/pages/learning-center/reading-list',
+        hidden: true
       },
       {
         name: '听力训练',

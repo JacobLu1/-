@@ -580,24 +580,29 @@ onLoad(() => {
 .app-back-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 6px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--rule-muted-foreground);
   cursor: pointer;
-  transition: color 0.2s ease;
+  transition: background 0.15s ease, color 0.15s ease;
+  flex-shrink: 0;
 }
 
 .app-back-btn:hover {
+  background: var(--rule-primary-tint-3);
   color: var(--rule-primary);
 }
 
 .back-arrow-icon {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   background: currentColor;
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><path d='m15 18-6-6 6-6'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><path d='m15 18-6-6 6-6'/></svg>") center/contain no-repeat;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M19 12H5'/><path d='m12 5-7 7 7 7'/></svg>") center/contain no-repeat;
+  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M19 12H5'/><path d='m12 5-7 7 7 7'/></svg>") center/contain no-repeat;
 }
 
 .app-topbar-title {

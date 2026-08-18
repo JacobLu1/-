@@ -48,61 +48,20 @@
 
     <view class="app-main">
       <header class="app-topbar">
-        <view class="app-topbar-left">
-          <view class="app-back-btn" @tap="goBack">
-            <view class="back-arrow-icon"></view>
-            <text>返回</text>
+          <view class="app-topbar-left">
+            <view class="app-back-btn" @tap="goBack">
+              <view class="back-arrow-icon"></view>
+              <text>返回</text>
+            </view>
+            <text class="app-topbar-title">文本阅读</text>
           </view>
-          <text class="app-topbar-title">文本阅读</text>
-        </view>
-        <text class="app-topbar-meta">共 {{ readings.length }} 篇</text>
-      </header>
+        </header>
 
       <main class="app-content">
-        <!-- Hero 头部 -->
-        <view v-if="!loading && readings.length" class="rl-hero">
-          <view class="rl-hero-main">
-            <view class="rl-hero-tag">
-              <view class="rl-hero-tag-icon"></view>
-              <text>精选文献</text>
-            </view>
-            <text class="rl-hero-title">文本阅读</text>
-            <text class="rl-hero-sub">涉外法律文献精选 · 双语对照 · 深度阅读</text>
-            <view class="rl-hero-stats">
-              <view class="rl-stat">
-                <text class="rl-stat-num">{{ readings.length }}</text>
-                <text class="rl-stat-label">全部篇目</text>
-              </view>
-              <view class="rl-stat-sep"></view>
-              <view class="rl-stat">
-                <text class="rl-stat-num">{{ totalWords }}</text>
-                <text class="rl-stat-label">累计字数</text>
-              </view>
-              <view class="rl-stat-sep"></view>
-              <view class="rl-stat">
-                <text class="rl-stat-num">{{ categories.length }}</text>
-                <text class="rl-stat-label">覆盖分类</text>
-              </view>
-            </view>
-          </view>
-          <view class="rl-hero-art">
-            <view class="rl-book">
-              <view class="rl-book-spine"></view>
-              <view class="rl-book-cover">
-                <view class="rl-book-icon"></view>
-                <text class="rl-book-title">涉外法治</text>
-                <text class="rl-book-sub">SELECTED READINGS</text>
-              </view>
-            </view>
-            <view class="rl-art-dot rl-art-dot-1"></view>
-            <view class="rl-art-dot rl-art-dot-2"></view>
-          </view>
-        </view>
-
         <!-- 工具栏 -->
         <view v-if="readings.length" class="rl-toolbar">
           <view class="rl-pills">
-            <view class="rl-pill" :class="{ 'is-active': categoryFilter === 'all' }" @tap="categoryFilter = 'all'">全部</view>
+            <view class="rl-pill" :class="{ 'is-active': categoryFilter === 'all' }" @tap="categoryFilter = 'all'">全部（{{ readings.length }}）</view>
             <view
               v-for="c in categories"
               :key="c"
@@ -135,36 +94,24 @@
         <view v-else class="rl-list">
           <view
             class="rl-card"
-            v-for="(item, idx) in filteredReadings"
+            v-for="item in filteredReadings"
             :key="item.id"
-            @tap="toggleDetail(item.id)"
+            @tap="openDetail(item)"
           >
-            <view class="rl-card-icon" :style="cardIconStyle(idx)">
-              <text class="rl-card-icon-text">{{ (item.category || '读').slice(0, 1) }}</text>
-            </view>
             <view class="rl-card-main">
               <view class="rl-card-head">
                 <text class="rl-card-title">{{ item.title }}</text>
-                <view class="rl-chevron" :class="{ 'is-open': expandedId === item.id }"></view>
+                <view class="rl-go-icon"></view>
               </view>
               <view class="rl-card-meta">
                 <text class="rl-tag">{{ item.category || '未分类' }}</text>
                 <text class="rl-level" :class="levelInfo(item.meta).cls">{{ levelInfo(item.meta).text }}</text>
-                <text class="rl-words">{{ wordCountText(item.content) }}</text>
+                <text class="rl-words">{{ wordCountText(item.wordCount) }}</text>
               </view>
               <text v-if="item.description" class="rl-card-summary">{{ item.description }}</text>
 
-              <view v-if="expandedId === item.id" class="rl-card-body">
-                <view class="rl-card-content" v-if="item.content">{{ item.content }}</view>
-                <view class="rl-card-content rl-card-content-empty" v-else>暂无正文，可打开原文链接阅读。</view>
-                <view v-if="item.fileUrl" class="rl-open-link" @tap.stop="openOriginal(item.fileUrl)">
-                  <view class="rl-open-link-icon"></view>
-                  <text>打开原文</text>
-                </view>
-              </view>
-
               <view class="rl-card-footer">
-                <text class="rl-read-more">{{ expandedId === item.id ? '收起全文' : '展开全文' }}</text>
+                <text class="rl-read-more">开始阅读</text>
               </view>
             </view>
           </view>
@@ -181,7 +128,6 @@ import { requireLogin, getDisplayName, getLevelText } from '@/utils/auth.js'
 
 const readings = ref([])
 const loading = ref(false)
-const expandedId = ref('')
 const searchText = ref('')
 const categoryFilter = ref('all')
 
@@ -202,25 +148,8 @@ const filteredReadings = computed(() => {
   })
 })
 
-const totalWords = computed(() => {
-  return readings.value.reduce((sum, r) => sum + (r.content || '').replace(/\s/g, '').length, 0)
-})
-
-const iconPalette = [
-  'linear-gradient(135deg, #1E40AF, #3B82F6)',
-  'linear-gradient(135deg, #0F766E, #14B8A6)',
-  'linear-gradient(135deg, #7C3AED, #A78BFA)',
-  'linear-gradient(135deg, #B45309, #F59E0B)',
-  'linear-gradient(135deg, #DB2777, #F472B6)',
-  'linear-gradient(135deg, #2563EB, #0EA5E9)'
-]
-
-function cardIconStyle(index) {
-  return { background: iconPalette[index % iconPalette.length] }
-}
-
-function wordCountText(content) {
-  const n = (content || '').replace(/\s/g, '').length
+function wordCountText(count) {
+  const n = Number(count) || 0
   return n ? `约 ${n} 字` : ''
 }
 
@@ -232,10 +161,20 @@ function levelInfo(meta) {
   return { text: m || '未设置', cls: 'rl-level-none' }
 }
 
+const READING_CACHE_KEY = 'rd_readings_cache'
+const READING_CACHE_TTL = 5 * 60 * 1000
+
 async function loadReadings() {
   if (loading.value) return
   loading.value = true
   try {
+    // 本地缓存：5 分钟内避免重复全量拉取
+    let cached = null
+    try { cached = uni.getStorageSync(READING_CACHE_KEY) } catch (e) {}
+    if (cached && cached.expireAt > Date.now() && Array.isArray(cached.list)) {
+      readings.value = cached.list
+      return
+    }
     const resourcesObj = uniCloud.importObject('resources', { customUI: true })
     const r = (await resourcesObj.listPublic({ type: 'reading' })) || {}
     if (r.errCode === 0) {
@@ -245,9 +184,12 @@ async function loadReadings() {
         category: doc.cat || '',
         meta: doc.meta || '',
         description: doc.description || '',
-        content: doc.content || '',
+        wordCount: doc.wordCount || 0,
         fileUrl: doc.fileUrl || ''
       }))
+      try {
+        uni.setStorageSync(READING_CACHE_KEY, { expireAt: Date.now() + READING_CACHE_TTL, list: readings.value })
+      } catch (e) {}
     }
   } catch (e) {
     uni.showToast({ title: (e && e.errMsg) || '阅读资源加载失败', icon: 'none' })
@@ -256,16 +198,8 @@ async function loadReadings() {
   }
 }
 
-function toggleDetail(id) {
-  expandedId.value = expandedId.value === id ? '' : id
-}
-
-function openOriginal(url) {
-  if (!url) {
-    uni.showToast({ title: '暂无原文链接', icon: 'none' })
-    return
-  }
-  window.open(url, '_blank')
+function openDetail(item) {
+  uni.navigateTo({ url: `/pages/learning-center/reading-detail?id=${item.id}` })
 }
 
 function goBack() {
@@ -554,24 +488,29 @@ onLoad(() => {
 .app-back-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 6px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--rule-muted-foreground);
   cursor: pointer;
-  transition: color 0.2s ease;
+  transition: background 0.15s ease, color 0.15s ease;
+  flex-shrink: 0;
 }
 
 .app-back-btn:hover {
+  background: var(--rule-primary-tint-3);
   color: var(--rule-primary);
 }
 
 .back-arrow-icon {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   background: currentColor;
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><path d='m15 18-6-6 6-6'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><path d='m15 18-6-6 6-6'/></svg>") center/contain no-repeat;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M19 12H5'/><path d='m12 5-7 7 7 7'/></svg>") center/contain no-repeat;
+  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M19 12H5'/><path d='m12 5-7 7 7 7'/></svg>") center/contain no-repeat;
 }
 
 .app-topbar-title {
@@ -888,22 +827,6 @@ onLoad(() => {
   transform: translateY(-2px);
 }
 
-.rl-card-icon {
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  color: #fff;
-  font-size: 20px;
-  font-weight: 800;
-  box-shadow: 0 10px 18px -8px rgba(15,23,42,.3);
-}
-
-.rl-card-icon-text { line-height: 1; }
-
 .rl-card-main {
   flex: 1;
   min-width: 0;
@@ -927,19 +850,19 @@ onLoad(() => {
   overflow: hidden;
 }
 
-.rl-chevron {
-  width: 18px;
-  height: 18px;
+.rl-go-icon {
+  width: 17px;
+  height: 17px;
   flex-shrink: 0;
   margin-top: 4px;
   background: var(--rule-muted-foreground);
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>") center/contain no-repeat;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='M9 18l6-6-6-6'/></svg>") center/contain no-repeat;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='M9 18l6-6-6-6'/></svg>") center/contain no-repeat;
   transition: transform .25s ease, background .25s ease;
 }
 
-.rl-chevron.is-open {
-  transform: rotate(180deg);
+.rl-card:hover .rl-go-icon {
+  transform: translateX(3px);
   background: var(--rule-primary);
 }
 
@@ -988,53 +911,6 @@ onLoad(() => {
   font-size: 13.5px;
   line-height: 1.75;
   color: var(--rule-ink-2);
-}
-
-/* 展开正文 */
-.rl-card-body {
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px dashed var(--rule-border);
-}
-
-.rl-card-content {
-  font-size: 14px;
-  line-height: 1.95;
-  color: var(--rule-foreground);
-  white-space: pre-wrap;
-  word-break: break-word;
-  max-height: 360px;
-  overflow-y: auto;
-  padding: 12px 14px;
-  background: var(--rule-muted);
-  border-radius: 10px;
-}
-
-.rl-card-content-empty { color: var(--rule-muted-foreground); }
-
-.rl-open-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 12px;
-  padding: 7px 14px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--rule-primary);
-  background: var(--rule-primary-tint-3);
-  border: 1px solid var(--rule-primary-tint-2);
-  border-radius: 999px;
-  transition: background .2s ease, color .2s ease;
-}
-
-.rl-open-link:hover { background: var(--rule-primary); color: #fff; }
-
-.rl-open-link-icon {
-  width: 14px;
-  height: 14px;
-  background: currentColor;
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6'/><polyline points='15 3 21 3 21 9'/><line x1='10' y1='14' x2='21' y2='3'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6'/><polyline points='15 3 21 3 21 9'/><line x1='10' y1='14' x2='21' y2='3'/></svg>") center/contain no-repeat;
 }
 
 .rl-card-footer {
@@ -1101,12 +977,8 @@ onLoad(() => {
   .app-main { margin-left: 0; }
   .app-topbar { padding: 0 20px; }
   .app-content { padding: 20px; }
-  .rl-hero { flex-direction: column; align-items: stretch; gap: 24px; padding: 28px 24px; }
-  .rl-hero-art { width: 100%; height: 150px; transform: scale(.9); }
-  .rl-hero-stats { gap: 18px; }
   .rl-toolbar { flex-direction: column; align-items: stretch; gap: 12px; }
   .rl-search { width: 100%; }
   .rl-card { padding: 16px; gap: 14px; }
-  .rl-card-icon { width: 44px; height: 44px; font-size: 17px; }
 }
 </style>

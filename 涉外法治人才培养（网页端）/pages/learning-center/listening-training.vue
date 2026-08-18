@@ -405,7 +405,7 @@ function selectLesson(index) {
 async function loadListeningLessons() {
   try {
     const resourcesObj = uniCloud.importObject('resources', { customUI: true })
-    const r = (await resourcesObj.listPublic({ type: 'listening' })) || {}
+    const r = (await resourcesObj.listPublic({ type: 'listening', withContent: true })) || {}
     if (r.errCode !== 0) {
       uni.showToast({ title: r.errMsg || '听力资源加载失败', icon: 'none' })
       return

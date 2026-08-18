@@ -201,25 +201,6 @@
         </main>
       </view>
     </view>
-    <view v-if="detailVisible" class="detail-mask" @tap="closeDetail">
-      <view class="detail-modal" @tap.stop>
-        <view class="detail-head">
-          <view class="detail-head-meta">
-            <text class="detail-cat">{{ detailDoc.category }}</text>
-            <text class="detail-date">{{ detailDoc.date }}</text>
-          </view>
-          <view class="detail-close" @tap="closeDetail">×</view>
-        </view>
-        <text class="detail-title">{{ detailDoc.title }}</text>
-        <text class="detail-source">来源：{{ detailDoc.source }}</text>
-        <view class="detail-meta">
-          <text class="detail-tag" v-for="tag in (detailDoc.tags || [])" :key="tag">{{ tag }}</text>
-        </view>
-        <scroll-view class="detail-content" scroll-y="true">
-          <text>{{ detailDoc.content || detailDoc.summary || '暂无正文' }}</text>
-        </scroll-view>
-      </view>
-    </view>
   </view>
 </template>
 
@@ -265,8 +246,6 @@ const docTypes = ['法律', '行政法规', '部门规章', '司法解释', '国
 
 const results = ref([])
 const loading = ref(false)
-const detailVisible = ref(false)
-const detailDoc = ref(null)
 
 async function loadDocs() {
   loading.value = true
@@ -446,24 +425,8 @@ function goPage(page) {
   currentPage.value = page
 }
 
-async function viewDetail(item) {
-  try {
-    const knowledgeObj = uniCloud.importObject('knowledge', { customUI: true })
-    const r = (await knowledgeObj.get({ id: item.id })) || {}
-    if (r.errCode === 0) {
-      detailDoc.value = r.doc
-      detailVisible.value = true
-    } else {
-      uni.showToast({ title: r.errMsg || '详情加载失败', icon: 'none' })
-    }
-  } catch (e) {
-    uni.showToast({ title: (e && e.errMsg) || '详情加载失败', icon: 'none' })
-  }
-}
-
-function closeDetail() {
-  detailVisible.value = false
-  detailDoc.value = null
+function viewDetail(item) {
+  uni.navigateTo({ url: '/pages/legal-db/doc-detail?id=' + item.id })
 }
 
 function categoryName(item) {
@@ -881,110 +844,6 @@ onLoad(() => {
   background: var(--rule-card);
   border: 1px solid var(--rule-border);
   border-radius: 12px;
-}
-
-/* ---- Detail Modal ---- */
-.detail-mask {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-  background: rgba(15, 23, 42, 0.45);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-}
-.detail-modal {
-  width: min(720px, 100%);
-  max-height: 82vh;
-  background: var(--rule-card);
-  border: 1px solid var(--rule-border);
-  border-radius: 12px;
-  box-shadow: var(--rule-shadow-3);
-  display: flex;
-  flex-direction: column;
-  padding: 24px;
-  gap: 14px;
-}
-.detail-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-.detail-head-meta {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.detail-cat {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 10px;
-  border-radius: 9999px;
-  font-size: 13px;
-  font-weight: 500;
-  background: var(--rule-primary-tint-3);
-  color: var(--rule-primary);
-}
-.detail-date {
-  font-size: 13px;
-  color: var(--rule-muted-foreground);
-}
-.detail-close {
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  font-size: 22px;
-  line-height: 1;
-  color: var(--rule-muted-foreground);
-  cursor: pointer;
-  background: var(--rule-muted);
-}
-.detail-close:hover {
-  color: var(--rule-foreground);
-  background: var(--rule-border);
-}
-.detail-title {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--rule-foreground);
-  line-height: 1.4;
-}
-.detail-source {
-  font-size: 13px;
-  color: var(--rule-muted-foreground);
-}
-.detail-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-.detail-tag {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
-  border-radius: 9999px;
-  font-size: 12px;
-  background: var(--rule-muted);
-  color: var(--rule-ink-2);
-}
-.detail-content {
-  flex: 1;
-  min-height: 180px;
-  max-height: 45vh;
-  border: 1px solid var(--rule-border);
-  border-radius: 8px;
-  background: var(--rule-surface-2);
-  padding: 16px;
-  font-size: 14px;
-  line-height: 1.75;
-  color: var(--rule-foreground);
-  white-space: pre-wrap;
-  overflow-wrap: break-word;
 }
 
 /* ---- Document Grid ---- */

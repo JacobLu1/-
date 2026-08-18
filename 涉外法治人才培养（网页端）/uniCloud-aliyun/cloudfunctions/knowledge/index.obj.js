@@ -192,7 +192,78 @@ module.exports = {
     }
     await db.collection('legal_doc').doc(id).remove()
     return { errCode: 0, errMsg: '' }
+  },
+
+  /**
+   * 批量导入知识条目（需管理员 token）
+   * 文本格式：#key=value 行作为元数据，#title= 开始一条新文档，其余行拼接为正文
+   * 支持 key：title / category / docType / regions / tags / source / date / summary
+   */
+  async batchCreate({ adminToken, text = '' } = {}) {
+    const check = await checkAdmin(adminToken)
+    if (check.errCode !== 0) return check
+    const docs = parseBatchDocs(text)
+    if (!docs.length) {
+      return { errCode: 'PARAM_IS_NULL', errMsg: '未解析到任何知识条目，请检查格式' }
+    }
+    if (docs.length > 50) {
+      return { errCode: 'PARAM_ERROR', errMsg: `共 ${docs.length} 条，超出单次 50 条上限，请分批导入` }
+    }
+    const now = Date.now()
+    const toAdd = docs.map(d => ({
+      title: d.title,
+      category: CATEGORIES.includes(d.category) ? d.category : '综合',
+      docType: d.docType || '',
+      summary: d.summary || '',
+      content: d.content,
+      fields: [],
+      regions: d.regions,
+      tags: d.tags,
+      source: d.source || '',
+      date: d.date || '',
+      fileUrl: '',
+      status: '已上线',
+      createDate: now,
+      updateDate: now
+    }))
+    const res = await db.collection('legal_doc').add(toAdd)
+    return { errCode: 0, errMsg: '', count: toAdd.length, ids: res.idList || [] }
   }
+}
+
+// 解析批量导入文本：多条文档，每条以 #title= 开头，#key=value 为元数据，其余行拼为正文
+function parseBatchDocs(text) {
+  const lines = String(text || '').split(/\r?\n/)
+  const docs = []
+  let cur = null
+  for (const line of lines) {
+    const m = line.match(/^#([a-zA-Z]+)\s*=\s*(.*)$/)
+    if (m) {
+      const key = m[1].trim()
+      const val = m[2].trim()
+      if (key === 'title') {
+        cur = { title: val, meta: {}, body: [] }
+        docs.push(cur)
+      } else if (cur) {
+        cur.meta[key] = val
+      }
+      continue
+    }
+    if (cur) cur.body.push(line)
+  }
+  return docs
+    .map(d => ({
+      title: (d.title || '').trim(),
+      category: (d.meta.category || '').trim() || '综合',
+      docType: (d.meta.docType || '').trim(),
+      source: (d.meta.source || '').trim(),
+      date: (d.meta.date || '').trim(),
+      regions: splitList(d.meta.regions),
+      tags: splitList(d.meta.tags),
+      summary: (d.meta.summary || '').trim(),
+      content: d.body.join('\n').replace(/\n{3,}/g, '\n\n').trim()
+    }))
+    .filter(d => d.title)
 }
 
 // 管理员鉴权（与 resources/questions 云对象一致）

@@ -114,6 +114,38 @@
 
         <!-- ===== Section 2: 筛选、搜索与知识条目录入 ===== -->
         <section class="dc-section" :class="{ 'is-visible': visibleSections[1] }" aria-label="筛选、搜索与知识条目录入">
+          <!-- ===== 批量导入知识条目 ===== -->
+          <view class="qb-batch-card">
+            <view class="qb-section-header">
+              <view class="qb-section-title-wrap">
+                <view class="qb-section-bar"></view>
+                <view>
+                  <text class="qb-section-title">批量导入知识条目</text>
+                  <text class="qb-section-subtitle">支持多条文档：#title= 开始一条，#key=value 设置元数据（category/docType/regions/tags/source/date/summary），其余行作为正文；导入后直接上线</text>
+                </view>
+              </view>
+              <view class="qb-batch-actions">
+                <view class="qb-file-btn" @tap="chooseBatchFile">
+                  <view class="navi-icon navi-icon-upload"></view>
+                  <text>选择 txt 文件</text>
+                </view>
+              </view>
+            </view>
+            <textarea
+              class="qb-textarea qb-batch-textarea"
+              v-model="batchText"
+              placeholder="格式示例：&#10;#title=日本国宪法&#10;#category=综合&#10;#docType=法律&#10;#regions=日本&#10;#tags=宪法,日本&#10;#source=日本国驻华大使馆译&#10;#date=1947-05-03&#10;#summary=1946年11月3日公布、1947年5月3日施行…&#10;（此处粘贴正文，可包含换行）&#10;&#10;#title=第二条文档标题&#10;#category=国际公法&#10;（第二条文档正文…）"
+            ></textarea>
+            <view class="qb-batch-foot">
+              <text v-if="batchParseCount > 0" class="qb-batch-count">已识别 {{ batchParseCount }} 条知识条目</text>
+              <text v-else class="qb-batch-count qb-batch-count-muted">尚未识别到知识条目</text>
+              <view class="qb-create-btn qb-create-btn-success" :class="{ 'is-disabled': batchImporting }" @tap="handleBatchImport">
+                <view class="navi-icon navi-icon-check-circle"></view>
+                <text>{{ batchImporting ? '导入中...' : '一键导入' }}</text>
+              </view>
+            </view>
+            <text v-if="batchResult" class="qb-batch-result" :class="{ 'is-error': batchResult.error }">{{ batchResult.message }}</text>
+          </view>
           <view v-if="formVisible" class="qb-form-card">
             <view class="qb-section-header">
               <view class="qb-section-title-wrap">
@@ -358,6 +390,98 @@ const formSummary = ref('')
 const formContent = ref('')
 const formFileUrl = ref('')
 const formStatus = ref('审核中')
+
+/* ===== 批量导入知识条目 ===== */
+const batchText = ref('')
+const batchImporting = ref(false)
+const batchResult = ref(null)
+
+const batchParseCount = computed(() => parseBatchDocsText(batchText.value).length)
+
+function parseBatchDocsText(text) {
+  const lines = String(text || '').split(/\r?\n/)
+  const docs = []
+  let cur = null
+  for (const line of lines) {
+    const m = line.match(/^#([a-zA-Z]+)\s*=\s*(.*)$/)
+    if (m) {
+      const key = m[1].trim()
+      const val = m[2].trim()
+      if (key === 'title') {
+        cur = { title: val }
+        docs.push(cur)
+      } else if (cur) {
+        cur[key] = val
+      }
+      continue
+    }
+    if (cur) cur._body = (cur._body || '') + line + '\n'
+  }
+  return docs.filter(d => d.title)
+}
+
+function chooseBatchFile() {
+  uni.chooseFile({
+    count: 1,
+    extension: ['txt', 'text'],
+    success(res) {
+      const file = res.tempFiles && res.tempFiles[0]
+      if (!file) return
+      if (file.size > 2 * 1024 * 1024) {
+        batchResult.value = { error: true, message: '文件过大，请控制在 2MB 以内' }
+        return
+      }
+      const path = file.path || file.tempFilePath
+      if (path && path.startsWith('blob:')) {
+        fetch(path).then(r => r.text()).then(t => {
+          batchText.value = t
+          batchResult.value = null
+        }).catch(() => {
+          batchResult.value = { error: true, message: '读取文件失败，请改为复制粘贴文本' }
+        })
+        return
+      }
+      uni.getFileSystemManager().readFile({
+        filePath: path,
+        encoding: 'utf8',
+        success(r) {
+          batchText.value = r.data || ''
+          batchResult.value = null
+        },
+        fail() {
+          batchResult.value = { error: true, message: '读取文件失败，请改为复制粘贴文本' }
+        }
+      })
+    }
+  })
+}
+
+async function handleBatchImport() {
+  if (batchImporting.value) return
+  const text = batchText.value.trim()
+  if (!text) {
+    batchResult.value = { error: true, message: '请先粘贴或选择知识条目文本' }
+    return
+  }
+  batchImporting.value = true
+  batchResult.value = null
+  try {
+    const knowledgeObj = uniCloud.importObject('knowledge', { customUI: true })
+    const r = (await knowledgeObj.batchCreate({ adminToken: getAdminToken(), text })) || {}
+    if (r.errCode !== 0) {
+      batchResult.value = { error: true, message: r.errMsg || '批量导入失败' }
+    } else {
+      batchResult.value = { error: false, message: `导入完成：新增 ${r.count} 条知识条目` }
+      batchText.value = ''
+      await loadDocs()
+      await loadStats()
+    }
+  } catch (e) {
+    batchResult.value = { error: true, message: (e && e.errMsg) || '批量导入失败，请确认 knowledge 云对象已重新部署' }
+  } finally {
+    batchImporting.value = false
+  }
+}
 
 function getAdminToken() {
   return uni.getStorageSync('adminToken')
@@ -1042,4 +1166,60 @@ onMounted(() => {
   .dc-section { transition-duration: 0.01ms; }
   .qb-kpi-card:hover, .qb-create-btn:hover { transform: none; }
 }
+
+/* ===== 批量导入知识条目 ===== */
+.qb-batch-card {
+  background: var(--rule-card, #fff);
+  border: 1px solid var(--rule-border, #e5e7eb);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.qb-batch-actions { flex-shrink: 0; }
+.qb-file-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--rule-primary-foreground, #fff);
+  background: var(--rule-primary, #2563eb);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+.qb-file-btn:hover { transform: translateY(-1px); opacity: 0.92; }
+.qb-file-btn .navi-icon { width: 14px; height: 14px; background: var(--rule-primary-foreground, #fff); }
+.qb-batch-textarea { min-height: 240px; font-family: inherit; line-height: 1.7; }
+.qb-batch-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.qb-batch-count { font-size: 13px; color: var(--rule-primary, #2563eb); font-weight: 600; }
+.qb-batch-count-muted { color: var(--rule-muted-foreground, #6b7280); font-weight: 400; }
+.qb-batch-result {
+  font-size: 13px;
+  color: var(--rule-success, #16a34a);
+  font-weight: 600;
+  padding: 8px 12px;
+  background: rgba(22, 163, 74, 0.08);
+  border-radius: 8px;
+}
+.qb-batch-result.is-error {
+  color: var(--rule-error, #dc2626);
+  background: rgba(220, 38, 38, 0.08);
+}
+.qb-create-btn.qb-create-btn-success {
+  background: var(--rule-success, #16a34a);
+  color: #fff;
+  border: none;
+}
+.qb-create-btn.qb-create-btn-success.is-disabled { opacity: 0.6; pointer-events: none; }
 </style>

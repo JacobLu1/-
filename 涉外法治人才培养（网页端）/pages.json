@@ -71,6 +71,13 @@
 			}
 		},
 		{
+			"path": "pages/legal-db/doc-detail",
+			"style": {
+				"navigationBarTitleText": "法规详情",
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "pages/learning-center/learning-center",
 			"style": {
 				"navigationBarTitleText": "学习中心",
@@ -114,6 +121,13 @@
 		},
 		{
 			"path": "pages/learning-center/reading-list",
+			"style": {
+				"navigationBarTitleText": "文本阅读",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/learning-center/reading-detail",
 			"style": {
 				"navigationBarTitleText": "文本阅读",
 				"navigationStyle": "custom"

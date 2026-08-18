@@ -167,6 +167,29 @@
                   </view>
                 </view>
               </view>
+              <view class="skill-card" @tap="goToReading">
+                <view class="skill-card-head">
+                  <view class="skill-icon-wrap" style="background: linear-gradient(135deg, #7C3AED, #A78BFA)">
+                    <view class="file-text-icon"></view>
+                  </view>
+                  <view class="skill-info">
+                    <text class="skill-name">法律文本阅读</text>
+                    <text class="skill-desc">涉外法律经典文献原文阅读，支持书签与注释</text>
+                  </view>
+                </view>
+                <view class="skill-meta">
+                  <text class="skill-course-count">经典法学著作</text>
+                  <view class="skill-progress-wrap">
+                    <view class="skill-progress-track">
+                      <view class="skill-progress-fill" style="width: 0%"></view>
+                    </view>
+                    <view class="skill-progress-label">
+                      <text>学习进度</text>
+                      <text class="skill-progress-pct">0%</text>
+                    </view>
+                  </view>
+                </view>
+              </view>
             </view>
           </section>
 
@@ -600,6 +623,10 @@ function showMoreVideos() {
    ============================================================ */
 function goToLegalEnglish() {
   uni.navigateTo({ url: '/pages/learning-center/legal-english' })
+}
+
+function goToReading() {
+  uni.navigateTo({ url: '/pages/learning-center/reading-list' })
 }
 
 /* ============================================================
@@ -1427,6 +1454,10 @@ onLoad(() => {
 .headphones-icon {
   -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M3 18v-6a9 9 0 0 1 18 0v6'/><path d='M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z'/></svg>") center/contain no-repeat;
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M3 18v-6a9 9 0 0 1 18 0v6'/><path d='M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z'/></svg>") center/contain no-repeat;
+}
+.file-text-icon {
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z'/><polyline points='14 2 14 8 20 8'/><line x1='16' x2='8' y1='13' y2='13'/><line x1='16' x2='8' y1='17' y2='17'/><line x1='10' x2='8' y1='9' y2='9'/></svg>") center/contain no-repeat;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z'/><polyline points='14 2 14 8 20 8'/><line x1='16' x2='8' y1='13' y2='13'/><line x1='16' x2='8' y1='17' y2='17'/><line x1='10' x2='8' y1='9' y2='9'/></svg>") center/contain no-repeat;
 }
 .handshake-icon {
   -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M11 17a1 1 0 0 1 2 0'/><path d='M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-1.5'/><path d='M16 7.5h5v5h-5l-3-2.5 3-2.5z'/></svg>") center/contain no-repeat;

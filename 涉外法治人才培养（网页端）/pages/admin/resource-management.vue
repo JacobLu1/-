@@ -356,6 +356,32 @@
             </view>
             <text v-if="batchResult" class="rm-batch-result" :class="{ 'is-error': batchResult.error }">{{ batchResult.message }}</text>
           </view>
+
+          <view v-if="uploadType === 'reading'" class="rm-upload-card rm-batch-card">
+            <view class="rm-batch-head">
+              <view class="rm-batch-title-wrap">
+                <text class="rm-batch-title">批量导入阅读</text>
+                <text class="rm-batch-subtitle">粘贴文本或选择 txt 文件：每篇以 #title= 开头，支持 #cat= #meta= #description= #date= 字段，其余行作为正文；重复篇目自动跳过，导入后直接上线</text>
+              </view>
+              <view class="rm-batch-actions">
+                <view class="rm-file-btn rm-file-btn-sm" @tap="chooseBatchFile">选择 txt 文件</view>
+              </view>
+            </view>
+            <textarea
+              class="rm-textarea rm-batch-textarea"
+              v-model="batchText"
+              placeholder="每篇以 #title= 开头，例如：&#10;#title=司法和国家权力的多种面孔（序言）&#10;#cat=比较法&#10;#meta=米尔伊安·R·达玛什卡 著&#10;#description=全书导言&#10;正文内容..."
+            ></textarea>
+            <view class="rm-batch-foot">
+              <text v-if="readingParseCount > 0" class="rm-batch-count">已识别 {{ readingParseCount }} 篇阅读</text>
+              <text v-else class="rm-batch-count rm-batch-count-muted">尚未识别到阅读篇目</text>
+              <view class="qb-create-btn qb-create-btn-success" :class="{ 'is-disabled': batchImporting }" @tap="handleBatchReadingImport">
+                <view class="navi-icon navi-icon-check-circle"></view>
+                <text>{{ batchImporting ? '导入中...' : '一键导入' }}</text>
+              </view>
+            </view>
+            <text v-if="batchResult" class="rm-batch-result" :class="{ 'is-error': batchResult.error }">{{ batchResult.message }}</text>
+          </view>
         </section>
 
         <!-- ===== Section 3: 学习资源管理 ===== -->
@@ -704,6 +730,64 @@ function parseBatchVocabText(text) {
     items.push({ title, description, cat })
   }
   return items
+}
+
+/* ===== 批量导入阅读 ===== */
+const readingParseCount = computed(() => parseBatchReadingText(batchText.value).length)
+
+function parseBatchReadingText(text) {
+  const lines = String(text || '').split(/\r?\n/)
+  const items = []
+  const FIELDS = ['cat', 'meta', 'description', 'date', 'tags']
+  let current = null
+  for (const rawLine of lines) {
+    const line = rawLine.replace(/\r/g, '')
+    const fieldMatch = line.match(/^#(\w+)\s*=\s*(.*)$/)
+    if (fieldMatch) {
+      const key = fieldMatch[1].toLowerCase()
+      const value = fieldMatch[2].trim()
+      if (key === 'title') {
+        if (current && current.title && current.content) items.push(current)
+        current = { title: value, content: '' }
+      } else if (current && FIELDS.includes(key)) {
+        current[key] = value
+      }
+      continue
+    }
+    if (!current) continue
+    current.content += (current.content ? '\n' : '') + rawLine
+  }
+  if (current && current.title && current.content) items.push(current)
+  return items
+}
+
+async function handleBatchReadingImport() {
+  if (batchImporting.value) return
+  const items = parseBatchReadingText(batchText.value)
+  if (!items.length) {
+    batchResult.value = { error: true, message: '请先粘贴或选择阅读文本' }
+    return
+  }
+  if (items.length > 100) {
+    batchResult.value = { error: true, message: `共 ${items.length} 篇，超出单次 100 篇上限，请分批导入` }
+    return
+  }
+  batchImporting.value = true
+  batchResult.value = null
+  try {
+    const resourcesObj = uniCloud.importObject('resources', { customUI: true })
+    const r = (await resourcesObj.batchCreateReading({ adminToken: getAdminToken(), items })) || {}
+    if (r.errCode !== 0) {
+      batchResult.value = { error: true, message: r.errMsg || '批量导入失败' }
+    } else {
+      batchResult.value = { error: false, message: `导入完成：新增 ${r.added} 篇，跳过重复 ${r.skipped} 篇` }
+      await loadAll()
+    }
+  } catch (e) {
+    batchResult.value = { error: true, message: (e && e.message) || '批量导入失败，请确认 resources 云对象已重新部署' }
+  } finally {
+    batchImporting.value = false
+  }
 }
 
 function chooseBatchFile() {
