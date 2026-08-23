@@ -136,13 +136,17 @@
                 <p class="lc-section-subtitle">按日安排听力素材，循序渐进提升法律英语听力水平</p>
               </div>
             </div>
+            <button v-if="lessons.length" class="lt-all-tasks-btn" type="button" @click="showAllLessons = !showAllLessons">
+              <span>{{ showAllLessons ? '收起全部任务' : '全部听力任务' }}</span>
+              <span class="lt-all-tasks-btn-count">{{ lessons.length }}</span>
+            </button>
           </div>
           <div class="lt-task-grid">
             <!-- Task Cards -->
             <div v-for="(task, index) in weeklyTasks" :key="index"
                  class="lt-task-card"
-                 :class="{'is-done': task.status === 'done', 'is-active': task.status === 'active'}"
-                 @click="selectLesson(index)">
+                 :class="{'is-done': task.status === 'done', 'is-active': currentIndex === index}"
+                 @click="selectLesson(index, true)">
               <div class="lt-task-top">
                 <span class="lt-task-badge">{{ task.dayNum }}</span>
                 <span class="lt-task-day">{{ task.day }}</span>
@@ -158,11 +162,22 @@
               <span class="lt-status" :class="`lt-status-${task.status}`">{{ task.statusText }}</span>
             </div>
           </div>
+          <div v-if="showAllLessons && lessons.length" class="lt-all-tasks">
+            <button v-for="(lesson, index) in lessons" :key="lesson.id" type="button"
+                    class="lt-all-task"
+                    :class="{'is-active': currentLesson && currentLesson.id === lesson.id}"
+                    @click="selectLessonById(lesson.id, true)">
+              <span class="lt-all-task-index">{{ String(index + 1).padStart(2, '0') }}</span>
+              <span class="lt-all-task-title">{{ lesson.title }}</span>
+              <span class="lt-all-task-meta">{{ lesson.difficultyText }} · {{ lesson.statusText }}</span>
+              <span class="lt-all-task-arrow"></span>
+            </button>
+          </div>
           <div v-if="!weeklyTasks.length" class="lt-empty">暂无听力任务</div>
         </section>
 
         <!-- ===== Section 2: 听力练习操作台 ===== -->
-        <section class="lc-section" :class="{'is-visible': visibleSections[1]}" aria-label="听力练习操作台">
+        <section ref="studioSection" class="lc-section" :class="{'is-visible': visibleSections[1]}" aria-label="听力练习操作台">
           <div class="lc-section-header">
             <div class="lc-section-title-wrap">
               <span class="lc-section-bar"></span>
@@ -222,7 +237,8 @@
                   </div>
                 </div>
                 <p v-if="currentTranscript" class="lt-transcript">{{ currentTranscript }}</p>
-                <p v-else class="lt-empty">暂无听力原文</p>
+                <p v-else-if="isTranscriptLoading" class="lt-empty">原文加载中...</p>
+                <p v-else class="lt-empty">{{ currentLang === 'zh' ? '暂无中文文本' : '暂无听力原文' }}</p>
               </div>
               <!-- Panel B: 习题作答区域 -->
               <div class="lt-panel lt-panel-quiz">
@@ -304,7 +320,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { requireLogin, getDisplayName, getLevelText } from '@/utils/auth.js'
 
@@ -334,8 +350,13 @@ const visibleSections = ref([false, false, false])
 // 听力资源
 const lessons = ref([])
 const currentLesson = ref(null)
+const currentIndex = ref(-1)
 const weeklyTasks = ref([])
+const studioSection = ref(null)
+const showAllLessons = ref(false)
+const isTranscriptLoading = ref(false)
 let audioInstance = null
+let activeTranscriptId = ''
 
 // 文本数据
 const transcripts = ref({
@@ -378,9 +399,80 @@ function mapDifficultyText(meta) {
   return key === 'beginner' ? '初级' : key === 'advanced' ? '高级' : '中级'
 }
 
-function selectLesson(index) {
-  currentLesson.value = lessons.value[index] || null
+const CJK_CHAR = /[\u3400-\u9fff]/
+const ENGLISH_ITEM_START = /(?=\d{1,3}\.\s+[A-Za-z])/
+const CHINESE_ITEM_START = /(?=[（(]\d{1,3}[）)])/
+const CHINESE_TITLE = /^(法律英语|听力|何家弘)/
+const CHINESE_HEADING = /^[\u3400-\u9fff]{1,6}[、．.·]/
+
+function splitTranscriptByLang(text) {
+  const en = []
+  const zh = []
+  String(text || '').split(/\r?\n/).forEach((line) => {
+    const value = line.trim()
+    if (!value) return
+    const parts = value
+      .split(ENGLISH_ITEM_START)
+      .flatMap((part) => part.split(CHINESE_ITEM_START))
+      .map((part) => part.trim())
+      .filter(Boolean)
+    parts.forEach((part) => {
+      const value = part.trim()
+      const isChineseTranslation = CJK_CHAR.test(value) && (
+        /[（(]\d{1,3}[）)]/.test(value) ||
+        (!CHINESE_TITLE.test(value) && !CHINESE_HEADING.test(value))
+      )
+      if (isChineseTranslation) {
+        zh.push(part)
+      } else if (!CJK_CHAR.test(value)) {
+        en.push(part)
+      }
+    })
+  })
+  return {
+    en: en.join('\n'),
+    zh: zh.join('\n')
+  }
+}
+
+const WEEK_START = new Date(2026, 0, 5)
+
+function getWeekIndex(date = new Date()) {
+  const day = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  const weekday = day.getDay() || 7
+  day.setDate(day.getDate() - weekday + 1)
+  day.setHours(0, 0, 0, 0)
+  return Math.floor((day.getTime() - WEEK_START.getTime()) / (7 * 24 * 60 * 60 * 1000))
+}
+
+function buildWeeklyTasks() {
+  const total = lessons.value.length
+  if (!total) return []
+  const weekIndex = getWeekIndex()
+  const start = (((weekIndex * 7) % total) + total) % total
+  const tasks = []
+  for (let i = 0; i < Math.min(7, total); i += 1) {
+    const lesson = lessons.value[(start + i) % total]
+    tasks.push({
+      ...lesson,
+      dayNum: String(i + 1).padStart(2, '0'),
+      day: `第${i + 1}天`
+    })
+  }
+  return tasks
+}
+
+function scrollToStudio() {
+  const el = studioSection.value && (studioSection.value.$el || studioSection.value)
+  if (el && el.scrollIntoView) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+}
+
+function applyLesson(lesson, autoPlay = false) {
+  currentLesson.value = lesson || null
   if (!currentLesson.value) return
+  currentIndex.value = weeklyTasks.value.findIndex((task) => task.id === currentLesson.value.id)
   transcripts.value = {
     en: currentLesson.value.transcriptEn || '',
     zh: currentLesson.value.transcriptZh || ''
@@ -400,20 +492,95 @@ function selectLesson(index) {
     audioInstance.pause()
     audioInstance = null
   }
+  if (autoPlay) {
+    nextTick(scrollToStudio)
+    togglePlay()
+  }
+  if (!currentLesson.value.contentLoaded) {
+    isTranscriptLoading.value = true
+    loadLessonDetail(currentLesson.value.id)
+  } else {
+    isTranscriptLoading.value = false
+  }
+}
+
+function selectLesson(index, autoPlay = false) {
+  applyLesson(weeklyTasks.value[index] || null, autoPlay)
+}
+
+function selectLessonById(id, autoPlay = false) {
+  const lesson = lessons.value.find((item) => item.id === id) || null
+  applyLesson(lesson, autoPlay)
+}
+
+function updateLessonDetail(id, patch) {
+  const lessonIndex = lessons.value.findIndex((item) => item.id === id)
+  if (lessonIndex >= 0) {
+    Object.assign(lessons.value[lessonIndex], patch)
+  }
+  weeklyTasks.value = weeklyTasks.value.map((task) => task.id === id ? { ...task, ...patch } : task)
+  if (currentLesson.value && currentLesson.value.id === id) {
+    Object.assign(currentLesson.value, patch)
+    transcripts.value = {
+      en: patch.transcriptEn || '',
+      zh: patch.transcriptZh || ''
+    }
+  }
+}
+
+async function loadLessonDetail(id) {
+  const lesson = lessons.value.find((item) => item.id === id)
+  if (!lesson || lesson.contentLoaded) return
+  activeTranscriptId = id
+  isTranscriptLoading.value = true
+  try {
+    const resourcesObj = uniCloud.importObject('resources', { customUI: true })
+    const r = (await resourcesObj.get({ id })) || {}
+    if (r.errCode !== 0) {
+      if (activeTranscriptId === id) {
+        updateLessonDetail(id, { contentLoaded: true })
+      }
+      return
+    }
+    const doc = r.doc || {}
+    const enSource = doc.content || doc.description || ''
+    const zhSource = doc.description || doc.content || ''
+    const enPart = splitTranscriptByLang(enSource)
+    const zhPart = splitTranscriptByLang(zhSource)
+    const patch = {
+      transcriptEn: enPart.en || zhPart.en,
+      transcriptZh: enPart.zh || zhPart.zh,
+      questions: (doc.questions || []).map(q => ({
+        question: q.stem || '',
+        options: q.options || [],
+        answer: q.answer
+      })),
+      contentLoaded: true
+    }
+    if (activeTranscriptId === id) {
+      updateLessonDetail(id, patch)
+    }
+  } catch (e) {
+    if (activeTranscriptId === id) {
+      updateLessonDetail(id, { contentLoaded: true })
+    }
+  } finally {
+    if (activeTranscriptId === id) {
+      isTranscriptLoading.value = false
+    }
+  }
 }
 
 async function loadListeningLessons() {
   try {
     const resourcesObj = uniCloud.importObject('resources', { customUI: true })
-    const r = (await resourcesObj.listPublic({ type: 'listening', withContent: true })) || {}
+    const r = (await resourcesObj.listPublic({ type: 'listening' })) || {}
     if (r.errCode !== 0) {
       uni.showToast({ title: r.errMsg || '听力资源加载失败', icon: 'none' })
       return
     }
-    lessons.value = (r.list || []).map((doc, index) => ({
+    lessons.value = (r.list || []).map((doc) => ({
       id: doc._id,
-      dayNum: String(index + 1).padStart(2, '0'),
-      day: `第${index + 1}天`,
       difficulty: mapDifficulty(doc.meta),
       difficultyText: mapDifficultyText(doc.meta),
       title: doc.title || '未命名听力',
@@ -421,15 +588,12 @@ async function loadListeningLessons() {
       status: 'active',
       statusText: '待学习',
       audioUrl: doc.audioUrl || doc.fileUrl || '',
-      transcriptEn: doc.content || '',
-      transcriptZh: doc.description || '',
-      questions: (doc.questions || []).map(q => ({
-        question: q.stem || '',
-        options: q.options || [],
-        answer: q.answer
-      }))
+      transcriptEn: '',
+      transcriptZh: '',
+      questions: [],
+      contentLoaded: false
     }))
-    weeklyTasks.value = lessons.value
+    weeklyTasks.value = buildWeeklyTasks()
     if (lessons.value.length) selectLesson(0)
   } catch (e) {
     uni.showToast({ title: (e && e.errMsg) || '听力资源加载失败', icon: 'none' })
@@ -889,6 +1053,38 @@ onLoad(() => {
   margin-bottom: 32px;
 }
 
+.lt-all-tasks-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--rule-border);
+  border-radius: 9999px;
+  background: var(--rule-card);
+  color: var(--rule-primary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.lt-all-tasks-btn:hover {
+  background: var(--rule-primary-tint-3);
+  border-color: var(--rule-primary-tint-2);
+  box-shadow: 0 4px 12px -6px rgba(37, 99, 235, 0.35);
+}
+
+.lt-all-tasks-btn-count {
+  min-width: 20px;
+  padding: 1px 7px;
+  border-radius: 9999px;
+  background: var(--rule-primary-tint-1);
+  color: var(--rule-primary);
+  font-size: 12px;
+  text-align: center;
+}
+
 .lc-section-title-wrap {
   display: flex;
   align-items: center;
@@ -1143,6 +1339,76 @@ onLoad(() => {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 20px;
+}
+
+.lt-all-tasks {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  max-height: 360px;
+  overflow-y: auto;
+  margin-top: 18px;
+  padding-right: 4px;
+}
+
+.lt-all-task {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 10px 14px;
+  border: 1px solid var(--rule-border);
+  border-radius: 12px;
+  background: var(--rule-card);
+  color: var(--rule-foreground);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.lt-all-task:hover {
+  transform: translateY(-1px);
+  background: var(--rule-primary-tint-3);
+  border-color: var(--rule-primary-tint-2);
+}
+
+.lt-all-task.is-active {
+  border-color: var(--rule-primary);
+  background: var(--rule-primary-tint-3);
+}
+
+.lt-all-task-index {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--rule-primary);
+}
+
+.lt-all-task-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.lt-all-task-meta {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--rule-muted-foreground);
+}
+
+.lt-all-task-arrow {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='m9 18 6-6-6-6'/></svg>") center/contain no-repeat;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='m9 18 6-6-6-6'/></svg>") center/contain no-repeat;
 }
 
 .lt-task-card {
@@ -1574,7 +1840,14 @@ onLoad(() => {
   line-height: 1.85;
   color: var(--rule-ink-2);
   margin: 0;
+  max-height: 320px;
+  overflow-y: auto;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  overscroll-behavior: contain;
   padding-left: 18px;
+  padding-right: 8px;
+  padding-bottom: 8px;
   border-left: 3px solid;
   border-image: linear-gradient(180deg, var(--rule-primary), var(--rule-primary-tint-2)) 1;
   font-family: var(--rule-font-sans);
@@ -1880,6 +2153,10 @@ onLoad(() => {
   
   .app-content {
     padding: 20px;
+  }
+  
+  .lt-all-tasks {
+    grid-template-columns: 1fr;
   }
   
   .lt-hero {

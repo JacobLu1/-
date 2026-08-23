@@ -281,9 +281,51 @@
             </view>
 
             <view v-if="uploadType === 'reading' || uploadType === 'listening'" class="rm-upload-row">
+              <view v-if="uploadType === 'reading'" class="rm-form-field rm-form-field-grow">
+                <text class="rm-form-label">阅读简介</text>
+                <textarea class="rm-textarea" v-model="uploadDescription" placeholder="请输入摘要或说明"></textarea>
+              </view>
+            </view>
+
+            <view v-if="uploadType === 'listening'" class="rm-upload-row">
               <view class="rm-form-field rm-form-field-grow">
-                <text class="rm-form-label">{{ uploadType === 'reading' ? '阅读简介' : '听力原文' }}</text>
-                <textarea class="rm-textarea" v-model="uploadDescription" :placeholder="uploadType === 'reading' ? '请输入摘要或说明' : '请输入听力原文，可包含换行'"></textarea>
+                <text class="rm-form-label">英文原文</text>
+                <view class="rm-file-row">
+                  <view class="rm-file-btn rm-file-btn-sm" @tap="chooseListeningTextFile">
+                    <view class="navi-icon navi-icon-upload-cloud"></view>
+                    <text>选择文本文件</text>
+                  </view>
+                  <text v-if="uploadListeningTextName" class="rm-file-name">{{ uploadListeningTextName }}</text>
+                </view>
+                <view class="rm-file-row">
+                  <view class="rm-file-btn rm-file-btn-sm" @tap="chooseListeningWordFile">
+                    <view class="navi-icon navi-icon-upload-cloud"></view>
+                    <text>选择 Word 文档</text>
+                  </view>
+                  <text v-if="uploadListeningWordName" class="rm-file-name">{{ uploadListeningWordName }}</text>
+                </view>
+                <textarea class="rm-textarea" v-model="uploadContent" placeholder="请输入英文原文，可包含换行"></textarea>
+              </view>
+            </view>
+
+            <view v-if="uploadType === 'listening'" class="rm-upload-row">
+              <view class="rm-form-field rm-form-field-grow">
+                <text class="rm-form-label">中文译文</text>
+                <view class="rm-file-row">
+                  <view class="rm-file-btn rm-file-btn-sm" @tap="chooseListeningZhTextFile">
+                    <view class="navi-icon navi-icon-upload-cloud"></view>
+                    <text>选择文本文件</text>
+                  </view>
+                  <text v-if="uploadListeningZhTextName" class="rm-file-name">{{ uploadListeningZhTextName }}</text>
+                </view>
+                <view class="rm-file-row">
+                  <view class="rm-file-btn rm-file-btn-sm" @tap="chooseListeningZhWordFile">
+                    <view class="navi-icon navi-icon-upload-cloud"></view>
+                    <text>选择 Word 文档</text>
+                  </view>
+                  <text v-if="uploadListeningZhWordName" class="rm-file-name">{{ uploadListeningZhWordName }}</text>
+                </view>
+                <textarea class="rm-textarea" v-model="uploadDescription" placeholder="请输入中文译文，可包含换行"></textarea>
               </view>
             </view>
 
@@ -602,8 +644,43 @@
 
               <view v-if="editType === 'listening'" class="rm-upload-row">
                 <view class="rm-form-field rm-form-field-grow">
-                  <text class="rm-form-label">听力原文</text>
-                  <textarea class="rm-textarea" v-model="editForm.content" placeholder="请输入听力原文，可包含换行"></textarea>
+                  <text class="rm-form-label">英文原文</text>
+                  <view class="rm-file-row">
+                    <view class="rm-file-btn rm-file-btn-sm" @tap="chooseEditListeningTextFile">
+                      <view class="navi-icon navi-icon-upload-cloud"></view>
+                      <text>选择文本文件</text>
+                    </view>
+                    <text v-if="editListeningTextName" class="rm-file-name">{{ editListeningTextName }}</text>
+                  </view>
+                  <view class="rm-file-row">
+                    <view class="rm-file-btn rm-file-btn-sm" @tap="chooseEditListeningWordFile">
+                      <view class="navi-icon navi-icon-upload-cloud"></view>
+                      <text>选择 Word 文档</text>
+                    </view>
+                    <text v-if="editListeningWordName" class="rm-file-name">{{ editListeningWordName }}</text>
+                  </view>
+                  <textarea class="rm-textarea" v-model="editForm.content" placeholder="请输入英文原文，可包含换行"></textarea>
+                </view>
+              </view>
+
+              <view v-if="editType === 'listening'" class="rm-upload-row">
+                <view class="rm-form-field rm-form-field-grow">
+                  <text class="rm-form-label">中文译文</text>
+                  <view class="rm-file-row">
+                    <view class="rm-file-btn rm-file-btn-sm" @tap="chooseEditListeningZhTextFile">
+                      <view class="navi-icon navi-icon-upload-cloud"></view>
+                      <text>选择文本文件</text>
+                    </view>
+                    <text v-if="editListeningZhTextName" class="rm-file-name">{{ editListeningZhTextName }}</text>
+                  </view>
+                  <view class="rm-file-row">
+                    <view class="rm-file-btn rm-file-btn-sm" @tap="chooseEditListeningZhWordFile">
+                      <view class="navi-icon navi-icon-upload-cloud"></view>
+                      <text>选择 Word 文档</text>
+                    </view>
+                    <text v-if="editListeningZhWordName" class="rm-file-name">{{ editListeningZhWordName }}</text>
+                  </view>
+                  <textarea class="rm-textarea" v-model="editForm.description" placeholder="请输入中文译文，可包含换行"></textarea>
                 </view>
               </view>
 
@@ -686,6 +763,14 @@ const uploadAudioUrl = ref('')
 const uploadSortOrder = ref(1)
 const uploadLang = ref('英语')
 const uploadQuestions = ref([])
+const uploadListeningTextName = ref('')
+const editListeningTextName = ref('')
+const uploadListeningWordName = ref('')
+const editListeningWordName = ref('')
+const uploadListeningZhTextName = ref('')
+const editListeningZhTextName = ref('')
+const uploadListeningZhWordName = ref('')
+const editListeningZhWordName = ref('')
 
 /* ===== 文件上传状态 ===== */
 const uploadVideoName = ref('')
@@ -1075,11 +1160,25 @@ async function loadAll() {
     const r = (await resourcesObj.list({ adminToken: getAdminToken(), type: 'all' })) || {}
     if (r.errCode === 0) {
       resources.value = (r.list || []).map(toResourceItem)
+      refreshUploadSortOrder()
     }
   } catch (e) {
     uni.showToast({ title: (e && e.errMsg) || '资源加载失败', icon: 'none' })
   }
 }
+
+function nextSortOrderForType(type) {
+  const max = resources.value
+    .filter((item) => item.type === type)
+    .reduce((result, item) => Math.max(result, Number(item.sortOrder) || 0), 0)
+  return max + 1
+}
+
+function refreshUploadSortOrder() {
+  uploadSortOrder.value = nextSortOrderForType(uploadType.value)
+}
+
+watch(uploadType, refreshUploadSortOrder)
 
 /* ===== 方法 ===== */
 const navigateTo = (url) => {
@@ -1163,6 +1262,181 @@ function chooseOneFile(extension) {
       fail: (err) => reject(err)
     })
   })
+}
+
+function readLocalTextFile(file) {
+  return new Promise((resolve, reject) => {
+    if (Number(file && file.size) > 2 * 1024 * 1024) {
+      reject(new Error('文本文件过大，请控制在 2MB 以内'))
+      return
+    }
+    const path = (file && (file.path || file.tempFilePath)) || ''
+    if (path.startsWith('blob:')) {
+      fetch(path)
+        .then((res) => res.text())
+        .then(resolve)
+        .catch(() => reject(new Error('读取文本文件失败，请改为复制粘贴文本')))
+      return
+    }
+    if (!path) {
+      reject(new Error('未获取到文本文件路径'))
+      return
+    }
+    uni.getFileSystemManager().readFile({
+      filePath: path,
+      encoding: 'utf8',
+      success: (res) => resolve(res.data || ''),
+      fail: () => reject(new Error('读取文本文件失败，请改为复制粘贴文本'))
+    })
+  })
+}
+
+async function chooseListeningTextFile() {
+  try {
+    const file = await chooseOneFile(['.txt', '.text', '.md'])
+    const text = await readLocalTextFile(file)
+    uploadContent.value = text
+    uploadListeningTextName.value = file.name || ''
+    uni.showToast({ title: '文本已导入，可继续修改', icon: 'success' })
+  } catch (e) {
+    if (!isCancelError(e)) {
+      uni.showToast({ title: (e && e.message) || '读取文本失败', icon: 'none', duration: 3000 })
+    }
+  }
+}
+
+function readWordFile(file) {
+  return new Promise((resolve, reject) => {
+    if (!window.mammoth) {
+      reject(new Error('Word 解析组件未加载，请刷新页面后重试'))
+      return
+    }
+    const path = (file && (file.path || file.tempFilePath)) || ''
+    const parseArrayBuffer = (arrayBuffer) => {
+      window.mammoth.extractRawText({ arrayBuffer })
+        .then((result) => resolve(result.value || ''))
+        .catch((err) => reject(new Error((err && err.message) || '解析 Word 文档失败')))
+    }
+    if (path.startsWith('blob:')) {
+      fetch(path)
+        .then((res) => res.arrayBuffer())
+        .then(parseArrayBuffer)
+        .catch(() => reject(new Error('读取 Word 文档失败')))
+      return
+    }
+    if (file && typeof file.arrayBuffer === 'function') {
+      file.arrayBuffer()
+        .then(parseArrayBuffer)
+        .catch(() => reject(new Error('读取 Word 文档失败')))
+      return
+    }
+    if (typeof FileReader !== 'undefined') {
+      const reader = new FileReader()
+      reader.onerror = () => reject(new Error('读取 Word 文档失败'))
+      reader.onload = () => parseArrayBuffer(reader.result)
+      reader.readAsArrayBuffer(file)
+      return
+    }
+    reject(new Error('当前环境不支持解析 Word 文档，请将内容复制粘贴到文本框'))
+  })
+}
+
+async function chooseListeningWordFile() {
+  try {
+    const file = await chooseOneFile(['.docx'])
+    const text = await readWordFile(file)
+    uploadContent.value = text
+    uploadListeningWordName.value = file.name || ''
+    uni.showToast({ title: 'Word 已导入，可继续修改', icon: 'success' })
+  } catch (e) {
+    if (!isCancelError(e)) {
+      uni.showToast({ title: (e && e.message) || '读取 Word 失败', icon: 'none', duration: 3000 })
+    }
+  }
+}
+
+async function chooseListeningZhTextFile() {
+  try {
+    const file = await chooseOneFile(['.txt', '.text', '.md'])
+    const text = await readLocalTextFile(file)
+    uploadDescription.value = text
+    uploadListeningZhTextName.value = file.name || ''
+    uni.showToast({ title: '中文文本已导入，可继续修改', icon: 'success' })
+  } catch (e) {
+    if (!isCancelError(e)) {
+      uni.showToast({ title: (e && e.message) || '读取文本失败', icon: 'none', duration: 3000 })
+    }
+  }
+}
+
+async function chooseListeningZhWordFile() {
+  try {
+    const file = await chooseOneFile(['.docx'])
+    const text = await readWordFile(file)
+    uploadDescription.value = text
+    uploadListeningZhWordName.value = file.name || ''
+    uni.showToast({ title: '中文 Word 已导入，可继续修改', icon: 'success' })
+  } catch (e) {
+    if (!isCancelError(e)) {
+      uni.showToast({ title: (e && e.message) || '读取 Word 失败', icon: 'none', duration: 3000 })
+    }
+  }
+}
+
+async function chooseEditListeningTextFile() {
+  try {
+    const file = await chooseOneFile(['.txt', '.text', '.md'])
+    const text = await readLocalTextFile(file)
+    editForm.content = text
+    editListeningTextName.value = file.name || ''
+    uni.showToast({ title: '文本已导入，可继续修改', icon: 'success' })
+  } catch (e) {
+    if (!isCancelError(e)) {
+      uni.showToast({ title: (e && e.message) || '读取文本失败', icon: 'none', duration: 3000 })
+    }
+  }
+}
+
+async function chooseEditListeningWordFile() {
+  try {
+    const file = await chooseOneFile(['.docx'])
+    const text = await readWordFile(file)
+    editForm.content = text
+    editListeningWordName.value = file.name || ''
+    uni.showToast({ title: 'Word 已导入，可继续修改', icon: 'success' })
+  } catch (e) {
+    if (!isCancelError(e)) {
+      uni.showToast({ title: (e && e.message) || '读取 Word 失败', icon: 'none', duration: 3000 })
+    }
+  }
+}
+
+async function chooseEditListeningZhTextFile() {
+  try {
+    const file = await chooseOneFile(['.txt', '.text', '.md'])
+    const text = await readLocalTextFile(file)
+    editForm.description = text
+    editListeningZhTextName.value = file.name || ''
+    uni.showToast({ title: '中文文本已导入，可继续修改', icon: 'success' })
+  } catch (e) {
+    if (!isCancelError(e)) {
+      uni.showToast({ title: (e && e.message) || '读取文本失败', icon: 'none', duration: 3000 })
+    }
+  }
+}
+
+async function chooseEditListeningZhWordFile() {
+  try {
+    const file = await chooseOneFile(['.docx'])
+    const text = await readWordFile(file)
+    editForm.description = text
+    editListeningZhWordName.value = file.name || ''
+    uni.showToast({ title: '中文 Word 已导入，可继续修改', icon: 'success' })
+  } catch (e) {
+    if (!isCancelError(e)) {
+      uni.showToast({ title: (e && e.message) || '读取 Word 失败', icon: 'none', duration: 3000 })
+    }
+  }
 }
 
 /* 根据文件大小 & 类型推算需要的超时时间，避免大文件被默认的 60s 超时掐断 */
@@ -1490,6 +1764,7 @@ const doUpload = async (publishNow = false) => {
   }
 
   resources.value.unshift(toResourceItem({ _id: r.id, type: uploadType.value, ...payload, date }))
+  refreshUploadSortOrder()
 
   uploadTitle.value = ''
   uploadMeta.value = ''
@@ -1499,13 +1774,16 @@ const doUpload = async (publishNow = false) => {
   uploadDescription.value = ''
   uploadContent.value = ''
   uploadAudioUrl.value = ''
-  uploadSortOrder.value = 1
   uploadLang.value = '英语'
   uploadQuestions.value = []
   uploadVideoName.value = ''
   uploadAudioName.value = ''
   uploadPdfName.value = ''
   uploadCoverName.value = ''
+  uploadListeningTextName.value = ''
+  uploadListeningWordName.value = ''
+  uploadListeningZhTextName.value = ''
+  uploadListeningZhWordName.value = ''
   uni.showToast({ title: publishNow ? '已保存并上线' : '保存成功，等待审核', icon: 'success' })
 }
 
@@ -1534,6 +1812,10 @@ const openEdit = (item) => {
     options: Array.isArray(q.options) && q.options.length ? q.options.map(o => String(o || '')) : ['', ''],
     answer: q.answer === undefined || q.answer === null ? '' : String(q.answer)
   }))
+  editListeningTextName.value = ''
+  editListeningWordName.value = ''
+  editListeningZhTextName.value = ''
+  editListeningZhWordName.value = ''
   editVisible.value = true
 }
 
@@ -1609,6 +1891,10 @@ const saveEdit = async () => {
 
     editVisible.value = false
     editTarget.value = null
+    editListeningTextName.value = ''
+    editListeningWordName.value = ''
+    editListeningZhTextName.value = ''
+    editListeningZhWordName.value = ''
     uni.showToast({ title: '已保存', icon: 'success' })
   } catch (e) {
     uni.showToast({ title: (e && e.errMsg) || '保存失败', icon: 'none' })

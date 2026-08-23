@@ -12,7 +12,7 @@
       <view class="lt-nav-right"></view>
     </view>
 
-    <scroll-view scroll-y class="lt-scroll" show-scrollbar="false">
+    <scroll-view scroll-y class="lt-scroll" :scroll-into-view="scrollIntoView" show-scrollbar="false">
       <!-- 概览卡 -->
       <view class="hero">
         <view class="hero-top">
@@ -36,15 +36,19 @@
           </view>
           <text class="sec-sub">按日安排，循序渐进</text>
         </view>
+        <view class="all-task-btn" hover-class="all-task-btn-hover" @click="showAllLessons = !showAllLessons">
+          <text>{{ showAllLessons ? '收起全部' : '全部任务' }}</text>
+          <text class="ri-arrow-down-s-line" :class="{ 'is-open': showAllLessons }"></text>
+        </view>
         <view v-if="!weeklyTasks.length" class="lt-empty">暂无听力任务</view>
         <view class="task-grid">
           <view
             class="task-card"
-            :class="'is-' + task.status"
+            :class="[{ 'is-done': task.status === 'done', 'is-active': currentIndex === i }]"
             v-for="(task, i) in weeklyTasks"
             :key="i"
             hover-class="task-hover"
-            @click="selectLesson(i)"
+            @click="selectLesson(i, true)"
           >
             <view class="task-top">
               <view class="task-badge">{{ task.dayNum }}</view>
@@ -61,10 +65,27 @@
             <text class="task-status" :class="'status-' + task.status">{{ task.statusText }}</text>
           </view>
         </view>
+        <scroll-view v-if="showAllLessons && lessons.length" scroll-y class="all-task-scroll">
+          <view
+            class="all-task-item"
+            :class="{ 'is-active': currentLesson && currentLesson.id === lesson.id }"
+            v-for="(lesson, index) in lessons"
+            :key="lesson.id"
+            hover-class="all-task-hover"
+            @click="selectLessonById(lesson.id, true)"
+          >
+            <text class="all-task-index">{{ String(index + 1).padStart(2, '0') }}</text>
+            <view class="all-task-main">
+              <text class="all-task-title">{{ lesson.title }}</text>
+              <text class="all-task-meta">{{ lesson.difficultyText }} · {{ lesson.statusText }}</text>
+            </view>
+            <text class="ri-play-circle-line all-task-play"></text>
+          </view>
+        </scroll-view>
       </view>
 
       <!-- 听力练习操作台 -->
-      <view class="sec reveal d2">
+      <view id="studio" class="sec reveal d2">
         <view class="sec-head">
           <view class="t">
             <view class="bar"></view>
@@ -118,7 +139,11 @@
                 >中文</text>
               </view>
             </view>
-            <text class="transcript">{{ currentTranscript || '暂无听力原文' }}</text>
+            <scroll-view scroll-y class="transcript-scroll">
+              <text v-if="currentTranscript" class="transcript">{{ currentTranscript }}</text>
+              <text v-else-if="isTranscriptLoading" class="transcript transcript-empty">原文加载中...</text>
+              <text v-else class="transcript transcript-empty">{{ currentLang === 'zh' ? '暂无中文文本' : '暂无听力原文' }}</text>
+            </scroll-view>
           </view>
 
           <view class="panel">
@@ -216,9 +241,14 @@ export default {
       weeklyTasks: [],
       lessons: [],
       currentLesson: null,
+      currentIndex: -1,
       transcripts: { en: '', zh: '' },
       quizQuestions: [],
-      historyRecords: []
+      historyRecords: [],
+      scrollIntoView: '',
+      showAllLessons: false,
+      isTranscriptLoading: false,
+      activeTranscriptId: ''
     }
   },
   computed: {
@@ -249,6 +279,60 @@ export default {
         }
       })
     },
+    splitTranscriptByLang(text) {
+      const en = []
+      const zh = []
+      String(text || '').split(/\r?\n/).forEach((line) => {
+        const value = line.trim()
+        if (!value) return
+        const parts = value
+          .split(/(?=\d{1,3}\.\s+[A-Za-z])/)
+          .flatMap((part) => part.split(/(?=[（(]\d{1,3}[）)])/))
+          .map((part) => part.trim())
+          .filter(Boolean)
+        parts.forEach((part) => {
+          const value = part.trim()
+          const isChineseTranslation = /[\u3400-\u9fff]/.test(value) && (
+            /[（(]\d{1,3}[）)]/.test(value) ||
+            (!/^(法律英语|听力|何家弘)/.test(value) && !/^[\u3400-\u9fff]{1,6}[、．.·]/.test(value))
+          )
+          if (isChineseTranslation) {
+            zh.push(part)
+          } else if (!/[\u3400-\u9fff]/.test(value)) {
+            en.push(part)
+          }
+        })
+      })
+      return {
+        en: en.join('\n'),
+        zh: zh.join('\n')
+      }
+    },
+    getWeekIndex(date) {
+      const current = date || new Date()
+      const day = new Date(current.getFullYear(), current.getMonth(), current.getDate())
+      const weekday = day.getDay() || 7
+      day.setDate(day.getDate() - weekday + 1)
+      day.setHours(0, 0, 0, 0)
+      const weekStart = new Date(2026, 0, 5)
+      return Math.floor((day.getTime() - weekStart.getTime()) / (7 * 24 * 60 * 60 * 1000))
+    },
+    buildWeeklyTasks() {
+      const total = this.lessons.length
+      if (!total) return []
+      const weekIndex = this.getWeekIndex(new Date())
+      const start = (((weekIndex * 7) % total) + total) % total
+      const tasks = []
+      for (let i = 0; i < Math.min(7, total); i += 1) {
+        const lesson = this.lessons[(start + i) % total]
+        tasks.push({
+          ...lesson,
+          dayNum: String(i + 1).padStart(2, '0'),
+          day: '第' + (i + 1) + '天'
+        })
+      }
+      return tasks
+    },
     async loadListeningLessons() {
       try {
         const resourcesObj = uniCloud.importObject('resources', { customUI: true })
@@ -257,10 +341,8 @@ export default {
           uni.showToast({ title: r.errMsg || '听力资源加载失败', icon: 'none' })
           return
         }
-        this.lessons = (r.list || []).map((doc, index) => ({
+        this.lessons = (r.list || []).map((doc) => ({
           id: doc._id,
-          dayNum: String(index + 1).padStart(2, '0'),
-          day: '第' + (index + 1) + '天',
           difficulty: 'mid',
           difficultyText: doc.meta || '中级',
           title: doc.title || '未命名听力',
@@ -268,23 +350,21 @@ export default {
           status: 'active',
           statusText: '待学习',
           audioUrl: doc.audioUrl || doc.fileUrl || '',
-          transcriptEn: doc.content || '',
-          transcriptZh: doc.description || '',
-          questions: (doc.questions || []).map(q => ({
-            question: q.stem || '',
-            options: q.options || [],
-            answer: q.answer
-          }))
+          transcriptEn: '',
+          transcriptZh: '',
+          questions: [],
+          contentLoaded: false
         }))
-        this.weeklyTasks = this.lessons
+        this.weeklyTasks = this.buildWeeklyTasks()
         if (this.lessons.length) this.selectLesson(0)
       } catch (e) {
         uni.showToast({ title: (e && e.errMsg) || '听力资源加载失败', icon: 'none' })
       }
     },
-    selectLesson(index) {
-      this.currentLesson = this.lessons[index] || null
+    applyLesson(lesson, autoPlay = false) {
+      this.currentLesson = lesson || null
       if (!this.currentLesson) return
+      this.currentIndex = this.weeklyTasks.findIndex((task) => task.id === this.currentLesson.id)
       this.transcripts = {
         en: this.currentLesson.transcriptEn || '',
         zh: this.currentLesson.transcriptZh || ''
@@ -303,6 +383,86 @@ export default {
       if (this._audioInstance) {
         this._audioInstance.destroy()
         this._audioInstance = null
+      }
+      this.scrollIntoView = ''
+      this.$nextTick(() => {
+        this.scrollIntoView = 'studio'
+      })
+      if (autoPlay) {
+        if (this.currentLesson.audioUrl) {
+          this.togglePlay()
+        } else {
+          uni.showToast({ title: '当前听力未配置音频地址', icon: 'none' })
+        }
+      }
+      if (!this.currentLesson.contentLoaded) {
+        this.isTranscriptLoading = true
+        this.loadLessonDetail(this.currentLesson.id)
+      } else {
+        this.isTranscriptLoading = false
+      }
+    },
+    selectLesson(index, autoPlay = false) {
+      this.applyLesson(this.weeklyTasks[index] || null, autoPlay)
+    },
+    selectLessonById(id, autoPlay = false) {
+      const lesson = this.lessons.find((item) => item.id === id) || null
+      this.applyLesson(lesson, autoPlay)
+    },
+    updateLessonDetail(id, patch) {
+      const lessonIndex = this.lessons.findIndex((item) => item.id === id)
+      if (lessonIndex >= 0) {
+        this.lessons[lessonIndex] = { ...this.lessons[lessonIndex], ...patch }
+      }
+      this.weeklyTasks = this.weeklyTasks.map((task) => task.id === id ? { ...task, ...patch } : task)
+      if (this.currentLesson && this.currentLesson.id === id) {
+        this.currentLesson = { ...this.currentLesson, ...patch }
+        this.transcripts = {
+          en: patch.transcriptEn || '',
+          zh: patch.transcriptZh || ''
+        }
+      }
+    },
+    async loadLessonDetail(id) {
+      const lesson = this.lessons.find((item) => item.id === id)
+      if (!lesson || lesson.contentLoaded) return
+      this.activeTranscriptId = id
+      this.isTranscriptLoading = true
+      try {
+        const resourcesObj = uniCloud.importObject('resources', { customUI: true })
+        const r = (await resourcesObj.get({ id })) || {}
+        if (r.errCode !== 0) {
+          if (this.activeTranscriptId === id) {
+            this.updateLessonDetail(id, { contentLoaded: true })
+          }
+          return
+        }
+        const doc = r.doc || {}
+        const enSource = doc.content || doc.description || ''
+        const zhSource = doc.description || doc.content || ''
+        const enPart = this.splitTranscriptByLang(enSource)
+        const zhPart = this.splitTranscriptByLang(zhSource)
+        const patch = {
+          transcriptEn: enPart.en || zhPart.en,
+          transcriptZh: enPart.zh || zhPart.zh,
+          questions: (doc.questions || []).map(q => ({
+            question: q.stem || '',
+            options: q.options || [],
+            answer: q.answer
+          })),
+          contentLoaded: true
+        }
+        if (this.activeTranscriptId === id) {
+          this.updateLessonDetail(id, patch)
+        }
+      } catch (e) {
+        if (this.activeTranscriptId === id) {
+          this.updateLessonDetail(id, { contentLoaded: true })
+        }
+      } finally {
+        if (this.activeTranscriptId === id) {
+          this.isTranscriptLoading = false
+        }
       }
     },
     togglePlay() {
@@ -580,11 +740,102 @@ page {
   color: var(--muted);
 }
 
+.all-task-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6rpx;
+  margin-bottom: 20rpx;
+  padding: 10rpx 20rpx;
+  border-radius: var(--r-pill);
+  background: rgba(46, 123, 224, 0.10);
+  color: var(--brand);
+  font-size: 22rpx;
+  font-weight: 600;
+  width: fit-content;
+}
+
+.all-task-btn-hover {
+  opacity: 0.7;
+}
+
+.all-task-btn .is-open {
+  transform: rotate(180deg);
+}
+
 /* ===== 本周任务 ===== */
 .task-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20rpx;
+}
+
+.all-task-scroll {
+  max-height: 560rpx;
+  margin-top: 20rpx;
+}
+
+.all-task-item {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 22rpx 20rpx;
+  margin-bottom: 16rpx;
+  border-radius: 24rpx;
+  background: var(--glass-2);
+  border: 2rpx solid var(--glass-border-soft);
+  box-shadow: var(--glass-shadow-sm);
+}
+
+.all-task-item.is-active {
+  border-color: var(--brand);
+  background: rgba(46, 123, 224, 0.08);
+}
+
+.all-task-hover {
+  opacity: 0.88;
+  transform: scale(0.99);
+}
+
+.all-task-index {
+  flex-shrink: 0;
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #5B9DF9, #2E7BE0);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22rpx;
+  font-weight: 700;
+}
+
+.all-task-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.all-task-title {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.all-task-meta {
+  font-size: 20rpx;
+  color: var(--muted);
+}
+
+.all-task-play {
+  font-size: 38rpx;
+  color: var(--brand);
+  flex-shrink: 0;
 }
 
 .task-card {
@@ -926,13 +1177,26 @@ page {
 }
 
 /* 原文 */
+.transcript-scroll {
+  max-height: 560rpx;
+  overflow: hidden;
+}
+
 .transcript {
   display: block;
   font-size: 25rpx;
   line-height: 1.85;
   color: var(--ink-2);
+  white-space: pre-wrap;
+  word-break: break-word;
   padding-left: 20rpx;
+  padding-right: 12rpx;
+  padding-bottom: 8rpx;
   border-left: 6rpx solid rgba(91, 157, 249, 0.45);
+}
+
+.transcript-empty {
+  color: var(--muted);
 }
 
 /* 习题 */
