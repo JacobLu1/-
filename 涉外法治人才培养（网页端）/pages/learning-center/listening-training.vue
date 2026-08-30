@@ -400,32 +400,128 @@ function mapDifficultyText(meta) {
 }
 
 const CJK_CHAR = /[\u3400-\u9fff]/
-const ENGLISH_ITEM_START = /(?=\d{1,3}\.\s+[A-Za-z])/
+const CHINESE_PUNCT = /[\u3000-\u303f\uff00-\uffef]/
+const LATIN_CHAR = /[A-Za-z]/
+const TOKEN_PATTERN = /[\u3400-\u9fff\u3000-\u303f\uff00-\uffef]+|[A-Za-z][A-Za-z'’\-]*|[^\u3400-\u9fff\u3000-\u303f\uff00-\uffefA-Za-z]+/g
+const ENGLISH_NUMBER_PREFIX = /^\d{1,3}\.\s*$/
+const CHINESE_NUMBER_PREFIX = /^(?:\d{1,3}[、．.·]\s*|[（(]\d{1,3}[）)]\s*)$/
+const ENGLISH_ITEM_PATTERN = /\d{1,3}\.\s+[A-Za-z]/g
 const CHINESE_ITEM_START = /(?=[（(]\d{1,3}[）)])/
-const CHINESE_TITLE = /^(法律英语|听力|何家弘)/
-const CHINESE_HEADING = /^[\u3400-\u9fff]{1,6}[、．.·]/
+const CHINESE_HEADING_PATTERN = /(?:第[零一二三四五六七八九十百千万0-9]+[章节部分编条款]|[一二三四五六七八九十]{1,3}[、．.·]|[（(][一二三四五六七八九十]{1,3}[）)]|\d{1,3}[、．.·])/g
+const BIG_HEADING = /^第[零一二三四五六七八九十百千万0-9]+(?:章|部分|编|篇)/
+const SOURCE_TITLE = /^(?:法律英语|听力|何家弘)/
+const STANDALONE_HEADING_MARKER = /^(?:第[零一二三四五六七八九十百千万0-9]+[章节部分编条款]|[一二三四五六七八九十]{1,3}[、．.·]|[（(][一二三四五六七八九十]{1,3}[）)]|\d{1,3}[、．.·]|[（(]\d{1,3}[）)])$/
+const HEADING_PREFIX = /^(?:第[零一二三四五六七八九十百千万0-9]+[章节部分编条款]|[一二三四五六七八九十]{1,3}[、．.·]|[（(][一二三四五六七八九十]{1,3}[）)]|\d{1,3}[、．.·]|[（(]\d{1,3}[）)]|\d{1,3}\.\s+[A-Za-z])/
+
+function splitByEnglishItems(part) {
+  const parts = []
+  ENGLISH_ITEM_PATTERN.lastIndex = 0
+  let cursor = 0
+  let match
+  while ((match = ENGLISH_ITEM_PATTERN.exec(part)) !== null) {
+    if (match.index > cursor) {
+      const segment = part.slice(cursor, match.index).trim()
+      if (segment) parts.push(segment)
+    }
+    cursor = match.index
+  }
+  const rest = part.slice(cursor).trim()
+  if (rest) parts.push(rest)
+  return parts
+}
+
+function splitByChineseHeadings(part) {
+  const parts = []
+  CHINESE_HEADING_PATTERN.lastIndex = 0
+  let cursor = 0
+  let match
+  while ((match = CHINESE_HEADING_PATTERN.exec(part)) !== null) {
+    if (match.index > cursor) {
+      const segment = part.slice(cursor, match.index).trim()
+      if (segment) parts.push(segment)
+    }
+    cursor = match.index
+  }
+  const rest = part.slice(cursor).trim()
+  if (rest) parts.push(rest)
+  return parts
+}
+
+function splitBilingualPart(part) {
+  const tokens = []
+  TOKEN_PATTERN.lastIndex = 0
+  let match
+  while ((match = TOKEN_PATTERN.exec(part)) !== null) {
+    const text = match[0]
+    const lang = CJK_CHAR.test(text) || CHINESE_PUNCT.test(text) ? 'zh' : LATIN_CHAR.test(text) ? 'en' : ''
+    tokens.push({ text, lang })
+  }
+  for (let i = 0; i < tokens.length; i += 1) {
+    if (tokens[i].lang) continue
+    let prevLang = ''
+    let nextLang = ''
+    for (let j = i - 1; j >= 0; j -= 1) {
+      if (tokens[j].lang) {
+        prevLang = tokens[j].lang
+        break
+      }
+    }
+    for (let j = i + 1; j < tokens.length; j += 1) {
+      if (tokens[j].lang) {
+        nextLang = tokens[j].lang
+        break
+      }
+    }
+    if (nextLang === 'en' && ENGLISH_NUMBER_PREFIX.test(tokens[i].text)) {
+      tokens[i].lang = 'en'
+      continue
+    }
+    if (nextLang === 'zh' && CHINESE_NUMBER_PREFIX.test(tokens[i].text)) {
+      tokens[i].lang = 'zh'
+      continue
+    }
+    tokens[i].lang = prevLang && prevLang === nextLang ? prevLang : prevLang || nextLang || 'en'
+  }
+  const en = []
+  const zh = []
+  tokens.forEach((token) => {
+    if (token.lang === 'zh') zh.push(token.text)
+    else en.push(token.text)
+  })
+  return {
+    en: en.join(''),
+    zh: zh.join('')
+  }
+}
 
 function splitTranscriptByLang(text) {
   const en = []
   const zh = []
-  String(text || '').split(/\r?\n/).forEach((line) => {
+  let pendingMarker = ''
+  String(text || '').split(/\r\n|\r|\n/).forEach((line) => {
     const value = line.trim()
     if (!value) return
-    const parts = value
-      .split(ENGLISH_ITEM_START)
+    const parts = splitByEnglishItems(value)
       .flatMap((part) => part.split(CHINESE_ITEM_START))
+      .flatMap(splitByChineseHeadings)
       .map((part) => part.trim())
       .filter(Boolean)
     parts.forEach((part) => {
-      const value = part.trim()
-      const isChineseTranslation = CJK_CHAR.test(value) && (
-        /[（(]\d{1,3}[）)]/.test(value) ||
-        (!CHINESE_TITLE.test(value) && !CHINESE_HEADING.test(value))
-      )
-      if (isChineseTranslation) {
-        zh.push(part)
-      } else if (!CJK_CHAR.test(value)) {
-        en.push(part)
+      if (BIG_HEADING.test(part) || SOURCE_TITLE.test(part)) return
+      if (pendingMarker && HEADING_PREFIX.test(part)) pendingMarker = ''
+      if (STANDALONE_HEADING_MARKER.test(part)) {
+        pendingMarker = part
+        return
+      }
+      const result = splitBilingualPart(part)
+      const markerGap = pendingMarker && pendingMarker.endsWith('.') ? ' ' : ''
+      if (result.en) {
+        en.push(pendingMarker ? pendingMarker + markerGap + result.en.trimStart() : result.en)
+        pendingMarker = ''
+      }
+      if (result.zh) {
+        zh.push(pendingMarker ? pendingMarker + markerGap + result.zh.trimStart() : result.zh)
+        pendingMarker = ''
       }
     })
   })
