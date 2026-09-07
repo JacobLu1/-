@@ -244,8 +244,8 @@
                 <text class="qb-filter-label">状态</text>
                 <view class="qb-pills">
                   <view class="qb-pill" :class="{ 'is-active': statusFilter === 'all' }" @tap="statusFilter = 'all'">全部</view>
-                  <view class="qb-pill" :class="{ 'is-active': statusFilter === '已上线' }" @tap="statusFilter = '已上线'">已上线</view>
-                  <view class="qb-pill" :class="{ 'is-active': statusFilter === '审核中' }" @tap="statusFilter = '审核中'">审核中</view>
+                  <view class="qb-pill" :class="{ 'is-active': statusFilter === '已上线', 'is-status-on': statusFilter === '已上线' }" @tap="statusFilter = '已上线'">已上线</view>
+                  <view class="qb-pill" :class="{ 'is-active': statusFilter === '审核中', 'is-status-pending': statusFilter === '审核中' }" @tap="statusFilter = '审核中'">审核中</view>
                 </view>
               </view>
               <view class="qb-create-btn" @tap="handleCreateDoc">
@@ -1031,6 +1031,16 @@ onMounted(() => {
   background: linear-gradient(135deg, var(--rule-primary), var(--rule-primary-active));
   color: var(--rule-primary-foreground);
   box-shadow: 0 4px 10px -2px color-mix(in srgb, var(--rule-primary) 42%, transparent);
+}
+.qb-pill.is-active.is-status-on {
+  background: var(--state-success);
+  color: #fff;
+  box-shadow: 0 4px 10px -2px color-mix(in srgb, var(--state-success) 42%, transparent);
+}
+.qb-pill.is-active.is-status-pending {
+  background: var(--state-warning);
+  color: #fff;
+  box-shadow: 0 4px 10px -2px color-mix(in srgb, var(--state-warning) 42%, transparent);
 }
 
 .qb-create-btn {

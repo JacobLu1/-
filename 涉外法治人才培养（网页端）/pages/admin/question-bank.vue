@@ -145,8 +145,8 @@
               <view class="qb-form-field">
                 <text class="qb-form-label">状态</text>
                 <view class="qb-pills">
-                  <view class="qb-pill" :class="{ 'is-active': formStatus === '已上线' }" @tap="formStatus = '已上线'">已上线</view>
-                  <view class="qb-pill" :class="{ 'is-active': formStatus === '审核中' }" @tap="formStatus = '审核中'">审核中</view>
+                  <view class="qb-pill" :class="{ 'is-active': formStatus === '已上线', 'is-status-on': formStatus === '已上线' }" @tap="formStatus = '已上线'">已上线</view>
+                  <view class="qb-pill" :class="{ 'is-active': formStatus === '审核中', 'is-status-pending': formStatus === '审核中' }" @tap="formStatus = '审核中'">审核中</view>
                 </view>
               </view>
             </view>

@@ -3,7 +3,7 @@
 
 const db = uniCloud.database()
 
-const RESOURCE_TYPES = ['video', 'vocabulary', 'reading', 'listening']
+const RESOURCE_TYPES = ['video', 'vocabulary', 'reading', 'listening', 'case']
 const RESOURCE_LANGS = ['英语', '德语', '法语', '拉丁语', '西班牙语']
 const MAX_QUERY_LIMIT = 500
 

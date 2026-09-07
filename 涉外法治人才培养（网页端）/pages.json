@@ -148,6 +148,13 @@
 			}
 		},
 		{
+			"path": "pages/learning-center/case-detail",
+			"style": {
+				"navigationBarTitleText": "案例分析",
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "pages/admin/dashboard",
 			"style": {
 				"navigationBarTitleText": "数据总览",

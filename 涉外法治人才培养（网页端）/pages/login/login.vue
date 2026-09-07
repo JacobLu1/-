@@ -7,7 +7,7 @@
       <view class="bg-blob blob-a"></view>
       <view class="bg-blob blob-b"></view>
       <!-- 星星粒子 -->
-      <view class="star-field">
+      <view v-if="starStyles.length" class="star-field">
         <view class="star" v-for="i in 30" :key="'s'+i"
           :style="{
             left: starStyles[i-1].left,
@@ -251,7 +251,13 @@ export default {
         countries: 0,
         talents: 0
       },
-      starStyles: []
+      starStyles: Array.from({ length: 30 }, () => ({
+        left: Math.random() * 94 + '%',
+        top: Math.random() * 100 + '%',
+        size: (Math.random() * 3 + 1) + 'px',
+        delay: Math.random() * 6 + 's',
+        duration: (Math.random() * 4 + 4) + 's'
+      }))
     }
   },
   mounted() {

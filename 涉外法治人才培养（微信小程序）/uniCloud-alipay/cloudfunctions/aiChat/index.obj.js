@@ -5,9 +5,6 @@
 //   await aiChat.chat({ messages: [{ role: 'user', content: '...' }, ...] })
 // 返回统一结构：{ errCode: 0 成功 | 非0 失败, errMsg, content }
 //
-// 模型说明：
-//   - 智谱开放平台 https://open.bigmodel.cn 注册后获取 API Key
-//   - GLM-4-Flash-250414 为免费模型（免费版可能限量/限频）
 //
 // API Key 配置：
 // 推荐：在本云函数目录下的 config.local.json 里填 zhipuApiKey（该文件已在 .gitignore 中忽略）

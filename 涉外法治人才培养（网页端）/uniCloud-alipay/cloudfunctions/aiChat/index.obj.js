@@ -1,9 +1,4 @@
 // 云对象：AI 对话助手（目前是接入智谱 GLM-4-Flash-250414 大模型）
-//
-// 模型说明：
-//   - 智谱开放平台 https://open.bigmodel.cn 注册后获取 API Key
-//   - 现在用的是GLM-4-Flash-250414 为免费模型，后续根据需求再考虑升级到付费模型
-//
 // API Key 配置：
 // 推荐：在本云函数目录下的 config.local.json 里填 zhipuApiKey（该文件已在 .gitignore 中忽略）
 

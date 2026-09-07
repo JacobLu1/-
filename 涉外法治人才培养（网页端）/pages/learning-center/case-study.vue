@@ -132,8 +132,7 @@
               class="cs-card"
               v-for="item in filteredCases"
               :key="item.id"
-              :class="{ 'is-open': expandedId === item.id }"
-              @tap="toggleDetail(item)"
+              @tap="openDetail(item)"
             >
               <view class="cs-card-head">
                 <view class="cs-ico">
@@ -145,7 +144,7 @@
                       <text class="cs-tag">{{ item.category || '未分类' }}</text>
                       <text v-if="item.meta" class="cs-tag cs-tag-soft">{{ item.meta }}</text>
                     </view>
-                    <view class="cs-chevron" :class="{ 'is-open': expandedId === item.id }"></view>
+                    <view class="cs-chevron"></view>
                   </view>
                   <text class="cs-card-title">{{ item.title }}</text>
                   <view class="cs-card-meta">
@@ -153,25 +152,7 @@
                     <text v-if="item.wordCount" class="cs-meta-item cs-meta-count">约 {{ item.wordCount }} 字</text>
                   </view>
                   <view class="cs-card-footer">
-                    <text class="cs-read-btn">{{ expandedId === item.id ? '收起研读' : '研读案例' }}</text>
-                  </view>
-                </view>
-              </view>
-
-              <!-- 展开的正文 -->
-              <view v-if="expandedId === item.id" class="cs-body">
-                <view v-if="bodyLoading" class="cs-body-loading">
-                  <view class="cs-spinner cs-spinner-sm"></view>
-                  <text>正在加载正文...</text>
-                </view>
-                <view v-else>
-                  <text v-if="bodyContent" class="cs-body-text">{{ bodyContent }}</text>
-                  <text v-else class="cs-body-empty">暂无正文内容</text>
-                  <view v-if="item.fileUrl" class="cs-body-foot">
-                    <view class="cs-original-btn" @tap.stop="openOriginal(item.fileUrl)">
-                      <view class="cs-link-icon"></view>
-                      <text>打开原文（PDF / 链接）</text>
-                    </view>
+                    <text class="cs-read-btn">研读案例</text>
                   </view>
                 </view>
               </view>
@@ -190,12 +171,8 @@ import { requireLogin, getDisplayName, getLevelText } from '@/utils/auth.js'
 
 const cases = ref([])
 const loading = ref(false)
-const bodyLoading = ref(false)
 const searchText = ref('')
 const categoryFilter = ref('all')
-const expandedId = ref('')
-const bodyContent = ref('')
-const caseBodies = {}
 
 const userName = ref(getDisplayName())
 const userRole = ref(getLevelText())
@@ -258,34 +235,8 @@ async function loadCases() {
   }
 }
 
-async function toggleDetail(item) {
-  if (expandedId.value === item.id) {
-    expandedId.value = ''
-    bodyContent.value = ''
-    return
-  }
-  expandedId.value = item.id
-  bodyContent.value = caseBodies[item.id] || ''
-  if (caseBodies[item.id] === undefined) {
-    bodyLoading.value = true
-    try {
-      const resourcesObj = uniCloud.importObject('resources', { customUI: true })
-      const r = (await resourcesObj.get({ id: item.id })) || {}
-      if (r.errCode === 0 && r.doc) {
-        const content = String(r.doc.content || '')
-        caseBodies[item.id] = content
-        bodyContent.value = content
-      } else {
-        caseBodies[item.id] = ''
-        bodyContent.value = ''
-      }
-    } catch (e) {
-      caseBodies[item.id] = ''
-      bodyContent.value = ''
-    } finally {
-      bodyLoading.value = false
-    }
-  }
+function openDetail(item) {
+  uni.navigateTo({ url: '/pages/learning-center/case-detail?id=' + item.id })
 }
 
 function openOriginal(url) {
