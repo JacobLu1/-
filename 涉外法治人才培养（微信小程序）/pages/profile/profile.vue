@@ -1,19 +1,23 @@
 <template>
   <view class="page-wrap">
-    <!-- 状态栏安全区占位（iOS刘海屏 / 安卓挖孔屏适配） -->
-    <view class="status-bar" :style="{ height: statusBarHeight + 'px' }"></view>
+    <!-- 固定顶部区：状态栏 + 标题栏（不随内容滚动），底色与页面背景一致 -->
+    <view class="top-fixed">
+      <!-- 状态栏安全区占位（iOS刘海屏 / 安卓挖孔屏适配） -->
+      <view class="status-bar" :style="{ height: statusBarHeight + 'px' }"></view>
 
-    <!-- 顶部：返回 + 标题 -->
-    <view class="sub-header">
-      <view class="back" hover-class="bk-hover" @click="navBack" aria-label="返回">
-        <view class="bk-ico"></view>
+      <!-- 顶部：返回 + 标题 -->
+      <view class="sub-header">
+        <view class="back" hover-class="bk-hover" @click="navBack" aria-label="返回">
+          <view class="bk-ico"></view>
+        </view>
+        <text class="title">个人中心</text>
+        <view class="spacer"></view>
       </view>
-      <text class="title">个人中心</text>
-      <view class="spacer"></view>
     </view>
 
-    <!-- 可滚动内容区 -->
-    <scroll-view scroll-y class="screen" scroll-with-animation>
+    <!-- 内容区：整页外滚动，顶部预留固定栏空间 -->
+    <view class="screen">
+      <view :style="{ height: topPad + 'px' }"></view>
 
       <!-- 1) 个人资料卡 -->
       <view class="profile-card reveal d1">
@@ -42,7 +46,7 @@
           <view class="level-fill" :style="{ width: levelFill + '%' }"></view>
         </view>
 
-        <view class="edit-btn" hover-class="edit-hover" @click="onMenuClick('编辑资料')">
+        <view class="edit-btn" hover-class="edit-hover" @click="goEditProfile">
           <text class="edit-ico">✎</text>
           <text>编辑资料</text>
         </view>
@@ -61,38 +65,7 @@
         </view>
       </view>
 
-      <!-- 3) 我的成就 -->
-      <view class="ach-card reveal d2">
-        <view class="ach-head">
-          <view class="t">
-            <view class="bar"></view>
-            <text>我的成就</text>
-          </view>
-          <view class="more" hover-class="more-hover" @click="goAllAchievements">
-            <text>全部</text>
-            <text class="more-arrow">›</text>
-          </view>
-        </view>
-        <view v-if="!achievements.length" class="ach-empty">暂无成就</view>
-        <view v-else class="ach-row">
-          <view
-            class="ach-badge"
-            v-for="(b, i) in achievements.slice(0, 2)"
-            :key="i"
-            :style="{ animationDelay: (0.38 + 0.12 * i) + 's' }"
-          >
-            <view class="sq" :style="{ background: b.bg }">
-              <text class="sq-ico" :class="b.ico"></text>
-            </view>
-            <view class="ach-info">
-              <view class="n">{{ b.name }}</view>
-              <view class="d">{{ b.date }}</view>
-            </view>
-          </view>
-        </view>
-      </view>
-
-      <!-- 4) 菜单组：学习 -->
+      <!-- 3) 菜单组：学习 -->
       <view class="grp-label">
         <view class="bar"></view>
         <text>学习</text>
@@ -145,7 +118,7 @@
       </view>
 
       <view style="height: 60rpx;"></view>
-    </scroll-view>
+    </view>
 
     <!-- 退出确认弹层 -->
     <view class="modal-backdrop" :class="{ show: showModal }" @click.self="closeLogout">
@@ -162,7 +135,7 @@
       </view>
     </view>
 
-    <!-- Toast -->
+    <!-- 轻提示浮层 -->
     <view class="toast" :class="{ show: showToast }">
       <text>{{ toastText }}</text>
     </view>
@@ -175,6 +148,7 @@ export default {
     const cachedUser = uni.getStorageSync('userInfo') || {}
     return {
       statusBarHeight: 0,
+      topPad: 0,
       userName: cachedUser.name || cachedUser.account || '用户',
       role: cachedUser.role === 'admin' ? '涉外法治 · 管理员' : '涉外法治 · 学员',
       level: cachedUser.level || 'Lv.1',
@@ -188,9 +162,7 @@ export default {
         { prefix: 'Top ', num: 0, unit: '', suffix: '%', label: '学习排名' }
       ],
       animStats: [0, 0, 0, 0],
-      achievements: [],
       learnMenus: [
-        { name: '我的证书', meta: '', ico: 'ri-medal-line', bg: 'linear-gradient(135deg, #F59E0B, #D97706)' },
         { name: '我的错题', meta: '', ico: 'ri-bookmark-3-line', bg: 'linear-gradient(135deg, #FB7185, #E11D48)' },
         { name: '学习报告', meta: '', ico: 'ri-bar-chart-2-line', bg: 'linear-gradient(135deg, #5B9DF9, #2E7BE0)' },
         { name: '测评历史', meta: '', ico: 'ri-file-list-3-line', bg: 'linear-gradient(135deg, #8B5CF6, #6D28D9)' },
@@ -222,6 +194,8 @@ export default {
   },
   onReady() {
     this.statusBarHeight = this.getStatusBarHeight()
+    // 固定头部高度 = 状态栏 + 标题栏(约110rpx)，内容区顶部预留等高空位
+    this.topPad = this.statusBarHeight + uni.upx2px(110)
     setTimeout(() => {
       this.levelFill = this.levelPct
     }, 350)
@@ -244,8 +218,8 @@ export default {
       }
     },
     navBack() { uni.navigateBack({ delta: 1 }) },
-    goAllAchievements() {
-      uni.navigateTo({ url: '/pages/achievements/achievements' })
+    goEditProfile() {
+      uni.navigateTo({ url: '/pages/profile/edit-profile' })
     },
     async loadSurveyStats() {
       const token = uni.getStorageSync('token')
@@ -277,6 +251,14 @@ export default {
       }, 30)
     },
     onMenuClick(name) {
+      if (name === '我的错题') {
+        uni.navigateTo({ url: '/pages/wrong-questions/wrong-questions' })
+        return
+      }
+      if (name === '测评历史') {
+        uni.switchTab({ url: '/pages/data/data' })
+        return
+      }
       this.showToastMsg('即将进入「' + name + '」')
     },
     openLogout() {
@@ -350,16 +332,12 @@ page {
   --r-pill: 999rpx;
 }
 
-/* ---------- Page wrap (Flex column：固定头 + 滚动区) ---------- */
+/* 页面容器（与学习中心 index.vue 背景 + 页面级滚动一致） */
 .page-wrap {
-  height: 100vh;
+  min-height: 100vh;
   background: linear-gradient(160deg, #EAF3FF 0%, #F4F9FF 45%, #E6F1FE 100%);
   position: relative;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
 }
-page { height: 100vh; overflow: hidden; }
 
 .page-wrap::before,
 .page-wrap::after {
@@ -371,35 +349,51 @@ page { height: 100vh; overflow: hidden; }
   pointer-events: none;
 }
 .page-wrap::before {
-  width: 520rpx; height: 520rpx;
-  background: radial-gradient(circle, rgba(91,157,249,0.38), transparent 70%);
-  top: -120rpx; left: -100rpx;
+  width: 520rpx;
+  height: 520rpx;
+  background: radial-gradient(circle, rgba(91,157,249,0.40), transparent 70%);
+  top: -120rpx;
+  right: -100rpx;
 }
 .page-wrap::after {
-  width: 600rpx; height: 600rpx;
-  background: radial-gradient(circle, rgba(6,182,212,0.20), transparent 70%);
-  bottom: 60rpx; right: -180rpx;
+  width: 600rpx;
+  height: 600rpx;
+  background: radial-gradient(circle, rgba(6,182,212,0.22), transparent 70%);
+  bottom: 80rpx;
+  left: -180rpx;
 }
 
-/* ---------- Status bar safe-area ---------- */
+/* 状态栏安全区占位 */
 .status-bar {
   width: 100%;
-  flex-shrink: 0;
   background: transparent;
 }
 
-/* ---------- Sub-header ---------- */
+/* 固定顶部区：状态栏 + 标题栏（fixed，不随内容滚动），底色与页面背景一致 */
+.top-fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: #EAF3FF;
+}
+
+/* 顶部导航栏：返回 + 标题（毛玻璃，滚动到内容时有层次） */
 .sub-header {
-  position: relative; z-index: 45;
-  flex: 0 0 auto;
-  flex-shrink: 0;
-  display: flex; align-items: center;
-  padding: 20rpx 20rpx 18rpx;
+  position: relative;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  padding: 12rpx 20rpx 18rpx;
   margin: 0 16rpx;
   gap: 10rpx;
-  background: linear-gradient(180deg, rgba(234,243,255,0.96) 0%, rgba(244,249,255,0.90) 78%, rgba(244,249,255,0) 100%);
+  background: rgba(255, 255, 255, 0.42);
+  border-bottom-left-radius: var(--r-lg);
+  border-bottom-right-radius: var(--r-lg);
   backdrop-filter: blur(20rpx);
   -webkit-backdrop-filter: blur(20rpx);
+  border-bottom: 2rpx solid var(--glass-border-soft);
 }
 .sub-header .title {
   font-size: 34rpx; font-weight: 700; color: var(--ink);
@@ -422,18 +416,15 @@ page { height: 100vh; overflow: hidden; }
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='19' y1='12' x2='5' y2='12'/%3E%3Cpolyline points='12 19 5 12 12 5'/%3E%3C/svg%3E") center/contain no-repeat;
 }
 
-/* ---------- Screen ---------- */
+/* 内容区（页面级外滚动，padding 底部留白与学习中心对齐） */
 .screen {
-  position: relative; z-index: 5;
-  flex: 1 1 auto;
-  min-height: 0;
-  height: 0;
-  padding: 12rpx 36rpx 76rpx;
+  position: relative;
+  z-index: 5;
   box-sizing: border-box;
-  -webkit-overflow-scrolling: touch;
+  padding: 16rpx 36rpx 220rpx;
 }
 
-/* ---------- 1) Profile header card ---------- */
+/* 1) 个人资料卡 */
 .profile-card {
   position: relative;
   padding: 28rpx 28rpx 24rpx;
@@ -443,8 +434,8 @@ page { height: 100vh; overflow: hidden; }
   text-align: center;
   overflow: hidden;
   border-radius: var(--r-lg);
-  background: var(--glass);
-  border: 2rpx solid var(--glass-border-soft);
+  background: #FFFFFF;
+  border: 2rpx solid rgba(255, 255, 255, 0.9);
   box-shadow: var(--glass-shadow);
 }
 .deco {
@@ -559,7 +550,7 @@ page { height: 100vh; overflow: hidden; }
 .edit-hover { transform: scale(0.95); }
 .edit-ico { font-size: 30rpx; line-height: 1; }
 
-/* ---------- 2) Stats strip ---------- */
+/* 2) 数据统计栏 */
 .stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -593,93 +584,7 @@ page { height: 100vh; overflow: hidden; }
   margin-top: 8rpx; letter-spacing: .2px;
 }
 
-/* ---------- 3) Achievements ---------- */
-.ach-card {
-  padding: 22rpx 24rpx 18rpx;
-  margin-top: 24rpx;
-  border-radius: var(--r-lg);
-  background: var(--glass);
-  border: 2rpx solid var(--glass-border-soft);
-  box-shadow: var(--glass-shadow);
-}
-.ach-head {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 16rpx;
-}
-.ach-head .t {
-  font-size: 28rpx; font-weight: 700; color: var(--ink);
-  display: flex; align-items: center; gap: 12rpx;
-}
-.ach-head .t .bar {
-  width: 8rpx; height: 26rpx; border-radius: 4px;
-  background: linear-gradient(180deg, var(--brand), var(--blue-600));
-}
-.ach-head .more {
-  font-size: 22rpx; color: var(--muted);
-  display: flex; align-items: center; gap: 2rpx;
-}
-.more-hover { opacity: .7; }
-.more-arrow { font-size: 26rpx; line-height: 1; }
-
-.ach-empty {
-  padding: 40rpx 8rpx;
-  text-align: center;
-  font-size: 24rpx;
-  color: var(--muted);
-}
-.ach-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16rpx;
-  padding: 0 2rpx 4rpx;
-}
-.ach-badge {
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
-  padding: 16rpx 18rpx;
-  border-radius: var(--r-sm);
-  background: var(--glass-2);
-  border: 2rpx solid var(--glass-border-soft);
-  box-shadow: var(--glass-shadow-sm);
-  animation: pop .55s cubic-bezier(.34,1.56,.64,1) both;
-}
-.ach-badge .sq {
-  width: 76rpx;
-  height: 76rpx;
-  border-radius: 22rpx;
-  flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  color: #fff;
-  box-shadow: 0 12rpx 28rpx rgba(46,123,224,0.22);
-  position: relative;
-  overflow: hidden;
-  transition: transform .25s cubic-bezier(.34,1.56,.64,1);
-}
-.ach-badge:active .sq { transform: scale(0.9); }
-.ach-badge .sq::after {
-  content: ""; position: absolute; top: -30%; left: -20%;
-  width: 80%; height: 80%;
-  background: radial-gradient(circle, rgba(255,255,255,0.32), transparent 70%);
-  pointer-events: none;
-}
-.ach-badge .sq-ico { font-size: 36rpx; position: relative; z-index: 1; }
-.ach-info {
-  flex: 1;
-  min-width: 0;
-}
-.ach-badge .n {
-  font-size: 22rpx; font-weight: 600; color: var(--ink);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.ach-badge .d {
-  font-size: 18rpx; color: var(--muted);
-  margin-top: 4rpx;
-}
-
-/* ---------- 4) Menu groups ---------- */
+/* 3) 菜单分组 */
 .grp-label {
   font-size: 26rpx; font-weight: 700; color: var(--ink);
   padding: 28rpx 32rpx 12rpx;
@@ -745,7 +650,7 @@ page { height: 100vh; overflow: hidden; }
 }
 .menu-row:active .m-chev { transform: translateX(6rpx); color: var(--brand); }
 
-/* ---------- 5) Footer / logout ---------- */
+/* 5) 底部 / 退出登录 */
 .footer { text-align: center; margin-top: 48rpx; padding-bottom: 8rpx; }
 .logout-btn {
   display: inline-flex; align-items: center; gap: 14rpx;
@@ -760,7 +665,7 @@ page { height: 100vh; overflow: hidden; }
 .logout-hover { transform: scale(0.96); background: rgba(251,113,133,0.22); }
 .logout-ico { font-size: 32rpx; }
 
-/* ---------- Toast ---------- */
+/* 轻提示浮层 */
 .toast {
   position: fixed;
   left: 50%; bottom: 168rpx;
@@ -780,7 +685,7 @@ page { height: 100vh; overflow: hidden; }
 }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-/* ---------- Logout modal ---------- */
+/* 退出登录弹窗 */
 .modal-backdrop {
   position: fixed; inset: 0; z-index: 90;
   background: rgba(14,26,43,0.46);
@@ -833,9 +738,8 @@ page { height: 100vh; overflow: hidden; }
   box-shadow: 0 16rpx 40rpx rgba(251,113,133,0.42);
 }
 
-/* ---------- Animations ---------- */
+/* 入场动画 */
 @keyframes fadeUp { from { opacity: 0; transform: translateY(36rpx); } to { opacity: 1; transform: translateY(0); } }
-@keyframes pop { 0% { transform: scale(.6); opacity: 0; } 60% { transform: scale(1.08); } 100% { transform: scale(1); opacity: 1; } }
 @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
 @keyframes breathe { 0%,100% { opacity: .5; } 50% { opacity: .9; } }
 @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-14rpx); } }

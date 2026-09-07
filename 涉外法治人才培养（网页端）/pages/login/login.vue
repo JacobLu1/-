@@ -25,7 +25,7 @@
       <aside class="visual">
         <view class="brand-row">
           <view class="brand-mark">
-            <view class="brand-icon"></view>
+            <image class="brand-icon-img" src="/static/logo.png" mode="aspectFit"></image>
           </view>
           <view class="brand-name">
             <text class="brand-name-cn">涉外法治人才培养平台</text>
@@ -215,12 +215,12 @@
           <view class="c-foot">
             <text class="c-foot-text">还没有账号？</text>
             <text class="c-foot-link" @tap="handleRegister">立即注册申请</text>
-            <text class="c-foot-text"> · 机构开通请联系 010-XXXX</text>
+            <text class="c-foot-text"> · 机构开通请联系 XXX-XXXX</text>
           </view>
         </view>
 
         <view class="legal-mini">
-          <text>© 2026 涉外法治人才培养平台 · 京公网安备 11000002000088 · ICP 备2026XXXXXX 号</text>
+          <text>© 2026 涉外法治人才培养平台 · 京公网安备 xxxxxxxxxxx · ICP 备2026XXXXXX 号</text>
         </view>
       </main>
     </view>
@@ -346,7 +346,7 @@ export default {
       // #ifdef H5
       const el = document.getElementById('particles')
       if (!el) return
-      // uni-app H5 会把 <canvas> 编译为 uni-canvas 自定义组件，内部才是原生 canvas
+      // 在 H5 端，uni-app 会把画布编译为自定义组件，真正的原生画布在组件内部
       const canvas = el.getContext ? el : (el.querySelector ? el.querySelector('canvas') : null)
       if (!canvas || !canvas.getContext) return
 
@@ -513,7 +513,7 @@ export default {
 </script>
 
 <style scoped>
-/* ============ 设计令牌 ============ */
+/* 设计令牌 */
 .login-page {
   --c-bg-0: #F2F8FF;
   --c-bg-1: #E3EFFD;
@@ -554,7 +554,7 @@ export default {
   box-sizing: border-box;
 }
 
-/* ============ 主舞台 ============ */
+/* 主舞台 */
 .stage {
   position: relative;
   width: 100vw;
@@ -627,7 +627,7 @@ export default {
   pointer-events: none;
 }
 
-/* ============ 星星粒子 ============ */
+/* 星星粒子 */
 .star-field {
   position: absolute;
   inset: 0;
@@ -649,7 +649,7 @@ export default {
   75% { opacity: 0.9; transform: translate(3px, -3px) scale(1.4); }
 }
 
-/* ============ 左侧视觉面板 ============ */
+/* 左侧视觉面板 */
 .visual {
   position: relative;
   z-index: 3;
@@ -670,20 +670,13 @@ export default {
 .brand-mark {
   width: 46px;
   height: 46px;
-  border-radius: 13px;
-  background: linear-gradient(140deg, var(--c-blue-600), var(--c-blue-900));
   display: grid;
   place-items: center;
-  color: #fff;
-  box-shadow: 0 10px 24px -8px rgba(29,78,216,.6), inset 0 1px 0 rgba(255,255,255,.4);
 }
 
-.brand-icon {
-  width: 26px;
-  height: 26px;
-  background: currentColor;
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
-  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
+.brand-icon-img {
+  width: 42px;
+  height: 42px;
 }
 
 .brand-name {
@@ -991,7 +984,7 @@ export default {
   letter-spacing: 0.5px;
 }
 
-/* ============ 右侧表单面板 ============ */
+/* 右侧表单面板 */
 .panel {
   position: relative;
   z-index: 3;
@@ -1502,7 +1495,6 @@ export default {
   }
 }
 
-/* ============ 响应式 ============ */
 @media (max-width: 980px) {
   .login-page {
     overflow: auto;

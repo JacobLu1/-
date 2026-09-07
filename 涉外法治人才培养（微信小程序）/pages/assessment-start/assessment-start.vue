@@ -21,13 +21,13 @@
             <view class="meta-item">
               <text class="meta-ico ri-time-line"></text>
               <text class="meta-label">预计时长</text>
-              <text class="meta-value">45 分钟</text>
+              <text class="meta-value">20 分钟</text>
             </view>
           </view>
 
           <view class="quiz-desc">
             <view class="desc-title">题型说明</view>
-            <view class="desc-content">含单选、多选、判断、主观题</view>
+            <view class="desc-content">含单选、判断、主观题</view>
           </view>
         </view>
       </view>
@@ -86,15 +86,37 @@ export default {
     navBack() {
       uni.navigateBack({ delta: 1 })
     },
+    // 测评成绩需保存到云端数据中心，开始前校验登录态
+    requireLogin(cb) {
+      const token = uni.getStorageSync('token')
+      if (token) {
+        cb()
+        return
+      }
+      uni.showModal({
+        title: '请先登录',
+        content: '登录后测评成绩才会保存到数据中心并纳入错题统计，是否前往登录？',
+        confirmText: '去登录',
+        success: (res) => {
+          if (res.confirm) {
+            uni.navigateTo({ url: '/pages/login/login' })
+          }
+        }
+      })
+    },
     startAssessment() {
       // assessment 不再是 tabBar，可用 navigateTo 传参
-      uni.navigateTo({
-        url: '/pages/assessment/assessment?fromStart=true'
+      this.requireLogin(() => {
+        uni.navigateTo({
+          url: '/pages/assessment/assessment?fromStart=true'
+        })
       })
     },
     goSpecialAssessment() {
-      uni.navigateTo({
-        url: '/pages/special-assessment/special-assessment'
+      this.requireLogin(() => {
+        uni.navigateTo({
+          url: '/pages/special-assessment/special-assessment'
+        })
       })
     }
   }
@@ -143,7 +165,7 @@ page {
   --r-pill: 999rpx;
 }
 
-/* ---------- Page wrap ---------- */
+/* 页面容器（整页竖向 Flex 布局） */
 .page-wrap {
   height: 100vh;
   background: linear-gradient(160deg, #EAF3FF 0%, #F4F9FF 45%, #E6F1FE 100%);
@@ -173,14 +195,14 @@ page { height: 100vh; }
   bottom: 60rpx; right: -180rpx;
 }
 
-/* ---------- Status bar ---------- */
+/* 状态栏安全区占位 */
 .status-bar {
   width: 100%;
   flex-shrink: 0;
   background: transparent;
 }
 
-/* ---------- Sub-header ---------- */
+/* 顶部导航栏：返回 + 标题 */
 .sub-header {
   position: relative; z-index: 45;
   flex: 0 0 auto;
@@ -212,7 +234,7 @@ page { height: 100vh; }
 .bk-hover { transform: scale(0.9); }
 .bk-ico { font-size: 48rpx; font-weight: 700; color: var(--ink-2); line-height: 80rpx; display: block; text-align: center; width: 80rpx; height: 80rpx; transform: translate(4px, 0px); }
 
-/* ---------- Screen ---------- */
+/* 可滚动内容区 */
 .screen {
   position: relative; z-index: 5;
   flex: 1 1 auto;
@@ -223,7 +245,7 @@ page { height: 100vh; }
   -webkit-overflow-scrolling: touch;
 }
 
-/* ---------- Info card ---------- */
+/* 测评信息卡片 */
 .info-card {
   position: relative;
   padding: 60rpx 44rpx 52rpx;
@@ -347,7 +369,7 @@ page { height: 100vh; }
   line-height: 1.5;
 }
 
-/* ---------- Footer ---------- */
+/* 底部操作区 */
 .footer {
   margin-top: 40rpx;
   padding: 0 0 20rpx;
@@ -381,7 +403,7 @@ page { height: 100vh; }
   line-height: 1;
 }
 
-/* ---------- Special card ---------- */
+/* 专项测评入口卡片 */
 .special-card {
   margin-top: 24rpx;
   padding: 28rpx 32rpx;
@@ -439,7 +461,7 @@ page { height: 100vh; }
   color: var(--muted);
 }
 
-/* ---------- Animations ---------- */
+/* 入场动画 */
 @keyframes fadeUp { from { opacity: 0; transform: translateY(36rpx); } to { opacity: 1; transform: translateY(0); } }
 
 .reveal { opacity: 0; animation: fadeUp .6s cubic-bezier(.22,1,.36,1) forwards; }

@@ -3,7 +3,7 @@
     <aside class="app-sidebar">
       <view class="app-sidebar-logo">
         <view class="app-sidebar-logo-icon">
-          <view class="ls-svg-glyph" aria-hidden="true"></view>
+          <image class="ls-svg-img" src="/static/logo.png" mode="aspectFit"></image>
         </view>
         <text class="app-sidebar-logo-text">涉外法治人才培养</text>
       </view>
@@ -242,7 +242,7 @@ onLoad(() => {
 
 <style scoped>
 .app-shell {
-  /* === Brand Primary === */
+  /* 品牌主色 */
   --rule-primary: #2563EB;
   --rule-primary-hover: #1D4ED8;
   --rule-primary-active: #1E40AF;
@@ -267,7 +267,7 @@ onLoad(() => {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ===== 左侧导航栏 ===== */
+/* 左侧导航栏 */
 .app-sidebar {
   position: fixed;
   left: 0;
@@ -291,23 +291,14 @@ onLoad(() => {
 }
 
 .app-sidebar-logo-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: var(--rule-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
-  overflow: hidden;
 }
 
-.ls-svg-glyph {
-  width: 20px;
-  height: 20px;
-  background: #fff;
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
+.ls-svg-img {
+  width: 32px;
+  height: 32px;
 }
 
 .app-sidebar-logo-text {
@@ -455,7 +446,7 @@ onLoad(() => {
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'/><polyline points='16 17 21 12 16 7'/><line x1='21' y1='12' x2='9' y2='12'/></svg>") center/contain no-repeat;
 }
 
-/* ===== 主区域与顶栏 ===== */
+/* 主区域与顶栏 */
 .app-main {
   flex: 1;
   margin-left: 240px;
@@ -519,12 +510,6 @@ onLoad(() => {
   color: var(--rule-foreground);
 }
 
-.app-topbar-meta {
-  font-size: 13px;
-  color: var(--rule-muted-foreground);
-  font-variant-numeric: tabular-nums;
-}
-
 .app-content {
   flex: 1;
   padding: 28px 32px;
@@ -534,198 +519,6 @@ onLoad(() => {
   box-sizing: border-box;
 }
 
-/* ===== Hero 头部 ===== */
-.rl-hero {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 32px;
-  background: linear-gradient(120deg, #0F2E6B 0%, #1D4ED8 55%, #2563EB 100%);
-  border-radius: 20px;
-  padding: 36px 40px;
-  color: #fff;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 24px 48px -24px rgba(29,78,216,.55);
-}
-
-.rl-hero::before {
-  content: "";
-  position: absolute;
-  right: -80px;
-  top: -120px;
-  width: 320px;
-  height: 320px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,255,255,.14), transparent 65%);
-}
-
-.rl-hero::after {
-  content: "";
-  position: absolute;
-  left: -60px;
-  bottom: -140px;
-  width: 300px;
-  height: 300px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,255,255,.08), transparent 65%);
-}
-
-.rl-hero-main {
-  position: relative;
-  z-index: 1;
-  min-width: 0;
-}
-
-.rl-hero-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  background: rgba(255,255,255,.16);
-  border: 1px solid rgba(255,255,255,.28);
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
-  backdrop-filter: blur(4px);
-}
-
-.rl-hero-tag-icon {
-  width: 12px;
-  height: 12px;
-  background: #fff;
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2v4'/><path d='m16.2 7.8 2.9-2.9'/><path d='M18 12h4'/><path d='m16.2 16.2 2.9 2.9'/><path d='M12 18v4'/><path d='m4.9 19.1 2.9-2.9'/><path d='M2 12h4'/><path d='m4.9 4.9 2.9 2.9'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2v4'/><path d='m16.2 7.8 2.9-2.9'/><path d='M18 12h4'/><path d='m16.2 16.2 2.9 2.9'/><path d='M12 18v4'/><path d='m4.9 19.1 2.9-2.9'/><path d='M2 12h4'/><path d='m4.9 4.9 2.9 2.9'/></svg>") center/contain no-repeat;
-}
-
-.rl-hero-title {
-  display: block;
-  margin-top: 16px;
-  font-size: 30px;
-  font-weight: 800;
-  letter-spacing: 1px;
-}
-
-.rl-hero-sub {
-  display: block;
-  margin-top: 8px;
-  font-size: 14px;
-  color: rgba(255,255,255,.82);
-}
-
-.rl-hero-stats {
-  display: flex;
-  align-items: center;
-  gap: 28px;
-  margin-top: 24px;
-}
-
-.rl-stat {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.rl-stat-num {
-  font-size: 24px;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-}
-
-.rl-stat-label {
-  font-size: 12px;
-  color: rgba(255,255,255,.7);
-}
-
-.rl-stat-sep {
-  width: 1px;
-  height: 32px;
-  background: rgba(255,255,255,.25);
-}
-
-/* 书本装饰 */
-.rl-hero-art {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 200px;
-}
-
-.rl-book {
-  position: relative;
-  width: 132px;
-  height: 168px;
-  filter: drop-shadow(0 22px 28px rgba(2,20,70,.45));
-  animation: rl-float 4.5s ease-in-out infinite;
-}
-
-@keyframes rl-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
-}
-
-.rl-book-spine {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 14px;
-  background: linear-gradient(180deg, #172C6B, #1E3A8A);
-  border-radius: 6px 0 0 6px;
-  box-shadow: inset -2px 0 3px rgba(0,0,0,.25);
-}
-
-.rl-book-cover {
-  position: absolute;
-  left: 14px;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(160deg, #3B82F6, #1D4ED8);
-  border-radius: 2px 10px 10px 2px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  color: #fff;
-  padding: 0 14px;
-}
-
-.rl-book-icon {
-  width: 34px;
-  height: 34px;
-  background: rgba(255,255,255,.92);
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z'/%3E%3Cpath d='M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z'/%3E%3C/svg%3E") center/contain no-repeat;
-          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z'/%3E%3Cpath d='M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z'/%3E%3C/svg%3E") center/contain no-repeat;
-}
-
-.rl-book-title {
-  font-size: 15px;
-  font-weight: 800;
-  letter-spacing: 2px;
-}
-
-.rl-book-sub {
-  font-size: 9px;
-  letter-spacing: 1.6px;
-  color: rgba(255,255,255,.75);
-  text-transform: uppercase;
-}
-
-.rl-art-dot {
-  position: absolute;
-  border-radius: 50%;
-  background: rgba(255,255,255,.18);
-}
-
-.rl-art-dot-1 { width: 46px; height: 46px; top: 12px; right: 0; }
-.rl-art-dot-2 { width: 26px; height: 26px; bottom: 18px; left: 6px; background: rgba(255,255,255,.12); }
-
-/* ===== 工具栏 ===== */
 .rl-toolbar {
   display: flex;
   align-items: center;
@@ -801,7 +594,7 @@ onLoad(() => {
   min-width: 0;
 }
 
-/* ===== 阅读卡片 ===== */
+/* 阅读卡片 */
 .rl-list {
   display: flex;
   flex-direction: column;
@@ -845,6 +638,7 @@ onLoad(() => {
   line-height: 1.5;
   color: var(--rule-foreground);
   display: -webkit-box;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
@@ -904,6 +698,7 @@ onLoad(() => {
 
 .rl-card-summary {
   display: -webkit-box;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;

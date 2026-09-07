@@ -1,24 +1,27 @@
 <template>
   <view class="vd-page">
-    <!-- 状态栏安全区占位 -->
-    <view class="status-bar" :style="{ height: statusBarHeight + 'px' }"></view>
-    <!-- 自定义导航栏 -->
-    <view class="vd-nav">
-      <view class="vd-back" hover-class="vd-back-hover" @click="goBack">
-        <text class="vd-back-arrow">‹</text>
-        <text>返回</text>
+    <view class="sticky-top">
+      <!-- 状态栏安全区占位 -->
+      <view class="status-bar" :style="{ height: statusBarHeight + 'px' }"></view>
+      <!-- 自定义导航栏 -->
+      <view class="vd-nav">
+        <view class="vd-back" hover-class="vd-back-hover" @click="goBack">
+          <text class="vd-back-arrow">‹</text>
+          <text>返回</text>
+        </view>
+        <text class="vd-nav-title">视频学习</text>
+        <view class="vd-nav-right"></view>
       </view>
-      <text class="vd-nav-title">视频学习</text>
-      <view class="vd-nav-right"></view>
     </view>
 
-    <scroll-view scroll-y class="vd-scroll">
+    <view class="vd-scroll">
       <!-- 视频播放器（小程序原生 video 组件：自带播放/暂停、可拖动进度条、音量、全屏等控件） -->
       <view class="vd-player-wrap">
         <video
           id="mainVideo"
           class="vd-video"
           :src="videoSrc"
+          :poster="videoCover"
           :controls="true"
           :show-center-play-btn="false"
           :enable-progress-gesture="true"
@@ -77,7 +80,7 @@
         <text v-else-if="aiGenerating" class="vd-desc vd-ai-loading">AI 正在根据课程内容生成简介…</text>
         <text v-else class="vd-desc">{{ videoDesc }}</text>
       </view>
-    </scroll-view>
+    </view>
   </view>
 </template>
 
@@ -94,6 +97,7 @@ export default {
       // 视频体积大，不能打进小程序包（主包上限 2MB），否则会报 MEDIA_ERR_SRC_NOT_SUPPORTED
       // 开发者工具：勾选“不校验合法域名”
       videoSrc: '',
+      videoCover: '',
       videoTitle: '暂无视频',
       videoDuration: '--:--',
       videoDesc: '请从视频列表选择真实资源',
@@ -155,6 +159,7 @@ export default {
         this.videoTitle = doc.title || this.videoTitle
         this.videoDuration = doc.meta || this.videoDuration
         this.videoDesc = doc.description || this.videoDesc
+        this.videoCover = doc.cover || ''
         const resolved = resolveResourceUrl(doc.fileUrl)
         this.videoSrc = resolved
         if (!resolved) {
@@ -346,12 +351,18 @@ export default {
   flex-direction: column;
 }
 
+.sticky-top {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
 .status-bar {
   width: 100%;
   background: #ffffff;
 }
 
-/* ===== 导航栏 ===== */
+/* 导航栏 */
 .vd-nav {
   display: flex;
   align-items: center;
@@ -392,12 +403,7 @@ export default {
   width: 120rpx;
 }
 
-/* ===== 滚动内容 ===== */
-.vd-scroll {
-  flex: 1;
-}
-
-/* ===== 播放器 ===== */
+/* 播放器 */
 .vd-player-wrap {
   position: relative;
   width: 100%;
@@ -409,7 +415,7 @@ export default {
   height: 422rpx;
 }
 
-/* ===== 开始播放图标（透明遮罩，只显示图标） ===== */
+/* 开始播放图标（透明遮罩，只显示图标） */
 .vd-start-mask {
   position: absolute;
   left: 0;
@@ -431,7 +437,7 @@ export default {
   line-height: 1;
 }
 
-/* ===== 视频信息 ===== */
+/* 视频信息 */
 .vd-info {
   background: #ffffff;
   padding: 28rpx 32rpx 12rpx;
@@ -461,7 +467,7 @@ export default {
   color: #c7cede;
 }
 
-/* ===== 区块 ===== */
+/* 区块 */
 .vd-section {
   margin-top: 20rpx;
   background: #ffffff;
@@ -485,7 +491,7 @@ export default {
   color: #8a94a6;
 }
 
-/* ===== 倍速选项 ===== */
+/* 倍速选项 */
 .vd-speed-row {
   display: flex;
   flex-wrap: wrap;
@@ -514,7 +520,7 @@ export default {
   opacity: 0.7;
 }
 
-/* ===== 课程简介 ===== */
+/* 课程简介 */
 .vd-desc {
   display: block;
   margin-top: 20rpx;

@@ -1,15 +1,15 @@
 <template>
   <view class="lc-shell">
-    <!-- ===== Brand CSS Variables ===== -->
+    <!-- 品牌主题色变量 -->
     <view class="css-vars" aria-hidden="true"></view>
 
-    <!-- ===== App Shell (Sidebar + Main) ===== -->
+    <!-- 应用外壳（侧边栏 + 主内容区） -->
     <view class="app-shell">
-      <!-- ===== Left Sidebar ===== -->
+      <!-- 左侧导航栏 -->
       <aside class="app-sidebar">
         <view class="app-sidebar-logo">
           <view class="app-sidebar-logo-icon">
-            <view class="ls-svg-glyph" aria-hidden="true"></view>
+            <image class="ls-svg-img" src="/static/logo.png" mode="aspectFit"></image>
           </view>
           <text class="app-sidebar-logo-text">涉外法治人才培养</text>
         </view>
@@ -52,7 +52,7 @@
         </view>
       </aside>
 
-      <!-- ===== Main Content Area ===== -->
+      <!-- 主内容区 -->
       <view class="app-main">
         <header class="app-topbar">
           <text class="app-topbar-title">学习中心</text>
@@ -60,7 +60,7 @@
         </header>
 
         <main class="app-content">
-          <!-- ===== Hero Section ===== -->
+          <!-- 首屏展示区 -->
           <section class="lc-hero" :class="{ 'hero-animate': heroAnimated }" aria-label="学习中心概览">
             <view class="lc-hero-content">
               <text class="lc-hero-title hero-title-enter">{{ heroTitle }}</text>
@@ -86,7 +86,7 @@
             <view class="lc-hero-deco lc-hero-deco-3 hero-deco-enter" style="--d:3" aria-hidden="true"></view>
           </section>
 
-          <!-- ===== Video Learning Section ===== -->
+          <!-- 视频学习区 -->
           <section class="lc-section" :class="{ 'is-visible': sections.video }" aria-label="视频学习">
             <view class="lc-section-header">
               <view class="lc-section-title-wrap">
@@ -117,14 +117,14 @@
                 <view class="video-info">
                   <text class="video-title">{{ video.title }}</text>
                   <view class="video-meta">
-                    <text class="video-meta-item">
+                    <view class="video-meta-item">
                       <view class="user-icon-sm"></view>
                       <text>{{ video.category }}</text>
-                    </text>
-                    <text class="video-meta-item">
+                    </view>
+                    <view class="video-meta-item">
                       <view class="eye-icon-sm"></view>
                       <text>{{ video.status }}</text>
-                    </text>
+                    </view>
                   </view>
                 </view>
               </view>
@@ -132,7 +132,7 @@
             <view v-if="!videos.length" class="lc-empty">暂无视频课程</view>
           </section>
 
-          <!-- ===== Professional Skills Section ===== -->
+          <!-- 专业技能区 -->
           <section class="lc-section" :class="{ 'is-visible': sections.skills }" aria-label="专业技能提升">
             <view class="lc-section-header">
               <view class="lc-section-title-wrap">
@@ -190,10 +190,33 @@
                   </view>
                 </view>
               </view>
+              <view class="skill-card" @tap="goToCaseStudy">
+                <view class="skill-card-head">
+                  <view class="skill-icon-wrap" style="background: linear-gradient(135deg, #E11D48, #F97316)">
+                    <view class="scale-icon"></view>
+                  </view>
+                  <view class="skill-info">
+                    <text class="skill-name">文书案例研究</text>
+                    <text class="skill-desc">精选涉外法律文书与典型案例，拆解法律适用与裁判思路</text>
+                  </view>
+                </view>
+                <view class="skill-meta">
+                  <text class="skill-course-count">裁判文书 · 仲裁裁决 · 实务文件</text>
+                  <view class="skill-progress-wrap">
+                    <view class="skill-progress-track">
+                      <view class="skill-progress-fill" style="width: 0%"></view>
+                    </view>
+                    <view class="skill-progress-label">
+                      <text>学习进度</text>
+                      <text class="skill-progress-pct">0%</text>
+                    </view>
+                  </view>
+                </view>
+              </view>
             </view>
           </section>
 
-          <!-- ===== Recommendation Section ===== -->
+          <!-- 推荐区 -->
           <section class="lc-section" :class="{ 'is-visible': sections.recommendation }" aria-label="为你推荐">
             <view class="lc-section-header">
               <view class="lc-section-title-wrap">
@@ -231,36 +254,11 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { onLoad, onReady, onPageScroll } from '@dcloudio/uni-app'
+import { onLoad } from '@dcloudio/uni-app'
 import { requireLogin, getDisplayName, getLevelText } from '@/utils/auth.js'
 import { resolveResourceUrl } from '@/utils/video-config.js'
 
-/* ============================================================
-   Scroll-Reveal Animation System (与 index.vue 一致)
-   目前无板块启用，保留系统以备后续使用
-   ============================================================ */
-const REVEAL_IDS = []
-const revealOffsets = reactive(new Map())
-const visibleSet = reactive(new Set())
-const viewportHeight = ref(800)
-const scrollY = ref(0)
-
-onReady(() => {
-  // no-op: 当前没有需要 reveal 的元素
-})
-
-const checkReveal = () => {
-  // no-op
-}
-
-// onPageScroll：reveal 系统已停用，这里做一个空处理以避免任何滚动期间的响应式开销
-onPageScroll(() => {
-  // no-op
-})
-
-/* ============================================================
-   User Data
-   ============================================================ */
+/* 用户数据 */
 const userName = ref(getDisplayName())
 const userRole = ref(getLevelText())
 const userInitial = computed(() => (userName.value || '用').slice(0, 1))
@@ -273,9 +271,7 @@ const todayDateText = computed(() => {
   return `${y}年${m}月${d}日`
 })
 
-/* ============================================================
-   Hero Data & Animation
-   ============================================================ */
+/* 首屏数据与动画 */
 const heroTitle = '弥合涉外法治缺口，构筑全球法律视野'
 const heroAnimated = ref(false)
 const animatedStats = reactive({
@@ -284,9 +280,7 @@ const animatedStats = reactive({
   completionRate: 0
 })
 
-/* ============================================================
-   数字滚动动画（平滑过渡 + 可配置时长 + 整数/小数 + 暂停/继续）
-   ============================================================ */
+/* 数字滚动动画（平滑过渡 + 可配置时长 + 整数/小数 + 暂停/继续） */
 // 每个数字项的目标配置
 const STAT_CONFIG = {
   courses:        { from: 0, to: 0, decimals: 0, suffix: '', useGrouping: false },
@@ -308,7 +302,7 @@ const statDurOptions = [
 // 运行时状态：raw number + 动画控制
 const statRaw = reactive({ courses: 0, studyCount: 0, completionRate: 0 })
 const statAnimCtrl = reactive({
-  rafId: null,           // requestAnimationFrame id
+  rafId: null,           // 动画帧定时器 id
   startTime: 0,          // 当前动画启动的时刻 (performance.now)
   pausedAtElapsed: 0,    // 暂停时刻已走过的 elapsed
   paused: false,         // 是否暂停
@@ -406,14 +400,7 @@ function cancelStatAnimation() {
   statAnimCtrl.pausedAtElapsed = 0
 }
 
-// 暂停 / 继续（当前按钮已删除，保留函数外壳避免历史引用报错）
-function togglePauseStatAnimation() {
-  // no-op
-}
-
-/* ============================================================
-   Hero 进场动画触发
-   ============================================================ */
+/* 首屏进场动画触发 */
 function triggerHeroAnimation() {
   // 重置状态
   heroAnimated.value = false
@@ -427,14 +414,7 @@ function triggerHeroAnimation() {
   })
 }
 
-// 旧的 animateStats 仍保留，指向新系统（避免调用处报错 / 兼容）
-function animateStats() {
-  startStatAnimation({ duration: statDuration.value, delay: statAnimCtrl.startDelay })
-}
-
-/* ============================================================
-   Video Data
-   ============================================================ */
+/* 视频数据 */
 const videoGradients = [
   'linear-gradient(135deg, #1E40AF, #3B82F6)',
   'linear-gradient(135deg, #0F766E, #14B8A6)',
@@ -547,13 +527,11 @@ async function loadOverviewWithCache() {
   }
 }
 
-/* ============================================================
-   Resources list cache + in-flight de-dup
-   ============================================================ */
+/* 资源列表缓存 + 请求去重 */
 const RESOURCES_CACHE_KEY = 'lc_resources_all_cache'
 const RESOURCES_CACHE_TTL = 5 * 60 * 1000
 
-// in-flight：同一页面会话内多次触发时复用同一个 Promise，避免重复请求
+// 请求进行中：同一页面会话内多次触发时复用同一个 Promise，避免重复请求
 let resourcesInFlight = null
 
 async function loadResourcesWithCache() {
@@ -610,17 +588,11 @@ function openEnglishResource(item) {
   // #endif
 }
 
-function goToListeningTraining() {
-  uni.navigateTo({ url: '/pages/learning-center/listening-training' })
-}
-
 function showMoreVideos() {
   uni.navigateTo({ url: '/pages/learning-center/video-list' })
 }
 
-/* ============================================================
-   Skills Data
-   ============================================================ */
+/* 技能数据 */
 function goToLegalEnglish() {
   uni.navigateTo({ url: '/pages/learning-center/legal-english' })
 }
@@ -629,9 +601,11 @@ function goToReading() {
   uni.navigateTo({ url: '/pages/learning-center/reading-list' })
 }
 
-/* ============================================================
-   Recommendations Data
-   ============================================================ */
+function goToCaseStudy() {
+  uni.navigateTo({ url: '/pages/learning-center/case-study' })
+}
+
+/* 推荐数据 */
 const recommendations = ref([])
 const recommendationPool = ref([])
 const currentRecommendationIds = ref([])
@@ -690,9 +664,7 @@ function startLearning(rec) {
   }
 }
 
-/* ============================================================
-   Section Visibility Animation
-   ============================================================ */
+/* 区块可见性动画 */
 const sections = reactive({
   // 直接初始化为 true：不再依赖 setTimeout 逐个点亮 .is-visible
   // 避免首屏出现"透明度为0→延迟后淡入"的假白屏/闪烁观感
@@ -702,13 +674,7 @@ const sections = reactive({
   recommendation: true
 })
 
-function observeSections() {
-  // no-op：所有板块初始化时已可见，不再需要延迟激活
-}
-
-/* ============================================================
-   Navigation Methods
-   ============================================================ */
+/* 导航方法 */
 function navigateTo(url) {
   uni.navigateTo({ url })
 }
@@ -739,14 +705,10 @@ function handleLogout() {
   })
 }
 
-/* ============================================================
-   Lifecycle
-   ============================================================ */
 onMounted(() => {
   // 页面加载时触发 Hero 进场动画
   heroAnimated.value = true
-  observeSections()
-  animateStats()
+  startStatAnimation({ duration: statDuration.value, delay: statAnimCtrl.startDelay })
 })
 
 onLoad(() => {
@@ -763,11 +725,9 @@ onLoad(() => {
 </script>
 
 <style scoped>
-/* =========================================================
-   Brand Design Tokens
-   ========================================================= */
+/* 品牌设计变量 */
 .lc-shell {
-  /* === Brand Primary === */
+  /* 品牌主色 */
   --rule-primary: #2563EB;
   --rule-primary-hover: #1D4ED8;
   --rule-primary-active: #1E40AF;
@@ -776,7 +736,7 @@ onLoad(() => {
   --rule-primary-tint-2: #BFDBFE;
   --rule-primary-tint-3: #EFF6FF;
 
-  /* === Semantic === */
+  /* 语义色 */
   --rule-background: #F8FAFC;
   --rule-foreground: #0F172A;
   --rule-card: #FFFFFF;
@@ -789,13 +749,12 @@ onLoad(() => {
   --rule-input: #E2E8F0;
   --rule-ring: #2563EB;
 
-  /* === Radius === */
+  /* 圆角 */
   --rule-radius-small: 4px;
   --rule-radius-medium: 8px;
   --rule-radius-large: 16px;
   --rule-radius-full: 9999px;
 
-  /* === State Colors === */
   --state-success: #16A34A;
   --state-success-tint: #DCFCE7;
   --state-warning: #D97706;
@@ -805,7 +764,7 @@ onLoad(() => {
   --state-info: #2563EB;
   --state-info-tint: #DBEAFE;
 
-  /* === Neutrals === */
+  /* 中性色 */
   --rule-ink: #0F172A;
   --rule-ink-2: #475569;
   --rule-ink-3: #94A3B8;
@@ -813,7 +772,7 @@ onLoad(() => {
   --rule-surface: #FFFFFF;
   --rule-surface-2: #F8FAFC;
 
-  /* === Shadows === */
+  /* 阴影 */
   --rule-shadow-1: 0 1px 2px rgba(15,23,42,.04), 0 1px 1px rgba(15,23,42,.02);
   --rule-shadow-2: 0 8px 24px -8px rgba(15,23,42,.12);
   --rule-shadow-3: 0 24px 60px -20px rgba(15,23,42,.20);
@@ -826,16 +785,14 @@ onLoad(() => {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* =========================================================
-   Shell Layout
-   ========================================================= */
+/* 整体布局 */
 .app-shell {
   display: flex;
   min-height: 100vh;
   background: var(--rule-background);
 }
 
-/* ===== Sidebar ===== */
+/* 侧边导航栏 */
 .app-sidebar {
   position: fixed; left: 0; top: 0; height: 100vh; width: 240px;
   display: flex; flex-direction: column;
@@ -852,18 +809,14 @@ onLoad(() => {
 }
 
 .app-sidebar-logo-icon {
-  width: 36px; height: 36px; border-radius: 8px;
-  background: var(--rule-primary);
+  width: 36px; height: 36px;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
-  overflow: hidden;
 }
 
-.ls-svg-glyph {
-  width: 20px; height: 20px;
-  background: #fff;
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
+.ls-svg-img {
+  width: 32px;
+  height: 32px;
 }
 
 .app-sidebar-logo-text {
@@ -896,7 +849,7 @@ onLoad(() => {
 }
 .app-nav-item.is-active:hover { background: var(--rule-primary-hover); color: #fff; }
 
-/* Nav icons (mask-based SVGs) */
+/* 导航图标（基于遮罩的 SVG） */
 .navi-icon {
   width: 20px; height: 20px; flex-shrink: 0;
   background: currentColor;
@@ -925,7 +878,7 @@ onLoad(() => {
           mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z'/%3E%3Cpath d='M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z'/%3E%3C/svg%3E") center/contain no-repeat;
 }
 
-/* ===== Sidebar User ===== */
+/* 侧边栏用户信息 */
 .app-sidebar-user {
   padding: 16px 12px;
   border-top: 1px solid var(--rule-border);
@@ -977,7 +930,7 @@ onLoad(() => {
   font-weight: 500;
 }
 
-/* ===== Main ===== */
+/* 主内容区 */
 .app-main {
   flex: 1; margin-left: 240px;
   display: flex; flex-direction: column;
@@ -1005,23 +958,21 @@ onLoad(() => {
 
 .app-content {
   flex: 1;
-  padding: 32px;
+  padding: 24px 32px;
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
   box-sizing: border-box;
 }
 
-/* =========================================================
-   Hero Section
-   ========================================================= */
+/* 首屏展示区 */
 .lc-hero {
   position: relative;
-  border-radius: 20px;
+  border-radius: 16px;
   overflow: hidden;
-  padding: 64px 48px;
-  margin-bottom: 56px;
-  min-height: 340px;
+  padding: 32px 36px;
+  margin-bottom: 28px;
+  min-height: 168px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -1045,22 +996,22 @@ onLoad(() => {
   will-change: transform;
 }
 .lc-hero-deco-1 {
-  width: 300px; height: 300px;
-  top: -100px; right: -80px;
+  width: 180px; height: 180px;
+  top: -70px; right: -50px;
   animation: floatDeco 8s ease-in-out infinite;
 }
 .lc-hero-deco-2 {
-  width: 200px; height: 200px;
-  bottom: -60px; left: -40px;
+  width: 130px; height: 130px;
+  bottom: -45px; left: -30px;
   animation: floatDeco 10s ease-in-out infinite reverse;
 }
 .lc-hero-deco-3 {
-  width: 120px; height: 120px;
+  width: 80px; height: 80px;
   top: 40%; left: 15%;
   animation: floatDeco 6s ease-in-out infinite;
 }
 
-/* ============ Hero 进场动画 ============ */
+/* 首屏进场动画 */
 /* 初始状态：所有元素隐藏 */
 .hero-title-enter,
 .hero-subtitle-enter,
@@ -1130,25 +1081,6 @@ onLoad(() => {
   }
 }
 
-/* ============ Scroll-Reveal 进场动画（与 index.vue 一致） ============ */
-.reveal {
-  opacity: 0;
-  transform: translate3d(0, 36px, 0);
-  transition:
-    opacity 0.55s cubic-bezier(.3, 0, 0, 1),
-    transform 0.55s cubic-bezier(.3, 0, 0, 1);
-  transition-delay: var(--reveal-delay, 0s);
-  will-change: transform, opacity;
-}
-.reveal.visible {
-  opacity: 1;
-  transform: translate3d(0, 0, 0);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
-}
-
 @keyframes floatDeco {
   0%, 100% { transform: translate(0, 0) scale(1); }
   33% { transform: translate(20px, -15px) scale(1.05); }
@@ -1161,24 +1093,24 @@ onLoad(() => {
 }
 .lc-hero-title {
   display: block;
-  font-size: 44px;
+  font-size: 26px;
   font-weight: 700;
   color: #FFFFFF;
   letter-spacing: -0.02em;
   line-height: 1.3;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
   text-shadow: 0 2px 20px rgba(0,0,0,0.15);
   white-space: nowrap;
 }
 .lc-hero-subtitle {
   display: block;
-  font-size: 16px;
+  font-size: 13px;
   color: rgba(255,255,255,0.88);
-  margin-bottom: 32px;
+  margin-bottom: 16px;
   line-height: 1.6;
 }
 .lc-hero-stats {
-  display: flex; gap: 48px;
+  display: flex; gap: 32px;
   justify-content: center;
   flex-wrap: wrap;
 }
@@ -1187,25 +1119,22 @@ onLoad(() => {
 }
 .lc-hero-stat-num {
   display: block;
-  font-size: 32px; font-weight: 700;
+  font-size: 22px; font-weight: 700;
   color: #FFFFFF;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
 }
 .lc-hero-stat-label {
   display: block;
-  font-size: 13px;
+  font-size: 12px;
   color: rgba(255,255,255,0.7);
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
-/* =========================================================
-   Section Common
-   ========================================================= */
 .lc-section {
-  margin-bottom: 56px;
+  margin-bottom: 32px;
   opacity: 0;
-  transform: translateY(30px);
+  transform: translateY(24px);
   transition: opacity 0.6s ease, transform 0.6s cubic-bezier(.2,.8,.2,1);
 }
 .lc-section:last-child { margin-bottom: 0; }
@@ -1218,40 +1147,38 @@ onLoad(() => {
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 28px;
+  margin-bottom: 18px;
 }
 .lc-section-title-wrap {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 .lc-section-bar {
-  width: 4px; height: 24px;
+  width: 3px; height: 18px;
   background: var(--rule-primary);
   border-radius: 2px;
   flex-shrink: 0;
 }
 .lc-section-title {
   display: block;
-  font-size: 22px; font-weight: 700;
+  font-size: 18px; font-weight: 700;
   color: var(--rule-foreground);
   letter-spacing: -0.01em;
   line-height: 1.2;
 }
 .lc-section-subtitle {
   display: block;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--rule-muted-foreground);
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
-/* =========================================================
-   Video Learning
-   ========================================================= */
+/* 视频学习区 */
 .video-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
+  gap: 16px;
 }
 .video-card {
   background: var(--rule-card);
@@ -1272,7 +1199,7 @@ onLoad(() => {
 }
 .video-thumb {
   position: relative;
-  height: 140px;
+  height: 120px;
   overflow: hidden;
 }
 .video-thumb-gradient {
@@ -1319,11 +1246,11 @@ onLoad(() => {
   font-variant-numeric: tabular-nums;
 }
 .video-info {
-  padding: 16px;
+  padding: 12px 14px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 .video-title {
   font-size: 14px; font-weight: 600;
@@ -1333,6 +1260,7 @@ onLoad(() => {
   min-height: calc(14px * 1.4 * 2);
   display: -webkit-box;
   -webkit-box-orient: vertical;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   overflow: hidden;
   flex: none;
@@ -1360,7 +1288,7 @@ onLoad(() => {
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z'/><circle cx='12' cy='12' r='3'/></svg>") center/contain no-repeat;
 }
 
-/* === Vertical "更多视频" button (same style as "换一批") === */
+/* 竖排"更多视频"按钮（样式与"换一批"一致） */
 .more-videos-btn {
   display: flex;
   flex-direction: column;
@@ -1404,26 +1332,18 @@ onLoad(() => {
   -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8'/><path d='M21 3v5h-5'/><path d='M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16'/><path d='M3 21v-5h5'/></svg>") center/contain no-repeat;
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8'/><path d='M21 3v5h-5'/><path d='M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16'/><path d='M3 21v-5h5'/></svg>") center/contain no-repeat;
 }
-.chev-r-sm {
-  width: 15px; height: 15px;
-  background: currentColor;
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='9 18 15 12 9 6'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='9 18 15 12 9 6'/></svg>") center/contain no-repeat;
-}
 
-/* =========================================================
-   Skill Cards
-   ========================================================= */
+/* 技能卡片 */
 .skill-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  gap: 16px;
 }
 .skill-card {
   background: var(--rule-card);
   border: 1px solid var(--rule-border);
-  border-radius: 14px;
-  padding: 24px;
+  border-radius: 12px;
+  padding: 18px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
   display: flex;
   flex-direction: column;
@@ -1440,15 +1360,15 @@ onLoad(() => {
 .skill-card-head {
   display: flex;
   align-items: flex-start;
-  gap: 16px;
+  gap: 12px;
 }
 .skill-icon-wrap {
-  width: 48px; height: 48px; border-radius: 12px;
+  width: 40px; height: 40px; border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
-.headphones-icon, .handshake-icon, .globe-icon, .gavel-icon, .file-text-icon {
-  width: 24px; height: 24px;
+.headphones-icon, .file-text-icon {
+  width: 20px; height: 20px;
   background: #fff;
 }
 .headphones-icon {
@@ -1459,40 +1379,30 @@ onLoad(() => {
   -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z'/><polyline points='14 2 14 8 20 8'/><line x1='16' x2='8' y1='13' y2='13'/><line x1='16' x2='8' y1='17' y2='17'/><line x1='10' x2='8' y1='9' y2='9'/></svg>") center/contain no-repeat;
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z'/><polyline points='14 2 14 8 20 8'/><line x1='16' x2='8' y1='13' y2='13'/><line x1='16' x2='8' y1='17' y2='17'/><line x1='10' x2='8' y1='9' y2='9'/></svg>") center/contain no-repeat;
 }
-.handshake-icon {
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M11 17a1 1 0 0 1 2 0'/><path d='M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-1.5'/><path d='M16 7.5h5v5h-5l-3-2.5 3-2.5z'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M11 17a1 1 0 0 1 2 0'/><path d='M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-1.5'/><path d='M16 7.5h5v5h-5l-3-2.5 3-2.5z'/></svg>") center/contain no-repeat;
-}
-.globe-icon {
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><path d='M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20'/><path d='M2 12h20'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><path d='M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20'/><path d='M2 12h20'/></svg>") center/contain no-repeat;
-}
-.gavel-icon {
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='m14.5 15.5 3 3L19 17l-3-3'/><path d='m8 12 4.5 4.5'/><path d='M2 22 7.5 16.5'/><path d='M18.5 5.5a2 2 0 0 0-2.8 0L9.2 11.9a2 2 0 0 0 0 2.8l2.7 2.7a2 2 0 0 0 2.8 0l6.4-6.4a2 2 0 0 0 0-2.8l-2.7-2.7z'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='m14.5 15.5 3 3L19 17l-3-3'/><path d='m8 12 4.5 4.5'/><path d='M2 22 7.5 16.5'/><path d='M18.5 5.5a2 2 0 0 0-2.8 0L9.2 11.9a2 2 0 0 0 0 2.8l2.7 2.7a2 2 0 0 0 2.8 0l6.4-6.4a2 2 0 0 0 0-2.8l-2.7-2.7z'/></svg>") center/contain no-repeat;
-}
-.file-text-icon {
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z'/><polyline points='14 2 14 8 20 8'/><line x1='16' x2='8' y1='13' y2='13'/><line x1='16' x2='8' y1='17' y2='17'/><line x1='10' x2='8' y1='9' y2='9'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z'/><polyline points='14 2 14 8 20 8'/><line x1='16' x2='8' y1='13' y2='13'/><line x1='16' x2='8' y1='17' y2='17'/><line x1='10' x2='8' y1='9' y2='9'/></svg>") center/contain no-repeat;
+.scale-icon {
+  width: 20px; height: 20px;
+  background: #fff;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3v18'/><path d='M8 21h8'/><path d='M6 7h12'/><path d='M6 7 3 12a3.5 3.5 0 0 0 6 0L6 7z'/><path d='M18 7l-3 5a3.5 3.5 0 0 0 6 0l-3-5z'/></svg>") center/contain no-repeat;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3v18'/><path d='M8 21h8'/><path d='M6 7h12'/><path d='M6 7 3 12a3.5 3.5 0 0 0 6 0L6 7z'/><path d='M18 7l-3 5a3.5 3.5 0 0 0 6 0l-3-5z'/></svg>") center/contain no-repeat;
 }
 .skill-info {
   flex: 1; min-width: 0;
 }
 .skill-name {
   display: block;
-  font-size: 17px; font-weight: 700;
+  font-size: 15px; font-weight: 700;
   color: var(--rule-foreground);
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 .skill-desc {
   display: block;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--rule-muted-foreground);
   line-height: 1.5;
 }
 .skill-meta {
   display: flex; align-items: center; gap: 12px;
-  margin-top: 16px;
+  margin-top: 12px;
 }
 .skill-course-count {
   font-size: 12px; font-weight: 500;
@@ -1528,29 +1438,27 @@ onLoad(() => {
   font-weight: 600;
 }
 
-/* =========================================================
-   Recommendations
-   ========================================================= */
+/* 推荐区 */
 .rec-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
+  gap: 16px;
 }
 .lc-empty {
-  margin-top: 16px;
-  padding: 32px;
+  margin-top: 12px;
+  padding: 24px;
   border: 1px dashed var(--rule-border);
   border-radius: 10px;
   color: var(--rule-ink-3);
   text-align: center;
-  font-size: 14px;
+  font-size: 13px;
 }
 .rec-card {
   background: var(--rule-card);
   border: 1px solid var(--rule-border);
-  border-radius: 14px;
-  padding: 24px;
-  display: flex; flex-direction: column; gap: 12px;
+  border-radius: 12px;
+  padding: 18px;
+  display: flex; flex-direction: column; gap: 10px;
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   /* 性能优化 */
   will-change: transform;
@@ -1584,19 +1492,20 @@ onLoad(() => {
   color: var(--state-warning);
 }
 .rec-title {
-  font-size: 16px; font-weight: 700;
+  font-size: 14px; font-weight: 700;
   color: var(--rule-foreground);
   line-height: 1.4;
   /* 固定两行高度，单行标题自动空出第二行；超过两行省略 */
-  min-height: calc(16px * 1.4 * 2);
+  min-height: calc(14px * 1.4 * 2);
   display: -webkit-box;
   -webkit-box-orient: vertical;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   overflow: hidden;
 }
 .rec-reason {
   display: block;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--rule-muted-foreground);
   line-height: 1.5;
   /* 让 reason 固定在标题正下方，不伸缩；最后用按钮的 margin-top:auto 推到卡片底部 */
@@ -1604,9 +1513,9 @@ onLoad(() => {
 }
 .rec-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  font-size: 13px; font-weight: 600;
+  font-size: 12px; font-weight: 600;
   background: var(--rule-primary); color: var(--rule-primary-foreground);
-  padding: 8px 16px; border-radius: 8px;
+  padding: 6px 14px; border-radius: 8px;
   margin-top: auto;
   border: none; cursor: pointer;
   transition: background 0.15s ease, transform 0.15s ease;
@@ -1623,7 +1532,7 @@ onLoad(() => {
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 12h14'/><path d='m12 5 7 7-7 7'/></svg>") center/contain no-repeat;
 }
 
-/* === Vertical "换一批" refresh button === */
+/* 竖排"换一批"刷新按钮 */
 .rec-refresh-btn {
   display: flex;
   flex-direction: column;
@@ -1659,9 +1568,6 @@ onLoad(() => {
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8'/><path d='M21 3v5h-5'/><path d='M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16'/><path d='M3 21v-5h5'/></svg>") center/contain no-repeat;
 }
 
-/* =========================================================
-   Responsive
-   ========================================================= */
 @media (max-width: 1024px) {
   .video-grid { grid-template-columns: repeat(2, 1fr); }
   .skill-grid { grid-template-columns: repeat(2, 1fr); }
@@ -1671,10 +1577,10 @@ onLoad(() => {
   .video-grid { grid-template-columns: 1fr; }
   .skill-grid { grid-template-columns: 1fr; }
   .rec-grid { grid-template-columns: 1fr; }
-  .lc-hero { padding: 40px 24px; }
-  .lc-hero-stats { gap: 24px; }
-  .lc-hero-title { font-size: 28px; }
-  .lc-hero-stat-num { font-size: 26px; }
+  .lc-hero { padding: 24px 20px; }
+  .lc-hero-stats { gap: 20px; }
+  .lc-hero-title { font-size: 20px; }
+  .lc-hero-stat-num { font-size: 20px; }
 }
 @media (max-width: 768px) {
   .app-sidebar { transform: translateX(-100%); transition: transform 0.3s; }

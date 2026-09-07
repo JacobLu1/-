@@ -1,12 +1,12 @@
 <template>
   <view class="result-shell">
-    <!-- ===== 背景 App Shell（位于半透明模糊遮罩之下） ===== -->
+    <!-- 背景 App Shell（位于半透明模糊遮罩之下） -->
     <view class="app-shell">
-      <!-- ===== Left Sidebar ===== -->
+      <!-- 左侧导航栏 -->
       <aside class="app-sidebar">
         <view class="app-sidebar-logo">
           <view class="app-sidebar-logo-icon">
-            <view class="ls-svg-glyph" aria-hidden="true"></view>
+            <image class="ls-svg-img" src="/static/logo.png" mode="aspectFit"></image>
           </view>
           <text class="app-sidebar-logo-text">涉外法治人才培养</text>
         </view>
@@ -49,7 +49,7 @@
         </view>
       </aside>
 
-      <!-- ===== Main Content Area（背景内容） ===== -->
+      <!-- 主内容区（背景内容） -->
       <view class="app-main">
         <header class="app-topbar">
           <text class="app-topbar-title">涉外法治综合测评</text>
@@ -91,7 +91,7 @@
       </view>
     </view>
 
-    <!-- ===== 结果弹层（中央结果盒完全不透明，其余区域半透明模糊） ===== -->
+    <!-- 结果弹层（中央结果盒完全不透明，其余区域半透明模糊） -->
     <view class="result-overlay" data-dom-id="modal-backdrop">
       <view class="result-modal">
         <view class="result-close" @tap="closeResult" aria-label="关闭">
@@ -247,9 +247,7 @@ onLoad(() => {
 </script>
 
 <style scoped>
-/* =========================================================
-   涉外法治人才培养测评 - Brand CSS（与评估结果.html 一致）
-   ========================================================= */
+/* 涉外法治人才培养测评 - Brand CSS（与评估结果.html 一致） */
 .result-shell {
   --rule-primary: #2563EB;
   --rule-primary-hover: #1D4ED8;
@@ -306,7 +304,7 @@ onLoad(() => {
 
 .app-shell { display: flex; min-height: 100vh; background: var(--rule-background); }
 
-/* ===== Sidebar ===== */
+/* 侧边导航栏 */
 .app-sidebar {
   position: fixed; left: 0; top: 0; height: 100vh; width: 240px;
   display: flex; flex-direction: column;
@@ -321,15 +319,13 @@ onLoad(() => {
   color: inherit;
 }
 .app-sidebar-logo-icon {
-  width: 36px; height: 36px; border-radius: 8px;
-  background: var(--rule-primary);
+  width: 36px; height: 36px;
   display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0; overflow: hidden;
+  flex-shrink: 0;
 }
-.ls-svg-glyph {
-  width: 20px; height: 20px; background: #fff;
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
+.ls-svg-img {
+  width: 32px;
+  height: 32px;
 }
 .app-sidebar-logo-text {
   font-size: 15px; font-weight: 600;
@@ -408,7 +404,7 @@ onLoad(() => {
 }
 .app-sidebar-logout-text { font-size: 13px; font-weight: 500; }
 
-/* ===== Main ===== */
+/* 主内容区 */
 .app-main {
   flex: 1; margin-left: 240px;
   display: flex; flex-direction: column;
@@ -498,10 +494,7 @@ onLoad(() => {
 .q-option.is-checked .q-option-letter { color: var(--rule-primary); }
 .q-option-text { font-size: 15px; color: var(--rule-foreground); line-height: 1.5; }
 
-/* =========================================================
-   结果弹层（复刻评估结果.html）
-   除中央结果盒外，其余区域半透明模糊
-   ========================================================= */
+/* 结果弹层（复刻评估结果.html） 除中央结果盒外，其余区域半透明模糊 */
 .result-overlay {
   position: fixed; inset: 0;
   background: rgba(15, 23, 42, 0.5);
@@ -676,7 +669,6 @@ onLoad(() => {
   box-shadow: 0 6px 18px rgba(37, 99, 235, 0.25);
 }
 
-/* ===== Responsive ===== */
 @media (max-width: 768px) {
   .app-sidebar { transform: translateX(-100%); transition: transform 0.3s; }
   .app-main { margin-left: 0; }

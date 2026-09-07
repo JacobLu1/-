@@ -14,7 +14,7 @@
 				// 未登录，跳转到登录页
 				uni.reLaunch({ url: '/pages/login/login' })
 			}
-			// RemixIcon 字体已通过 static/remixicon.css 中 @font-face 的 base64 data URI 内联加载
+			// 图标字体（RemixIcon）已通过 static/remixicon.css 中 @font-face 的 base64 data URI 内联加载
 			// （小程序 wxss 不支持本地路径，uni.loadFontFace 也不支持本地路径）
 		},
 		onShow: function() {
@@ -66,7 +66,7 @@
 		overflow-x: hidden;
 	}
 
-	/* ============ 全站通用居中容器 ============ */
+	/* 全站通用居中容器 */
 	.page-wrap {
 		width: 100%;
 		max-width: 640px;

@@ -3,7 +3,7 @@
     <aside class="app-sidebar">
       <view class="app-sidebar-logo">
         <view class="app-sidebar-logo-icon">
-          <view class="ls-svg-glyph" aria-hidden="true"></view>
+          <image class="ls-svg-img" src="/static/logo.png" mode="aspectFit"></image>
         </view>
         <text class="app-sidebar-logo-text">涉外法治人才培养</text>
       </view>
@@ -428,7 +428,7 @@ onLoad((options) => {
 
 <style scoped>
 .app-shell {
-  /* === Brand Primary === */
+  /* 品牌主色 */
   --rule-primary: #2563EB;
   --rule-primary-hover: #1D4ED8;
   --rule-primary-active: #1E40AF;
@@ -453,7 +453,7 @@ onLoad((options) => {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ===== 左侧导航栏 ===== */
+/* 左侧导航栏 */
 .app-sidebar {
   position: fixed;
   left: 0;
@@ -477,23 +477,14 @@ onLoad((options) => {
 }
 
 .app-sidebar-logo-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: var(--rule-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
-  overflow: hidden;
 }
 
-.ls-svg-glyph {
-  width: 20px;
-  height: 20px;
-  background: #fff;
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
+.ls-svg-img {
+  width: 32px;
+  height: 32px;
 }
 
 .app-sidebar-logo-text {
@@ -641,7 +632,7 @@ onLoad((options) => {
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'/><polyline points='16 17 21 12 16 7'/><line x1='21' y1='12' x2='9' y2='12'/></svg>") center/contain no-repeat;
 }
 
-/* ===== 主区域与顶栏 ===== */
+/* 主区域与顶栏 */
 .app-main {
   flex: 1;
   margin-left: 240px;

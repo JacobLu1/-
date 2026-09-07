@@ -1,18 +1,20 @@
 <template>
   <view class="le-page">
-    <!-- 状态栏安全区占位 -->
-    <view class="status-bar" :style="{ height: statusBarHeight + 'px' }"></view>
-    <!-- 自定义导航栏 -->
-    <view class="le-nav">
-      <view class="le-back" hover-class="le-back-hover" @click="goBack">
-        <text class="le-back-arrow">‹</text>
-        <text>返回</text>
+    <view class="sticky-top">
+      <!-- 状态栏安全区占位 -->
+      <view class="status-bar" :style="{ height: statusBarHeight + 'px' }"></view>
+      <!-- 自定义导航栏 -->
+      <view class="le-nav">
+        <view class="le-back" hover-class="le-back-hover" @click="goBack">
+          <text class="le-back-arrow">‹</text>
+          <text>返回</text>
+        </view>
+        <text class="le-nav-title">法律英语综合训练</text>
+        <view class="le-nav-right"></view>
       </view>
-      <text class="le-nav-title">法律英语</text>
-      <view class="le-nav-right"></view>
     </view>
 
-    <scroll-view scroll-y class="le-scroll" show-scrollbar="false">
+    <view class="le-scroll">
       <!-- 能力概览卡 -->
       <view class="hero">
         <view class="hero-top">
@@ -47,6 +49,9 @@
             <view class="bar"></view>
             <text>学习模块</text>
           </view>
+          <view class="sec-more">
+            <text>共 {{ modules.length }} 个模块</text>
+          </view>
         </view>
         <view v-if="!modules.length" class="res-empty">暂无学习模块</view>
         <view class="mod-grid">
@@ -57,7 +62,7 @@
             hover-class="mod-hover"
             @click="onModule(mod)"
           >
-            <view class="mod-ico" :class="'mod-ico-' + (idx + 1)">
+            <view class="mod-ico" :class="'mod-ico-' + mod.tone">
               <text :class="mod.icon"></text>
             </view>
             <view class="mod-name">{{ mod.name }}</view>
@@ -66,39 +71,9 @@
               <view class="mod-prog-inner" :style="{ width: mod.percent + '%' }"></view>
             </view>
             <view class="mod-foot">
-              <text class="mod-pct">{{ mod.percent }}%</text>
+              <text class="mod-pct">{{ mod.percent }}% 完成</text>
               <text class="mod-go ri-arrow-right-s-line"></text>
             </view>
-          </view>
-        </view>
-      </view>
-
-      <!-- 法律英语资源 -->
-      <view class="sec">
-        <view class="sec-head">
-          <view class="t">
-            <view class="bar"></view>
-            <text>法律英语资源</text>
-          </view>
-          <view class="sec-more">
-            <text>{{ englishResources.length }} 项</text>
-          </view>
-        </view>
-        <view v-if="!englishResources.length" class="res-empty">暂无资源</view>
-        <view class="mod-grid">
-          <view
-            class="mod-card"
-            v-for="(res, idx) in englishResources"
-            :key="idx"
-            hover-class="mod-hover"
-            @click="onResource(res)"
-          >
-            <view class="mod-ico" :class="'mod-ico-' + ((idx % 4) + 1)">
-              <text :class="res.icon"></text>
-            </view>
-            <view class="mod-name">{{ res.title }}</view>
-            <view class="mod-lv">{{ res.level }}</view>
-            <text class="mod-desc">{{ res.description || '暂无简介' }}</text>
           </view>
         </view>
       </view>
@@ -115,21 +90,38 @@
             <text class="ri-arrow-right-s-line"></text>
           </view>
         </view>
+        <view v-if="vocabPool.length" class="vocab-tabs">
+          <view
+            class="vocab-tab"
+            :class="{ 'is-active': vocabTab === 'new' }"
+            @click="switchVocabTab('new')"
+          >今日新词 {{ newWords.length }}</view>
+          <view
+            class="vocab-tab"
+            :class="{ 'is-active': vocabTab === 'review' }"
+            @click="switchVocabTab('review')"
+          >待复习 {{ reviewWords.length }}</view>
+        </view>
         <view v-if="words.length" class="word-card">
           <view
             class="word-row"
-            v-for="(word, idx) in words"
+            v-for="(word, idx) in displayWords"
             :key="idx"
-            hover-class="word-hover"
-            @click="onWord(word)"
           >
-            <view class="word-phon">{{ word.phonetic }}</view>
-            <view class="word-en">{{ word.en }}</view>
-            <view class="word-cn">{{ word.cn }}</view>
-            <text class="word-star" :class="word.starred ? 'ri-star-fill starred' : 'ri-star-line'" @click.stop="toggleStar(word)"></text>
+            <view class="word-top">
+              <text class="word-en">{{ word.en }}</text>
+              <text v-if="word.phonetic" class="word-phon">/{{ word.phonetic }}/</text>
+            </view>
+            <view class="word-bottom">
+              <text class="word-cn">{{ word.cn }}</text>
+              <view class="word-actions">
+                <view class="word-btn word-btn-known" @click="markWord(word, true)">认识</view>
+                <view class="word-btn word-btn-again" @click="markWord(word, false)">不认识</view>
+              </view>
+            </view>
           </view>
         </view>
-        <view v-else class="res-empty">暂无词汇数据</view>
+        <view v-else class="res-empty">今日词汇暂未安排，请先维护“词汇积累”资源</view>
       </view>
 
       <!-- 底部提示 -->
@@ -137,27 +129,58 @@
         <text class="ri-sparkling-2-line"></text>
         <text>坚持每日学习，法律英语稳步提升</text>
       </view>
-    </scroll-view>
+    </view>
   </view>
 </template>
 
 <script>
-import { resolveResourceUrl } from '@/utils/video-config.js'
+import {
+  DAILY_WORD_COUNT,
+  loadVocabProgress,
+  saveVocabProgress,
+  normalizeLang,
+  mapWord,
+  isLearned,
+  isDueReview,
+  markWordProgress,
+  getDateKey,
+  hashString,
+  seededShuffle
+} from '@/utils/vocab.js'
+
+const ROTATION_SEED = 'legal-vocab-daily-rotation'
 
 export default {
   data() {
     return {
       statusBarHeight: 0,
       resourceLoading: false,
-      englishResources: [],
       overallPercent: 0,
       stats: [],
       modules: [],
-      words: []
+      vocabPool: [],
+      progressMap: {},
+      words: [],
+      vocabTab: 'new'
+    }
+  },
+  computed: {
+    newWords() {
+      return this.words.filter((w) => !isLearned(this.progressMap[w.id]))
+    },
+    reviewWords() {
+      return this.words.filter((w) => {
+        const p = this.progressMap[w.id]
+        return isLearned(p) && isDueReview(p)
+      })
+    },
+    displayWords() {
+      return this.vocabTab === 'new' ? this.newWords : this.reviewWords
     }
   },
   onLoad() {
     this.statusBarHeight = this.getStatusBarHeight()
+    this.progressMap = loadVocabProgress()
     this.loadEnglishResources()
   },
   methods: {
@@ -165,67 +188,185 @@ export default {
       if (this.resourceLoading) return
       this.resourceLoading = true
       try {
-    const resourcesObj = uniCloud.importObject('resources', { customUI: true })
-        const r = (await resourcesObj.listPublic({ type: 'all' })) || {}
-        if (r.errCode !== 0) {
-          uni.showToast({ title: r.errMsg || '资源加载失败', icon: 'none' })
-          return
-        }
-        const list = (r.list || []).filter(d => ['vocabulary', 'reading', 'listening'].includes(d.type))
-        this.englishResources = list.map((d) => ({
-          id: d._id,
-          type: d.type,
-          title: d.title || '未命名资源',
-          category: d.cat || '未分类',
-          level: d.meta || '',
-          fileUrl: d.fileUrl || '',
-          description: d.description || '',
-          icon: this.resourceIcon(d.type)
-        }))
-        const catCount = {}
-        const moduleIcons = {
-          vocabulary: 'ri-book-open-line',
-          reading: 'ri-file-list-3-line',
-          listening: 'ri-mic-line'
-        }
-        list.forEach(d => {
-          const name = d.type || '其他'
-          catCount[name] = (catCount[name] || 0) + 1
-        })
-        this.modules = Object.keys(catCount).map((type, index) => ({
-          name: type === 'vocabulary' ? '词汇积累' : type === 'reading' ? '文本阅读' : '听力训练',
-          level: 'L' + Math.min(index + 2, 4),
-          percent: 0,
-          icon: moduleIcons[type] || 'ri-book-line',
-          url: type === 'listening' ? '/pages/legal-english/listening-training' : type === 'reading' ? '/pages/legal-english/reading-list' : ''
-        }))
+        const resourcesObj = uniCloud.importObject('resources', { customUI: true })
+        const [vocabList, listenRes] = await Promise.all([
+          this.fetchVocab(resourcesObj, '英语'),
+          resourcesObj.listPublic({ type: 'listening', page: 1, size: 1000 })
+        ])
+        this.vocabPool = vocabList
+        this.buildTodayWords()
         this.stats = [
-          { icon: 'ri-file-list-3-line', val: String(list.filter(d => d.type === 'reading').length), label: '文本阅读' },
-          { icon: 'ri-mic-line', val: String(list.filter(d => d.type === 'listening').length), label: '听力训练' },
-          { icon: 'ri-bookmark-line', val: String(list.filter(d => d.type === 'vocabulary').length), label: '词汇' },
-          { icon: 'ri-bookmark-line', val: String(this.modules.length), label: '学习模块' }
+          { icon: 'ri-book-open-line', val: String(this.vocabPool.length), label: '英语词汇' },
+          { icon: 'ri-mic-line', val: String((listenRes && listenRes.list ? listenRes.list : []).length), label: '听力' }
+        ]
+        this.modules = [
+          {
+            name: '词汇积累',
+            level: 'L1',
+            percent: 0,
+            icon: 'ri-book-open-line',
+            tone: 1,
+            url: '/pages/legal-english/legal-vocab'
+          },
+          {
+            name: '听力训练',
+            level: 'L2',
+            percent: 0,
+            icon: 'ri-mic-line',
+            tone: 3,
+            url: '/pages/legal-english/listening-training'
+          }
         ]
       } catch (e) {
-        uni.showToast({ title: (e && e.errMsg) || '资源加载失败', icon: 'none' })
+        uni.showToast({ title: (e && e.errMsg) || '法律英语资源加载失败', icon: 'none' })
       } finally {
         this.resourceLoading = false
       }
     },
-    resourceIcon(type) {
-      if (type === 'vocabulary') return 'ri-book-open-line'
-      if (type === 'reading') return 'ri-file-list-3-line'
-      if (type === 'listening') return 'ri-mic-line'
-      return 'ri-book-line'
+    async fetchVocab(resourcesObj, lang) {
+      // 本地缓存 10 分钟，减少重复加载
+      const cacheKey = 'le_vocab_english_cache'
+      const now = Date.now()
+      try {
+        const cached = uni.getStorageSync(cacheKey)
+        if (cached && cached.expireAt && cached.expireAt > now && Array.isArray(cached.data)) {
+          return cached.data
+        }
+      } catch (e) {}
+      const all = []
+      let page = 1
+      let total = 0
+      let fetched = 0
+      do {
+        const r = (await resourcesObj.listPublic({ type: 'vocabulary', lang, page, size: 1000 })) || {}
+        if (r.errCode !== 0) break
+        const batch = r.list || []
+        all.push(...batch)
+        fetched += batch.length
+        total = Number(r.total) || fetched
+        page += 1
+      } while (fetched < total)
+      const words = all
+        .filter((d) => d.type === 'vocabulary' && normalizeLang(d.lang) === '英语')
+        .map(mapWord)
+      if (!words.length) {
+        // 兼容旧数据（无 lang 字段）：回退拉全量再过滤
+        const fallback = []
+        let p = 1
+        let t = 0
+        let f = 0
+        do {
+          const r = (await resourcesObj.listPublic({ type: 'vocabulary', page: p, size: 1000 })) || {}
+          if (r.errCode !== 0) break
+          const batch = r.list || []
+          fallback.push(...batch)
+          f += batch.length
+          t = Number(r.total) || f
+          p += 1
+        } while (f < t)
+        const fbWords = fallback.filter((d) => d.type === 'vocabulary').map(mapWord)
+        try {
+          uni.setStorageSync(cacheKey, { expireAt: now + 10 * 60 * 1000, data: fbWords })
+        } catch (e) {}
+        return fbWords
+      }
+      try {
+        uni.setStorageSync(cacheKey, { expireAt: now + 10 * 60 * 1000, data: words })
+      } catch (e) {}
+      return words
     },
-    onResource(res) {
-      const url = resolveResourceUrl(res.fileUrl)
-      if (!url) {
-        uni.showToast({ title: '该资源暂未配置文件地址', icon: 'none' })
+    getPlanKey(dateKey) {
+      const user = uni.getStorageSync('userInfo') || {}
+      return `legal_vocab_${user.account || 'guest'}_plan_${dateKey}`
+    },
+    buildTodayWords() {
+      const pool = this.vocabPool
+      if (!pool.length) {
+        this.words = []
         return
       }
-      uni.setClipboardData({
-        data: url,
-        success: () => uni.showToast({ title: '资源地址已复制，可在浏览器打开', icon: 'none' })
+      const dateKey = getDateKey()
+      let savedPlan = []
+      try {
+        savedPlan = uni.getStorageSync(this.getPlanKey(dateKey)) || []
+      } catch (e) {}
+      if (savedPlan.length) {
+        const poolMap = new Map(pool.map((w) => [w.id, w]))
+        const planned = savedPlan.map((id) => poolMap.get(id)).filter(Boolean)
+        if (planned.length >= 10) {
+          this.words = planned
+          this.syncVocabTab()
+          return
+        }
+      }
+      const selected = this.buildDailyRotation(dateKey)
+      this.words = selected
+      try {
+        uni.setStorageSync(this.getPlanKey(dateKey), selected.map((w) => w.id))
+      } catch (e) {}
+      this.syncVocabTab()
+    },
+    // 按天轮换选取今日词汇：固定种子稳定队列 + 每天滑动窗口，优先未学词，不足时补已学词
+    buildDailyRotation(dateKey) {
+      const pool = this.vocabPool
+      if (!pool.length) return []
+      const poolMap = new Map(pool.map((w) => [w.id, w]))
+      const queue = seededShuffle(pool.map((w) => w.id), hashString(ROTATION_SEED))
+      const learnedSet = new Set(
+        Object.keys(this.progressMap).filter((id) => this.progressMap[id] && this.progressMap[id].learnedAt)
+      )
+      const dayIndex = Math.floor(new Date(`${dateKey}T00:00:00`).getTime() / 86400000)
+      const start = (dayIndex * DAILY_WORD_COUNT) % queue.length
+      const ids = []
+      let cursor = start
+      let scanned = 0
+      while (ids.length < DAILY_WORD_COUNT && scanned < queue.length * 2) {
+        const id = queue[cursor % queue.length]
+        if (!learnedSet.has(id) && !ids.includes(id)) ids.push(id)
+        cursor += 1
+        scanned += 1
+      }
+      cursor = start
+      while (ids.length < DAILY_WORD_COUNT && ids.length < queue.length) {
+        const id = queue[cursor % queue.length]
+        if (!ids.includes(id)) ids.push(id)
+        cursor += 1
+      }
+      return ids.map((id) => poolMap.get(id)).filter(Boolean)
+    },
+    syncVocabTab() {
+      if (this.vocabTab === 'new' && !this.newWords.length && this.reviewWords.length) {
+        this.vocabTab = 'review'
+        return
+      }
+      if (this.vocabTab === 'review' && !this.reviewWords.length && this.newWords.length) {
+        this.vocabTab = 'new'
+      }
+    },
+    switchVocabTab(tab) {
+      this.vocabTab = tab
+    },
+    markWord(word, known) {
+      this.progressMap = markWordProgress(this.progressMap, word, known)
+      saveVocabProgress(this.progressMap)
+      uni.showToast({ title: known ? '已加入复习计划' : '已加入待复习', icon: 'none' })
+      this.syncVocabTab()
+    },
+    onModule(mod) {
+      if (mod.url) {
+        uni.navigateTo({ url: mod.url })
+        return
+      }
+      uni.showToast({ title: `「${mod.name}」建设中，敬请期待`, icon: 'none' })
+    },
+    onMoreWords() {
+      if (!this.vocabPool.length) {
+        uni.showToast({ title: '暂无词汇数据', icon: 'none' })
+        return
+      }
+      uni.showToast({
+        title: `今日 ${this.words.length} 词：新词 ${this.newWords.length}，复习 ${this.reviewWords.length}`,
+        icon: 'none'
       })
     },
     getStatusBarHeight() {
@@ -245,29 +386,13 @@ export default {
           uni.switchTab({ url: '/pages/index/index' })
         }
       })
-    },
-    onModule(mod) {
-      if (mod.url) {
-        uni.navigateTo({ url: mod.url })
-        return
-      }
-      uni.showToast({ title: '「' + mod.name + '」建设中，敬请期待', icon: 'none' })
-    },
-    onMoreWords() {
-      uni.showToast({ title: '更多词汇即将上线', icon: 'none' })
-    },
-    onWord(word) {
-      uni.showToast({ title: word.en + '：' + word.cn, icon: 'none' })
-    },
-    toggleStar(word) {
-      word.starred = !word.starred
     }
   }
 }
 </script>
 
 <style>
-/* ============ Design Tokens ============ */
+/* 设计变量 */
 page {
   --brand: #2E7BE0;
   --brand-deep: #2E7BE0;
@@ -282,11 +407,16 @@ page {
   background-color: #f2f6fd;
 }
 
-/* ============ 页面 ============ */
 .le-page {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+}
+
+.sticky-top {
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .status-bar {
@@ -294,7 +424,7 @@ page {
   background: #ffffff;
 }
 
-/* ===== 导航栏 ===== */
+/* 导航栏 */
 .le-nav {
   display: flex;
   align-items: center;
@@ -335,15 +465,13 @@ page {
   width: 120rpx;
 }
 
-/* ===== 滚动区 ===== */
+/* 滚动区 */
 .le-scroll {
-  flex: 1;
-  height: 0;
   padding: 24rpx 32rpx 40rpx;
   box-sizing: border-box;
 }
 
-/* ===== 能力概览卡 ===== */
+/* 能力概览卡 */
 .hero {
   border-radius: 40rpx;
   padding: 36rpx 32rpx 32rpx;
@@ -468,7 +596,7 @@ page {
   color: rgba(255, 255, 255, 0.7);
 }
 
-/* ===== 区块标题 ===== */
+/* 区块标题 */
 .sec {
   margin-top: 36rpx;
 }
@@ -507,7 +635,7 @@ page {
   color: #7A92B0;
 }
 
-/* ===== 学习模块 ===== */
+/* 学习模块 */
 .mod-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -612,7 +740,32 @@ page {
   text-align: center;
 }
 
-/* ===== 今日词汇 ===== */
+/* 今日词汇 */
+.vocab-tabs {
+  display: flex;
+  gap: 16rpx;
+  margin-bottom: 20rpx;
+}
+
+.vocab-tab {
+  height: 56rpx;
+  padding: 0 24rpx;
+  border-radius: var(--r-pill);
+  border: 2rpx solid rgba(120, 160, 210, 0.3);
+  background: var(--glass-2);
+  color: #7A92B0;
+  font-size: 24rpx;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+}
+
+.vocab-tab.is-active {
+  border-color: #2E7BE0;
+  background: #2E7BE0;
+  color: #ffffff;
+}
+
 .word-card {
   border-radius: 28rpx;
   background: var(--glass-2);
@@ -622,8 +775,6 @@ page {
 }
 
 .word-row {
-  display: flex;
-  align-items: center;
   padding: 22rpx 0;
   border-bottom: 2rpx solid rgba(120, 160, 210, 0.12);
 }
@@ -632,44 +783,74 @@ page {
   border-bottom: none;
 }
 
-.word-hover {
-  opacity: 0.7;
-}
-
-.word-phon {
-  width: 200rpx;
-  font-size: 22rpx;
-  color: #7A92B0;
+.word-top {
+  display: flex;
+  align-items: baseline;
+  gap: 12rpx;
+  min-width: 0;
 }
 
 .word-en {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #16314F;
+  word-break: break-word;
+}
+
+.word-phon {
+  font-size: 22rpx;
+  color: #7A92B0;
+  flex-shrink: 0;
+}
+
+.word-bottom {
+  margin-top: 10rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.word-cn {
   flex: 1;
   min-width: 0;
-  font-size: 28rpx;
+  font-size: 26rpx;
+  color: #2E7BE0;
   font-weight: 600;
-  color: #16314F;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.word-cn {
-  margin-right: 16rpx;
-  font-size: 26rpx;
-  color: #2E7BE0;
+.word-actions {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  flex-shrink: 0;
+}
+
+.word-btn {
+  height: 52rpx;
+  padding: 0 20rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
   font-weight: 600;
+  display: flex;
+  align-items: center;
 }
 
-.word-star {
-  font-size: 34rpx;
-  color: #C9D6EA;
+.word-btn-known {
+  color: #ffffff;
+  background: linear-gradient(135deg, #16A34A, #15803D);
 }
 
-.word-star.starred {
-  color: #F59E0B;
+.word-btn-again {
+  color: #DC2626;
+  background: #FEE2E2;
+  border: 2rpx solid #FECACA;
 }
 
-/* ===== 底部提示 ===== */
+/* 底部提示 */
 .le-tip {
   margin-top: 48rpx;
   display: flex;

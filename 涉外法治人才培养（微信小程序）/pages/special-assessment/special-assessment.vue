@@ -131,19 +131,39 @@ export default {
         this.loading = false
       }
     },
-    selectSpecial(item) {
+    // 成绩需保存到云端数据中心，开始前校验登录态
+    requireLogin(cb) {
+      const token = uni.getStorageSync('token')
+      if (token) {
+        cb()
+        return
+      }
       uni.showModal({
-        title: '开始专项测评',
-        content: `即将开始"${item.name}"专项测评，共${item.count}题，预计${item.time}分钟。`,
-        confirmText: '开始',
+        title: '请先登录',
+        content: '登录后测评成绩才会保存到数据中心并纳入错题统计，是否前往登录？',
+        confirmText: '去登录',
         success: (res) => {
           if (res.confirm) {
-            // 跳转到答题页面，传递专项信息
-            uni.navigateTo({
-              url: `/pages/assessment/assessment?fromStart=true&special=${encodeURIComponent(item.name)}`
-            })
+            uni.navigateTo({ url: '/pages/login/login' })
           }
         }
+      })
+    },
+    selectSpecial(item) {
+      this.requireLogin(() => {
+        uni.showModal({
+          title: '开始专项测评',
+          content: `即将开始"${item.name}"专项测评，共${item.count}题，预计${item.time}分钟。`,
+          confirmText: '开始',
+          success: (res) => {
+            if (res.confirm) {
+              // 跳转到答题页面，传递专项信息
+              uni.navigateTo({
+                url: `/pages/assessment/assessment?fromStart=true&special=${encodeURIComponent(item.name)}`
+              })
+            }
+          }
+        })
       })
     }
   }
@@ -188,7 +208,7 @@ page {
   --r-pill: 999rpx;
 }
 
-/* ---------- Page wrap ---------- */
+/* 页面容器（整页竖向 Flex 布局） */
 .page-wrap {
   height: 100vh;
   background: linear-gradient(160deg, #EAF3FF 0%, #F4F9FF 45%, #E6F1FE 100%);
@@ -218,14 +238,14 @@ page { height: 100vh; }
   bottom: 60rpx; right: -180rpx;
 }
 
-/* ---------- Status bar ---------- */
+/* 状态栏安全区占位 */
 .status-bar {
   width: 100%;
   flex-shrink: 0;
   background: transparent;
 }
 
-/* ---------- Sub-header ---------- */
+/* 顶部导航栏：返回 + 标题 */
 .sub-header {
   position: relative; z-index: 45;
   flex: 0 0 auto;
@@ -257,7 +277,7 @@ page { height: 100vh; }
 .bk-hover { transform: scale(0.9); }
 .bk-ico { font-size: 48rpx; font-weight: 700; color: var(--ink-2); line-height: 1; }
 
-/* ---------- Screen ---------- */
+/* 可滚动内容区 */
 .screen {
   position: relative; z-index: 5;
   flex: 1 1 auto;
@@ -278,7 +298,7 @@ page { height: 100vh; }
   font-size: 26rpx;
 }
 
-/* ---------- Info card ---------- */
+/* 测评信息卡片 */
 .info-card {
   position: relative;
   padding: 32rpx;
@@ -327,7 +347,7 @@ page { height: 100vh; }
   line-height: 1.5;
 }
 
-/* ---------- Special list ---------- */
+/* 专项测评列表 */
 .special-list {
   display: flex;
   flex-direction: column;
@@ -402,7 +422,7 @@ page { height: 100vh; }
   flex-shrink: 0;
 }
 
-/* ---------- Animations ---------- */
+/* 入场动画 */
 @keyframes fadeUp { from { opacity: 0; transform: translateY(36rpx); } to { opacity: 1; transform: translateY(0); } }
 
 .reveal { opacity: 0; animation: fadeUp .6s cubic-bezier(.22,1,.36,1) forwards; }

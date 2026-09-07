@@ -1,10 +1,10 @@
 <template>
   <view class="app-shell">
-    <!-- ===== Left Sidebar ===== -->
+    <!-- 左侧导航栏 -->
     <aside class="app-sidebar">
       <view class="app-sidebar-logo">
         <view class="app-sidebar-logo-icon">
-          <view class="ls-svg-glyph" aria-hidden="true"></view>
+          <image class="ls-svg-img" src="/static/logo.png" mode="aspectFit"></image>
         </view>
         <view class="app-sidebar-logo-text">
           <text>涉外法治人才培养平台</text>
@@ -51,7 +51,7 @@
       </view>
     </aside>
 
-    <!-- ===== Main Content Area ===== -->
+    <!-- 主内容区 -->
     <view class="app-main">
       <header class="app-topbar">
         <view class="app-topbar-titles">
@@ -62,7 +62,7 @@
       </header>
       <main class="app-content">
 
-        <!-- ===== Section 1: 知识库概览统计 ===== -->
+        <!-- 知识库概览统计 -->
         <section class="dc-section" :class="{ 'is-visible': visibleSections[0] }" aria-label="知识库概览统计">
           <view class="qb-kpi-grid">
             <view class="qb-kpi-card">
@@ -112,9 +112,9 @@
           </view>
         </section>
 
-        <!-- ===== Section 2: 筛选、搜索与知识条目录入 ===== -->
+        <!-- 筛选、搜索与知识条目录入 -->
         <section class="dc-section" :class="{ 'is-visible': visibleSections[1] }" aria-label="筛选、搜索与知识条目录入">
-          <!-- ===== 批量导入知识条目 ===== -->
+          <!-- 批量导入知识条目 -->
           <view class="qb-batch-card">
             <view class="qb-section-header">
               <view class="qb-section-title-wrap">
@@ -256,7 +256,7 @@
           </view>
         </section>
 
-        <!-- ===== Section 3: 知识条目列表表格 ===== -->
+        <!-- 知识条目列表表格 -->
         <section class="dc-section" :class="{ 'is-visible': visibleSections[2] }" aria-label="知识条目列表">
           <view class="qb-section-header">
             <view class="qb-section-title-wrap">
@@ -308,7 +308,7 @@
           </view>
         </section>
 
-        <!-- ===== Section 4: 分页 ===== -->
+        <!-- 分页 -->
         <section class="dc-section" :class="{ 'is-visible': visibleSections[3] }" aria-label="分页">
           <view class="qb-pagination">
             <view class="qb-page-btn" :class="{ disabled: currentPage === 1 }" @tap="prevPage">
@@ -376,7 +376,7 @@ const todayDateText = computed(() => {
   return `${y}年${m}月${d}日`
 })
 
-/* ===== 知识条目表单 ===== */
+/* 知识条目表单 */
 const formVisible = ref(false)
 const editingId = ref('')
 const formTitle = ref('')
@@ -393,7 +393,7 @@ const formContent = ref('')
 const formFileUrl = ref('')
 const formStatus = ref('审核中')
 
-/* ===== 批量导入知识条目 ===== */
+/* 批量导入知识条目 */
 const batchText = ref('')
 const batchImporting = ref(false)
 const batchResult = ref(null)
@@ -722,9 +722,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* ============================================
-   Brand CSS Variables
-   ============================================ */
+/* 品牌主题色变量 */
 .app-shell {
   --rule-primary: #2563EB;
   --rule-primary-hover: #1D4ED8;
@@ -777,7 +775,7 @@ onMounted(() => {
 
 :root { --qb-ease: cubic-bezier(.2,.8,.2,1); }
 
-/* ===== Sidebar ===== */
+/* 侧边导航栏 */
 .app-sidebar {
   position: fixed; left: 0; top: 0; height: 100vh; width: 240px;
   display: flex; flex-direction: column;
@@ -790,16 +788,13 @@ onMounted(() => {
   color: inherit;
 }
 .app-sidebar-logo-icon {
-  width: 36px; height: 36px; border-radius: 8px;
-  background: linear-gradient(135deg, var(--rule-primary), var(--rule-primary-active));
+  width: 36px; height: 36px;
   display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0; overflow: hidden;
-  box-shadow: 0 4px 10px -2px color-mix(in srgb, var(--rule-primary) 40%, transparent);
+  flex-shrink: 0;
 }
-.ls-svg-glyph {
-  width: 20px; height: 20px; background: #fff;
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
+.ls-svg-img {
+  width: 32px;
+  height: 32px;
 }
 .app-sidebar-logo-text {
   display: flex; flex-direction: column; line-height: 1.4;
@@ -837,10 +832,6 @@ onMounted(() => {
 .navi-icon-users {
   -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/><circle cx='9' cy='7' r='4'/><path d='M22 21v-2a4 4 0 0 0-3-3.87'/><path d='M16 3.13a4 4 0 0 1 0 7.75'/></svg>") center/contain no-repeat;
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/><circle cx='9' cy='7' r='4'/><path d='M22 21v-2a4 4 0 0 0-3-3.87'/><path d='M16 3.13a4 4 0 0 1 0 7.75'/></svg>") center/contain no-repeat;
-}
-.navi-icon-clipboard-check {
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><rect width='8' height='4' x='8' y='2' rx='1'/><path d='M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'/><path d='m9 14 2 2 4-4'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><rect width='8' height='4' x='8' y='2' rx='1'/><path d='M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'/><path d='m9 14 2 2 4-4'/></svg>") center/contain no-repeat;
 }
 .navi-icon-logout {
   -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'/><polyline points='16 17 21 12 16 7'/><line x1='21' y1='12' x2='9' y2='12'/></svg>") center/contain no-repeat;
@@ -908,7 +899,7 @@ onMounted(() => {
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='9 18 15 12 9 6'/></svg>") center/contain no-repeat;
 }
 
-/* ===== Sidebar User ===== */
+/* 侧边栏用户信息 */
 .app-sidebar-user { padding: 16px 12px; border-top: 1px solid var(--rule-border); }
 .app-sidebar-user-inner {
   display: flex; align-items: center; gap: 12px;
@@ -926,7 +917,7 @@ onMounted(() => {
 .app-sidebar-user-name { display: block; font-size: 13px; font-weight: 500; color: var(--rule-foreground); }
 .app-sidebar-user-role { display: block; font-size: 12px; color: var(--rule-muted-foreground); }
 
-/* ===== Main ===== */
+/* 主内容区 */
 .app-main { flex: 1; margin-left: 240px; display: flex; flex-direction: column; min-height: 100vh; min-width: 0; }
 .app-topbar {
   height: 64px; border-bottom: 1px solid var(--rule-border);
@@ -940,7 +931,7 @@ onMounted(() => {
 .app-topbar-meta { font-size: 13px; color: var(--rule-muted-foreground);font-variant-numeric:tabular-nums; }
 .app-content { flex: 1; padding: 28px 32px; max-width: 1400px; margin: 0 auto; width: 100%; box-sizing: border-box; }
 
-/* ===== Scroll Reveal ===== */
+/* 滚动显现动画 */
 .dc-section {
   margin-bottom: 28px; opacity: 0; transform: translateY(24px);
   transition: opacity 0.7s var(--qb-ease), transform 0.7s var(--qb-ease);
@@ -948,7 +939,7 @@ onMounted(() => {
 .dc-section:last-child { margin-bottom: 0; }
 .dc-section.is-visible { opacity: 1; transform: translateY(0); }
 
-/* ===== Section Header ===== */
+/* 区块标题栏 */
 .qb-section-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
 .qb-section-title-wrap { display: flex; align-items: center; gap: 14px; }
 .qb-section-bar {
@@ -958,7 +949,7 @@ onMounted(() => {
 .qb-section-title { font-size: 17px; font-weight: 700; color: var(--rule-foreground); letter-spacing: -0.01em; line-height: 1.3; }
 .qb-section-subtitle { font-size: 13px; color: var(--rule-muted-foreground); display: block; margin-top: 2px; }
 
-/* ===== KPI Cards ===== */
+/* 指标卡片 */
 .qb-kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
 .qb-kpi-card {
   position: relative; overflow: hidden;
@@ -1005,7 +996,6 @@ onMounted(() => {
 .qb-kpi-card-value { font-size: 32px; font-weight: 700; line-height: 1.1; color: var(--rule-foreground); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; position: relative; z-index: 1; }
 .qb-kpi-card-foot { font-size: 12px; color: var(--rule-muted-foreground); position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 6px; }
 
-/* ===== Toolbar ===== */
 .qb-toolbar {
   background: linear-gradient(135deg, var(--rule-card), var(--rule-primary-tint-3));
   border: 1px solid color-mix(in srgb, var(--rule-border) 55%, transparent);
@@ -1055,7 +1045,7 @@ onMounted(() => {
 }
 .qb-create-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 28px -4px color-mix(in srgb, var(--rule-primary) 56%, transparent); }
 
-/* ===== Question Form ===== */
+/* 表单卡片 */
 .qb-form-card {
   margin-bottom: 18px;
   background: linear-gradient(135deg, var(--rule-card), var(--rule-primary-tint-3));
@@ -1086,10 +1076,9 @@ onMounted(() => {
 }
 .qb-textarea { min-height: 96px; resize: vertical; line-height: 1.6; }
 .qb-textarea-sm { min-height: 72px; }
-.qb-form-hint { font-size: 13px; color: var(--rule-muted-foreground); padding: 12px 4px; }
 .qb-form-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 18px; }
 
-/* ===== Table Card ===== */
+/* 表格卡片 */
 .qb-table-card {
   background: linear-gradient(135deg, var(--rule-card), var(--rule-primary-tint-3));
   border: 1px solid color-mix(in srgb, var(--rule-border) 55%, transparent);
@@ -1114,22 +1103,18 @@ onMounted(() => {
 .qb-qid { font-family: var(--rule-font-mono); font-size: 13px; font-weight: 600; color: var(--rule-primary); white-space: nowrap; }
 .qb-qcontent { color: var(--rule-ink-2); max-width: 340px; }
 .qb-qcontent-text { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
-.qb-dim { color: var(--rule-ink-2); white-space: nowrap; }
 .qb-date { color: var(--rule-muted-foreground); font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 13px; }
 
-/* type tags */
+/* 类型标签 */
 .qb-type-tag { display: inline-flex; align-items: center; font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: var(--rule-radius-full); white-space: nowrap; }
-.qb-type-single { background: var(--rule-primary-tint-1); color: var(--rule-primary); }
 .qb-type-multi { background: var(--state-success-tint); color: var(--state-success); }
-.qb-type-case { background: var(--state-warning-tint); color: var(--state-warning); }
 
-/* difficulty tags */
+/* 难度标签 */
 .qb-diff-tag { display: inline-flex; align-items: center; font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: var(--rule-radius-full); white-space: nowrap; }
 .qb-diff-easy { background: var(--state-success-tint); color: var(--state-success); }
 .qb-diff-mid { background: var(--state-warning-tint); color: var(--state-warning); }
-.qb-diff-hard { background: var(--state-error-tint); color: var(--state-error); }
 
-/* action buttons */
+/* 操作按钮 */
 .qb-actions { display: inline-flex; gap: 8px; white-space: nowrap; }
 .qb-action-btn {
   display: inline-flex; align-items: center; gap: 4px;
@@ -1144,7 +1129,7 @@ onMounted(() => {
 .qb-action-del { color: var(--state-error); }
 .qb-action-del:hover { background: var(--state-error-tint); }
 
-/* ===== Pagination ===== */
+/* 分页 */
 .qb-pagination { display: flex; justify-content: flex-end; align-items: center; gap: 6px; }
 .qb-page-btn {
   min-width: 36px; height: 36px; padding: 0 12px;
@@ -1165,13 +1150,11 @@ onMounted(() => {
 .qb-page-btn .navi-icon { width: 16px; height: 16px; }
 .qb-page-ellipsis { padding: 0 4px; color: var(--rule-muted-foreground); font-size: 13px; }
 
-/* ===== Responsive ===== */
 @media (max-width: 1024px) {
   .qb-kpi-grid { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 768px) {
   .app-sidebar { transform: translateX(-100%); transition: transform 0.3s ease; }
-  .app-sidebar.open { transform: translateX(0); }
   .app-main { margin-left: 0; }
   .app-content { padding: 20px; }
   .qb-toolbar-row { flex-direction: column; align-items: stretch; }
@@ -1187,7 +1170,7 @@ onMounted(() => {
   .qb-kpi-card:hover, .qb-create-btn:hover { transform: none; }
 }
 
-/* ===== 批量导入知识条目 ===== */
+/* 批量导入知识条目 */
 .qb-batch-card {
   background: var(--rule-card, #fff);
   border: 1px solid var(--rule-border, #e5e7eb);

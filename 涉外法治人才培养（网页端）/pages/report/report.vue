@@ -1,18 +1,18 @@
 <template>
   <view class="report-shell">
-    <!-- ===== App Shell (Sidebar + Main) ===== -->
+    <!-- 应用外壳（侧边栏 + 主内容区） -->
     <view class="app-shell">
-      <!-- ===== Left Sidebar ===== -->
+      <!-- 左侧导航栏 -->
       <aside class="app-sidebar">
-        <!-- Logo / Home Link -->
+        <!-- 标志 / 首页链接 -->
         <view class="app-sidebar-logo">
           <view class="app-sidebar-logo-icon">
-            <view class="ls-svg-glyph" aria-hidden="true"></view>
+            <image class="ls-svg-img" src="/static/logo.png" mode="aspectFit"></image>
           </view>
           <text class="app-sidebar-logo-text">涉外法治人才培养</text>
         </view>
 
-        <!-- Navigation -->
+        <!-- 导航菜单 -->
         <nav class="app-sidebar-nav">
           <view class="app-nav-item" @tap="navigateTo('/pages/survey/survey')">
             <view class="navi-icon navi-icon-survey"></view>
@@ -36,7 +36,7 @@
           </view>
         </nav>
 
-        <!-- User Info -->
+        <!-- 用户信息 -->
         <view class="app-sidebar-user">
           <view class="app-sidebar-user-inner" @tap="navigateTo('/pages/profile/profile')">
             <view class="app-sidebar-user-avatar">{{ avatarChar }}</view>
@@ -52,7 +52,7 @@
         </view>
       </aside>
 
-      <!-- ===== Main Content Area ===== -->
+      <!-- 主内容区 -->
       <view class="app-main">
         <header class="app-topbar">
           <text class="app-topbar-title">个人数据中心</text>
@@ -61,10 +61,10 @@
 
         <main class="app-content">
           <view v-if="!loading && !results.length" class="report-empty">暂无测评记录，完成测评后这里会展示成绩趋势和能力分布</view>
-          <!-- ===== KPI Stat Cards Row ===== -->
-          <view class="dc-section" aria-label="核心指标">
+          <!-- 核心指标卡片行 -->
+          <view class="kpi-row" aria-label="核心指标">
             <view class="kpi-grid">
-              <!-- Card 1: 我的测评次数 -->
+              <!-- 卡片 1：我的测评次数 -->
               <view class="kpi-card">
                 <view class="kpi-card-head">
                   <text class="kpi-card-label">我的测评次数</text>
@@ -78,7 +78,7 @@
                   <text>最近 {{ results.length }} 条已加载</text>
                 </view>
               </view>
-              <!-- Card 2: 我的平均得分 -->
+              <!-- 卡片 2：我的平均得分 -->
               <view class="kpi-card">
                 <view class="kpi-card-head">
                   <text class="kpi-card-label">我的平均得分</text>
@@ -92,7 +92,7 @@
                   <text>{{ results.length ? '历史平均分' : '暂无记录' }}</text>
                 </view>
               </view>
-              <!-- Card 3: 我的最高得分 -->
+              <!-- 卡片 3：我的最高得分 -->
               <view class="kpi-card">
                 <view class="kpi-card-head">
                   <text class="kpi-card-label">我的最高得分</text>
@@ -106,7 +106,7 @@
                   <text>{{ results.length ? '历史最高分' : '暂无记录' }}</text>
                 </view>
               </view>
-              <!-- Card 4: 我的群体排名 -->
+              <!-- 卡片 4：我的群体排名 -->
               <view class="kpi-card">
                 <view class="kpi-card-head">
                   <text class="kpi-card-label">我的群体排名</text>
@@ -123,10 +123,10 @@
             </view>
           </view>
 
-          <!-- ===== Charts Row ===== -->
+          <!-- 图表行 -->
           <view class="dc-section" aria-label="趋势与能力分布">
             <view class="charts-row">
-              <!-- Left: Line Chart -->
+              <!-- 左侧：折线图 -->
               <view class="chart-card">
                 <view class="chart-card-header">
                   <view>
@@ -145,7 +145,7 @@
                           @click="onTrendTap"></canvas>
                 </view>
               </view>
-              <!-- Right: Radar Chart -->
+              <!-- 右侧：雷达图 -->
               <view class="chart-card">
                 <view class="chart-card-header">
                   <view>
@@ -163,7 +163,7 @@
             </view>
           </view>
 
-          <!-- ===== Assessment Comparison Table ===== -->
+          <!-- 测评对比表 -->
           <view class="dc-section" aria-label="测评维度对比">
             <view class="table-card">
               <view class="chart-card-header">
@@ -172,7 +172,7 @@
                   <text class="chart-card-subtitle">各领域缺口分布与等级评定</text>
                 </view>
               </view>
-              <!-- Level Standard -->
+              <!-- 等级标准 -->
               <view class="level-standard">
                 <view class="ls-title">等级评定标准</view>
                 <view class="ls-list">
@@ -275,7 +275,7 @@ export default {
       radarData: [],
       radarLabels: [],
       radarTargets: [],
-      // ===== 图表动画与交互状态 =====
+      // 图表动画与交互状态
       trendHover: -1,
       radarHover: -1,
       _trendSize: null,
@@ -859,7 +859,7 @@ export default {
         console.error('[drawRadarChart] error:', e)
       }
     },
-    /* ===== 图表动画 ===== */
+    /* 图表动画 */
     animateChart(drawFn, duration = 1000) {
       const self = this
       return new Promise((resolve) => {
@@ -925,7 +925,7 @@ export default {
       ctx.setFillStyle('#FFFFFF')
       ctx.fillText(text, bx + 9, by + th / 2 + 4)
     },
-    /* ===== 图表交互 ===== */
+    /* 图表交互 */
     getCanvasPoint(e, chart) {
       const t = (e && e.touches && e.touches[0]) ? e.touches[0] : e
       let x = t ? t.x : undefined
@@ -1044,13 +1044,9 @@ export default {
 </script>
 
 <style scoped>
-/* ============================================================
-   涉外法治人才培养测评 - Brand CSS
-   Style: Blue-White Professional, Modern & Comfortable
-   Brand Prefix: rule
-   ============================================================ */
+/* 涉外法治人才培养测评 - 品牌样式：蓝白专业风格，现代舒适，品牌前缀为 rule */
 .report-shell {
-  /* === Brand Primary (single hue) === */
+  /* 品牌主色（单色相） */
   --rule-primary: #2563EB;
   --rule-primary-hover: #1D4ED8;
   --rule-primary-active: #1E40AF;
@@ -1059,7 +1055,7 @@ export default {
   --rule-primary-tint-2: #BFDBFE;
   --rule-primary-tint-3: #EFF6FF;
 
-  /* === Semantic Aliases === */
+  /* 语义别名 */
   --rule-background: #F8FAFC;
   --rule-foreground: #0F172A;
   --rule-card: #FFFFFF;
@@ -1072,13 +1068,12 @@ export default {
   --rule-input: #E2E8F0;
   --rule-ring: #2563EB;
 
-  /* === Radius Scale === */
+  /* 圆角 */
   --rule-radius-small: 4px;
   --rule-radius-medium: 8px;
   --rule-radius-large: 16px;
   --rule-radius-full: 9999px;
 
-  /* === State Colors === */
   --state-success: #16A34A;
   --state-success-tint: #DCFCE7;
   --state-warning: #D97706;
@@ -1088,7 +1083,7 @@ export default {
   --state-info: #2563EB;
   --state-info-tint: #DBEAFE;
 
-  /* === Neutrals === */
+  /* 中性色 */
   --rule-ink: #0F172A;
   --rule-ink-2: #475569;
   --rule-ink-3: #94A3B8;
@@ -1096,7 +1091,7 @@ export default {
   --rule-surface: #FFFFFF;
   --rule-surface-2: #F8FAFC;
 
-  /* === Shadows === */
+  /* 阴影 */
   --rule-shadow-1: 0 1px 2px rgba(15,23,42,.04), 0 1px 1px rgba(15,23,42,.02);
   --rule-shadow-2: 0 8px 24px -8px rgba(15,23,42,.12);
   --rule-shadow-3: 0 24px 60px -20px rgba(15,23,42,.20);
@@ -1109,12 +1104,10 @@ export default {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ============================================================
-   Shell Layout
-   ============================================================ */
+/* 整体布局 */
 .app-shell { display: flex; min-height: 100vh; background: var(--rule-background); }
 
-/* ===== Sidebar ===== */
+/* 侧边导航栏 */
 .app-sidebar {
   position: fixed; left: 0; top: 0; height: 100vh; width: 240px;
   display: flex; flex-direction: column;
@@ -1130,15 +1123,13 @@ export default {
 }
 
 .app-sidebar-logo-icon {
-  width: 36px; height: 36px; border-radius: 8px;
-  background: var(--rule-primary);
+  width: 36px; height: 36px;
   display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0; overflow: hidden;
+  flex-shrink: 0;
 }
-.ls-svg-glyph {
-  width: 20px; height: 20px; background: #fff;
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
+.ls-svg-img {
+  width: 32px;
+  height: 32px;
 }
 .app-sidebar-logo-text {
   font-size: 15px; font-weight: 600;
@@ -1192,7 +1183,7 @@ export default {
           mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z'/%3E%3Cpath d='M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z'/%3E%3C/svg%3E") center/contain no-repeat;
 }
 
-/* ===== Sidebar User ===== */
+/* 侧边栏用户信息 */
 .app-sidebar-user { padding: 16px 12px; border-top: 1px solid var(--rule-border); }
 .app-sidebar-user-inner {
   display: flex; align-items: center; gap: 12px;
@@ -1215,7 +1206,7 @@ export default {
   color: var(--rule-muted-foreground);
 }
 
-/* ===== Sidebar Logout Button ===== */
+/* 侧边栏退出按钮 */
 .app-sidebar-logout {
   display: flex; align-items: center; gap: 8px;
   margin: 8px 12px 0; padding: 10px 12px;
@@ -1237,7 +1228,7 @@ export default {
   font-size: 13px; font-weight: 500;
 }
 
-/* ===== Main ===== */
+/* 主内容区 */
 .app-main {
   flex: 1; margin-left: 240px;
   display: flex; flex-direction: column;
@@ -1270,13 +1261,11 @@ export default {
   padding: 28px 16px;
 }
 
-/* ============================================================
-   Page-specific CSS
-   ============================================================ */
 .dc-section { margin-bottom: 24px; }
 .dc-section:last-child { margin-bottom: 0; }
 
-/* === KPI Cards === */
+/* 核心指标卡片 */
+.kpi-row { margin-bottom: 32px; }
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -1352,7 +1341,7 @@ export default {
   -webkit-mask-position: center; mask-position: center;
 }
 
-/* === Charts Row === */
+/* 图表行 */
 .charts-row {
   display: grid;
   grid-template-columns: 3fr 2fr;
@@ -1410,7 +1399,7 @@ export default {
   -webkit-user-select: none; user-select: none;
 }
 
-/* === Comparison Table === */
+/* 测评对比表 */
 .table-card {
   background: var(--rule-card);
   border: 1px solid var(--rule-border);
@@ -1418,7 +1407,7 @@ export default {
   padding: 24px;
   min-width: 0;
 }
-/* ===== Level Standard ===== */
+/* 等级标准 */
 .level-standard {
   display: flex;
   flex-direction: column;
@@ -1492,7 +1481,7 @@ export default {
 .lf-title { font-weight: 600; color: var(--rule-primary); }
 .lf-text { font-family: 'Courier New', monospace; color: var(--rule-ink-2); }
 
-/* ===== Gap Table ===== */
+/* 差距表 */
 .table-container { overflow-x: auto; }
 .dc-table { width: 100%; min-width: 640px; }
 .dc-table-gap { min-width: 760px; }
@@ -1554,7 +1543,7 @@ export default {
 .dm-avg { color: var(--rule-ink-3); font-variant-numeric: tabular-nums; }
 .dm-sep { color: var(--rule-border); }
 
-/* Cell gap progress */
+/* 单元格差距进度条 */
 .cell-gap {
   display: flex;
   flex-direction: column;
@@ -1618,7 +1607,7 @@ export default {
 .cgl-50 { position: absolute; left: 50%; transform: translateX(-50%); display: none; }
 .cgl-target { color: var(--rule-muted-foreground); }
 
-/* Level card */
+/* 等级卡片 */
 .level-card {
   display: inline-flex;
   align-items: center;
@@ -1684,28 +1673,13 @@ export default {
 .lc-text { font-size: 13px; font-weight: 700; color: var(--rule-foreground); line-height: 1.2; }
 .lc-score { font-size: 11px; color: var(--rule-muted-foreground); font-variant-numeric: tabular-nums; line-height: 1.2; }
 
-/* Old table styles (kept for safety) */
-.gap-pos { color: var(--state-success); font-weight: 600; font-variant-numeric: tabular-nums; }
-.gap-neg { color: var(--state-error); font-weight: 600; font-variant-numeric: tabular-nums; }
-.score-num { font-variant-numeric: tabular-nums; font-weight: 500; }
-.level-tag {
-  display: inline-flex; align-items: center;
-  font-size: 12px; font-weight: 500;
-  padding: 3px 10px; border-radius: var(--rule-radius-medium);
-  white-space: nowrap;
-}
-.level-excellent { background: var(--state-success-tint); color: var(--state-success); }
-.level-good { background: var(--state-info-tint); color: var(--rule-primary); }
-.level-medium { background: var(--state-warning-tint); color: var(--state-warning); }
-
-/* === Responsive === */
 @media (max-width: 1024px) {
   .kpi-grid { grid-template-columns: repeat(2, 1fr); }
   .charts-row { grid-template-columns: 1fr; }
   .chart-canvas-wrap.radar-chart { min-height: 340px; }
   .chart-canvas-wrap.line-chart { min-height: 300px; }
   .chart-canvas { height: 340px; }
-  /* Table */
+  /* 表格 */
   .dc-table-gap { min-width: 720px; }
   .dc-table-gap .dc-th-dim,
   .dc-table-gap .dc-td-dim { flex: 0 0 28%; }
@@ -1720,7 +1694,7 @@ export default {
   .chart-canvas-wrap.line-chart { min-height: 260px; }
   .chart-canvas-wrap.radar-chart { min-height: 300px; }
   .chart-canvas { height: 300px; }
-  /* Table */
+  /* 表格 */
   .table-card { padding: 16px; }
   .level-standard { padding: 12px 14px; gap: 10px; margin-bottom: 14px; }
   .ls-list { gap: 7px; }
@@ -1740,7 +1714,7 @@ export default {
 }
 @media (max-width: 640px) {
   .kpi-grid { grid-template-columns: 1fr; }
-  /* Table - allow horizontal scroll for small screens */
+  /* 表格：小屏允许横向滚动 */
   .dc-table-gap { min-width: 520px; }
   .dc-table-gap .dc-th-dim,
   .dc-table-gap .dc-td-dim { flex: 0 0 34%; }
@@ -1753,7 +1727,7 @@ export default {
   .dc-table-tr:hover { transform: none; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .kpi-card, .dc-table-tr, .chart-filter, .gap-item-fill, .cg-fill { transition-duration: 0.01ms; }
+  .kpi-card, .dc-table-tr, .chart-filter, .cg-fill { transition-duration: 0.01ms; }
   .kpi-card:hover { transform: none; }
   .dc-table-tr:hover { transform: none; }
 }

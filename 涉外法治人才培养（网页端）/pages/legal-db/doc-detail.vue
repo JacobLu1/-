@@ -1,15 +1,15 @@
 <template>
   <view class="legal-shell">
-    <!-- ===== Brand CSS Variables ===== -->
+    <!-- 品牌主题色变量 -->
     <view class="css-vars" aria-hidden="true"></view>
 
-    <!-- ===== App Shell (Sidebar + Main) ===== -->
+    <!-- 应用外壳（侧边栏 + 主内容区） -->
     <view class="app-shell">
-      <!-- ===== Left Sidebar（与法律库完全一致） ===== -->
+      <!-- 左侧导航栏（与法律库完全一致） -->
       <aside class="app-sidebar">
         <view class="app-sidebar-logo">
           <view class="app-sidebar-logo-icon">
-            <view class="ls-svg-glyph" aria-hidden="true"></view>
+            <image class="ls-svg-img" src="/static/logo.png" mode="aspectFit"></image>
           </view>
           <text class="app-sidebar-logo-text">涉外法治人才培养</text>
         </view>
@@ -52,7 +52,7 @@
         </view>
       </aside>
 
-      <!-- ===== Main Content Area ===== -->
+      <!-- 主内容区 -->
       <view class="app-main">
         <header class="app-topbar">
           <view class="app-topbar-left">
@@ -69,9 +69,9 @@
           <view v-if="loading" class="list-state">正在加载法规全文...</view>
           <template v-else-if="doc.title">
             <view class="doc-wrap">
-              <!-- ===== 主内容列 ===== -->
+              <!-- 主内容列 -->
               <view class="doc-main-col">
-                <!-- ===== 文献头 ===== -->
+                <!-- 文献头 -->
                 <view class="doc-head">
                   <view class="doc-head-meta">
                     <text class="doc-cat">{{ doc.category }}</text>
@@ -90,7 +90,7 @@
                   <text class="doc-summary" v-if="doc.summary">{{ doc.summary }}</text>
                 </view>
 
-                <!-- ===== 窄屏内联目录 ===== -->
+                <!-- 窄屏内联目录 -->
                 <view class="doc-toc doc-toc-inline" v-if="tocItems.length">
                   <view class="doc-toc-head">
                     <text class="doc-toc-title">目录</text>
@@ -118,7 +118,7 @@
                   </scroll-view>
                 </view>
 
-                <!-- ===== 条文列表 ===== -->
+                <!-- 条文列表 -->
                 <view class="doc-articles">
                   <view
                     v-for="(art, idx) in articles"
@@ -142,7 +142,7 @@
                 </view>
               </view>
 
-              <!-- ===== 宽屏右侧竖向目录 ===== -->
+              <!-- 宽屏右侧竖向目录 -->
               <aside class="doc-toc doc-toc-side" v-if="tocItems.length">
                 <view class="doc-toc-side-head">
                   <text class="doc-toc-title">目录</text>
@@ -308,7 +308,7 @@ function cn2num(str) {
       // 十 之前没数的情况："十一" => current 为 0，按 1*10 算；需要回溯
       section += current
       if (current === 0 && ch === '十') section += 1 * 10
-      else section = section * 1 // already added
+      else section = section * 1 // 已计入，保持原值
       total += section
       section = 0; current = 0
     } else {
@@ -352,11 +352,9 @@ onLoad((options) => {
 </script>
 
 <style scoped>
-/* ============================================================
-   Brand Design Tokens（与法律库完全一致，定义在根元素以全局继承）
-   ============================================================ */
+/* 品牌设计变量（与法律库完全一致，定义在根元素上以便全局继承） */
 .legal-shell {
-  /* === Brand Primary === */
+  /* 品牌主色 */
   --rule-primary: #2563EB;
   --rule-primary-hover: #1D4ED8;
   --rule-primary-active: #1E40AF;
@@ -365,7 +363,7 @@ onLoad((options) => {
   --rule-primary-tint-2: #BFDBFE;
   --rule-primary-tint-3: #EFF6FF;
 
-  /* === Semantic === */
+  /* 语义色 */
   --rule-background: #F8FAFC;
   --rule-foreground: #0F172A;
   --rule-card: #FFFFFF;
@@ -378,13 +376,12 @@ onLoad((options) => {
   --rule-input: #E2E8F0;
   --rule-ring: #2563EB;
 
-  /* === Radius === */
+  /* 圆角 */
   --rule-radius-small: 4px;
   --rule-radius-medium: 8px;
   --rule-radius-large: 16px;
   --rule-radius-full: 9999px;
 
-  /* === State Colors === */
   --state-success: #16A34A;
   --state-success-tint: #DCFCE7;
   --state-warning: #D97706;
@@ -394,7 +391,7 @@ onLoad((options) => {
   --state-info: #2563EB;
   --state-info-tint: #DBEAFE;
 
-  /* === Neutrals === */
+  /* 中性色 */
   --rule-ink: #0F172A;
   --rule-ink-2: #475569;
   --rule-ink-3: #94A3B8;
@@ -402,7 +399,7 @@ onLoad((options) => {
   --rule-surface: #FFFFFF;
   --rule-surface-2: #F8FAFC;
 
-  /* === Shadows === */
+  /* 阴影 */
   --rule-shadow-1: 0 1px 2px rgba(15,23,42,.04), 0 1px 1px rgba(15,23,42,.02);
   --rule-shadow-2: 0 8px 24px -8px rgba(15,23,42,.12);
   --rule-shadow-3: 0 24px 60px -20px rgba(15,23,42,.20);
@@ -415,16 +412,14 @@ onLoad((options) => {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ============================================================
-   Shell Layout（与法律库一致）
-   ============================================================ */
+/* 整体布局（与法律库一致） */
 .app-shell {
   display: flex;
   min-height: 100vh;
   background: var(--rule-background);
 }
 
-/* ===== Sidebar（与法律库一致） ===== */
+/* 侧边导航栏（与法律库一致） */
 .app-sidebar {
   position: fixed; left: 0; top: 0; height: 100vh; width: 240px;
   display: flex; flex-direction: column;
@@ -441,18 +436,14 @@ onLoad((options) => {
 }
 
 .app-sidebar-logo-icon {
-  width: 36px; height: 36px; border-radius: 8px;
-  background: var(--rule-primary);
+  width: 36px; height: 36px;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
-  overflow: hidden;
 }
 
-.ls-svg-glyph {
-  width: 20px; height: 20px;
-  background: #fff;
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
+.ls-svg-img {
+  width: 32px;
+  height: 32px;
 }
 
 .app-sidebar-logo-text {
@@ -485,7 +476,7 @@ onLoad((options) => {
 }
 .app-nav-item.is-active:hover { background: var(--rule-primary-hover); color: #fff; }
 
-/* Nav icons (mask-based SVGs) */
+/* 导航图标（基于遮罩的 SVG） */
 .navi-icon {
   width: 20px; height: 20px; flex-shrink: 0;
   background: currentColor;
@@ -514,7 +505,7 @@ onLoad((options) => {
           mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z'/%3E%3Cpath d='M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z'/%3E%3C/svg%3E") center/contain no-repeat;
 }
 
-/* ===== Sidebar User（与法律库一致） ===== */
+/* 侧边栏用户信息（与法律库一致） */
 .app-sidebar-user {
   padding: 16px 12px;
   border-top: 1px solid var(--rule-border);
@@ -565,7 +556,7 @@ onLoad((options) => {
   font-weight: 500;
 }
 
-/* ===== Main ===== */
+/* 主内容区 */
 .app-main {
   flex: 1; margin-left: 240px;
   display: flex; flex-direction: column;
@@ -645,7 +636,7 @@ onLoad((options) => {
 .doc-toc-inline { display: none; }
 .doc-toc-side { display: block; }
 
-/* ===== 右侧竖向目录 ===== */
+/* 右侧竖向目录 */
 .doc-toc-side {
   position: sticky;
   top: 88px;
@@ -711,9 +702,7 @@ onLoad((options) => {
   font-size: 14px;
 }
 
-/* ============================================================
-   文献头（简约）
-   ============================================================ */
+/* 文献头（简约） */
 .doc-head {
   padding: 8px 4px 24px;
   border-bottom: 1px solid var(--rule-border);
@@ -769,9 +758,7 @@ onLoad((options) => {
   color: var(--rule-ink-2);
 }
 
-/* ============================================================
-   条目录：窄屏内联横滑版（仅作用于非侧边栏容器）
-   ============================================================ */
+/* 条目录：窄屏内联横滑版（仅作用于非侧边栏容器） */
 .doc-toc-inline {
   margin: 24px 0 28px;
   padding: 16px 18px 14px;
@@ -853,9 +840,7 @@ onLoad((options) => {
   color: var(--rule-primary-tint-2);
 }
 
-/* ============================================================
-   条文列表（简约）
-   ============================================================ */
+/* 条文列表（简约） */
 .doc-articles {
   display: flex; flex-direction: column; gap: 14px;
 }
@@ -930,9 +915,6 @@ onLoad((options) => {
   white-space: pre-wrap;
 }
 
-/* ============================================================
-   响应式
-   ============================================================ */
 @media (max-width: 1100px) {
   .doc-wrap {
     display: block;

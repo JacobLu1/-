@@ -1,11 +1,8 @@
-/* =====================================================================
-   涉外法治人才培养 · 微信小程序设计系统
-   淡蓝 + 白色 · 玻璃拟态 (Glassmorphism) · 现代简约
-   ===================================================================== */
+/* 涉外法治人才培养 · 微信小程序设计系统 淡蓝 + 白色 · 玻璃拟态 (Glassmorphism) · 现代简约 */
 
-/* ---------- Design Tokens ---------- */
+/* 设计变量 */
 :root {
-  /* Brand blues */
+  /* 品牌蓝 */
   --brand: #5B9DF9;
   --brand-deep: #2E7BE0;
   --brand-soft: #8FB8F5;
@@ -18,14 +15,14 @@
   --blue-600: #2563EB;
   --blue-700: #1D4ED8;
 
-  /* Ink / text */
+  /* 文字颜色 */
   --ink: #16314F;
   --ink-2: #355580;
   --muted: #7A92B0;
   --muted-2: #9AAFC6;
   --line: rgba(120, 160, 210, 0.16);
 
-  /* Glass surfaces */
+  /* 玻璃拟态背景 */
   --glass: rgba(255, 255, 255, 0.55);
   --glass-2: rgba(255, 255, 255, 0.68);
   --glass-3: rgba(255, 255, 255, 0.82);
@@ -34,7 +31,6 @@
   --glass-shadow: 0 10px 34px rgba(46, 123, 224, 0.14);
   --glass-shadow-sm: 0 6px 18px rgba(46, 123, 224, 0.10);
 
-  /* Status */
   --green: #22C55E;
   --green-soft: rgba(34, 197, 94, 0.14);
   --amber: #F59E0B;
@@ -45,7 +41,7 @@
   --violet-soft: rgba(139, 92, 246, 0.14);
   --cyan: #06B6D4;
 
-  /* Radius */
+  /* 圆角 */
   --r-xs: 10px;
   --r-sm: 14px;
   --r-md: 18px;
@@ -53,18 +49,18 @@
   --r-xl: 30px;
   --r-pill: 999px;
 
-  /* Type */
+  /* 字体 */
   --font: "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
   --font-num: "DIN Alternate", "Sora", "Manrope", var(--font);
 
-  /* Layout */
+  /* 布局 */
   --frame-w: 390px;
   --frame-h: 844px;
   --safe-top: 54px;
   --nav-h: 70px;
 }
 
-/* ---------- Reset ---------- */
+/* 基础重置 */
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { height: 100%; }
 body {
@@ -83,7 +79,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 a { color: inherit; text-decoration: none; }
 input, textarea { font-family: inherit; }
 
-/* ---------- Desktop backdrop (soft gradient + blobs) ---------- */
+/* 桌面端背景装饰（柔和渐变光斑） */
 body::before, body::after {
   content: "";
   position: fixed;
@@ -103,7 +99,7 @@ body::after {
   bottom: -160px; right: -120px;
 }
 
-/* ---------- Phone frame ---------- */
+/* 手机外框 */
 .phone {
   position: relative;
   width: var(--frame-w);
@@ -116,7 +112,7 @@ body::after {
   display: flex;
   flex-direction: column;
 }
-/* in-frame ambient blobs */
+/* 框内环境光斑 */
 .phone::before, .phone::after {
   content: "";
   position: absolute;
@@ -136,7 +132,7 @@ body::after {
   bottom: 40px; left: -90px;
 }
 
-/* notch */
+/* 顶部刘海 */
 .notch {
   position: absolute;
   top: 12px; left: 50%;
@@ -147,7 +143,6 @@ body::after {
   z-index: 60;
 }
 
-/* status bar */
 .status-bar {
   position: relative;
   z-index: 50;
@@ -165,7 +160,7 @@ body::after {
 .status-bar .icons { display: flex; gap: 6px; align-items: center; }
 .status-bar .icons svg { width: 16px; height: 12px; }
 
-/* ---------- Scrollable screen body ---------- */
+/* 可滚动的内容区 */
 .screen {
   position: relative;
   z-index: 5;
@@ -177,7 +172,7 @@ body::after {
 }
 .screen::-webkit-scrollbar { display: none; }
 
-/* ---------- Top search bar (fixed inside frame) ---------- */
+/* 顶部搜索栏（固定在手机框内） */
 .topbar {
   position: relative;
   z-index: 45;
@@ -223,7 +218,7 @@ body::after {
 .avatar-btn:hover { transform: scale(1.06) rotate(-3deg); }
 .avatar-btn:active { transform: scale(0.95); }
 
-/* ---------- Bottom navigation ---------- */
+/* 底部导航 */
 .tabbar {
   position: absolute;
   left: 14px; right: 14px; bottom: 16px;
@@ -264,7 +259,7 @@ body::after {
 }
 .tab:active .ico { transform: scale(0.9); }
 
-/* ---------- Glass card ---------- */
+/* 玻璃卡片 */
 .card {
   position: relative;
   background: var(--glass);
@@ -277,7 +272,7 @@ body::after {
 .card.solid { background: var(--glass-3); }
 .card.pad { padding: 18px; }
 
-/* ---------- Section header ---------- */
+/* 区块标题 */
 .sec-head {
   display: flex; align-items: center; justify-content: space-between;
   margin: 22px 2px 12px;
@@ -292,7 +287,7 @@ body::after {
 }
 .sec-head .more { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 2px; }
 
-/* ---------- Buttons ---------- */
+/* 按钮 */
 .btn {
   display: inline-flex; align-items: center; justify-content: center;
   gap: 8px;
@@ -317,7 +312,7 @@ body::after {
 }
 .btn-block { width: 100%; }
 
-/* ---------- Chips / tags ---------- */
+/* 标签 */
 .chip {
   display: inline-flex; align-items: center; gap: 5px;
   height: 26px; padding: 0 12px;
@@ -332,7 +327,7 @@ body::after {
 .chip.rose  { background: var(--rose-soft); color: #BE123C; border-color: rgba(251,113,133,0.25); }
 .chip.violet{ background: var(--violet-soft); color: #6D28D9; border-color: rgba(139,92,246,0.25); }
 
-/* ---------- Page title (sub pages) ---------- */
+/* 子页面标题栏 */
 .sub-header {
   position: relative; z-index: 45;
   display: flex; align-items: center; gap: 12px;
@@ -351,7 +346,7 @@ body::after {
 .sub-header .back svg { width: 18px; height: 18px; color: var(--ink); }
 .sub-header .title { font-size: 17px; font-weight: 700; color: var(--ink); }
 
-/* ---------- Animations ---------- */
+/* 动画 */
 @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes pop { 0% { transform: scale(.6); opacity: 0; } 60% { transform: scale(1.08); } 100% { transform: scale(1); opacity: 1; } }
@@ -381,7 +376,6 @@ body::after {
   .reveal { opacity: 1; transform: none; }
 }
 
-/* ---------- Helpers ---------- */
 .row { display: flex; align-items: center; }
 .between { justify-content: space-between; }
 .wrap { flex-wrap: wrap; }

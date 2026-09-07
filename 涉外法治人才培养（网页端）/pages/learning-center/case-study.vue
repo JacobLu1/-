@@ -1,15 +1,15 @@
 <template>
   <view class="cs-shell">
-    <!-- ===== Brand CSS Variables ===== -->
+    <!-- 品牌主题色变量 -->
     <view class="css-vars" aria-hidden="true"></view>
 
-    <!-- ===== App Shell (Sidebar + Main) ===== -->
+    <!-- 应用外壳（侧边栏 + 主内容区） -->
     <view class="app-shell">
-      <!-- ===== Left Sidebar (与学习中心一致) ===== -->
+      <!-- 左侧导航栏（与学习中心一致） -->
       <aside class="app-sidebar">
         <view class="app-sidebar-logo">
           <view class="app-sidebar-logo-icon">
-            <view class="ls-svg-glyph" aria-hidden="true"></view>
+            <image class="ls-svg-img" src="/static/logo.png" mode="aspectFit"></image>
           </view>
           <text class="app-sidebar-logo-text">涉外法治人才培养</text>
         </view>
@@ -136,28 +136,24 @@
               @tap="toggleDetail(item)"
             >
               <view class="cs-card-head">
-                <view v-if="item.cover" class="cs-card-cover" :style="{ backgroundImage: 'url(' + item.cover + ')' }">
-                  <view class="cs-card-cover-mask"></view>
-                  <view class="cs-gavel-badge"><view class="cs-gavel-mini"></view></view>
-                </view>
-                <view v-else class="cs-card-cover cs-card-cover-plain">
-                  <view class="cs-gavel-badge"><view class="cs-gavel-mini"></view></view>
+                <view class="cs-ico">
+                  <view class="cs-ico-glyph"></view>
                 </view>
                 <view class="cs-card-main">
-                  <view class="cs-card-tags">
-                    <text class="cs-tag">{{ item.category || '未分类' }}</text>
-                    <text v-if="item.meta" class="cs-tag cs-tag-soft">{{ item.meta }}</text>
+                  <view class="cs-card-top">
+                    <view class="cs-tags">
+                      <text class="cs-tag">{{ item.category || '未分类' }}</text>
+                      <text v-if="item.meta" class="cs-tag cs-tag-soft">{{ item.meta }}</text>
+                    </view>
+                    <view class="cs-chevron" :class="{ 'is-open': expandedId === item.id }"></view>
                   </view>
                   <text class="cs-card-title">{{ item.title }}</text>
                   <view class="cs-card-meta">
-                    <text v-if="item.wordCount" class="cs-meta-item">约 {{ item.wordCount }} 字</text>
                     <text v-if="item.description" class="cs-meta-item cs-meta-desc">{{ item.description }}</text>
+                    <text v-if="item.wordCount" class="cs-meta-item cs-meta-count">约 {{ item.wordCount }} 字</text>
                   </view>
                   <view class="cs-card-footer">
-                    <view class="cs-read-btn">
-                      <view class="cs-read-icon"></view>
-                      <text>{{ expandedId === item.id ? '收起研读' : '研读案例' }}</text>
-                    </view>
+                    <text class="cs-read-btn">{{ expandedId === item.id ? '收起研读' : '研读案例' }}</text>
                   </view>
                 </view>
               </view>
@@ -343,14 +339,14 @@ onLoad(() => {
 
 <style scoped>
 .cs-shell {
-  /* === 文书案例主题：暖色系（区别于文本阅读的蓝色） === */
-  --cs-primary: #DC2626;
-  --cs-primary-hover: #B91C1C;
-  --cs-primary-tint-1: #FEE2E2;
-  --cs-primary-tint-2: #FECACA;
-  --cs-primary-tint-3: #FEF2F2;
-  --cs-accent: #F59E0B;
-  --cs-accent-deep: #D97706;
+  /* 文书案例主题：与全站一致的主蓝（简洁中性，不使用彩色卡片封面） */
+  --cs-primary: #2563EB;
+  --cs-primary-hover: #1D4ED8;
+  --cs-primary-tint-1: #DBEAFE;
+  --cs-primary-tint-2: #BFDBFE;
+  --cs-primary-tint-3: #EFF6FF;
+  --cs-accent: #2563EB;
+  --cs-accent-deep: #1D4ED8;
   --rule-primary: #2563EB;
   --rule-primary-hover: #1D4ED8;
   --rule-primary-active: #1E40AF;
@@ -369,14 +365,14 @@ onLoad(() => {
   display: flex;
   min-height: 100vh;
   width: 100%;
-  background: #FAF8F5;
+  background: #F6F8FB;
   color: #0F172A;
   font-family: "Inter", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ===== 左侧导航栏（与全站一致） ===== */
+/* 左侧导航栏（与全站一致） */
 .app-sidebar {
   position: fixed;
   left: 0;
@@ -398,22 +394,13 @@ onLoad(() => {
   border-bottom: 1px solid var(--rule-border);
 }
 .app-sidebar-logo-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: var(--rule-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
-  overflow: hidden;
 }
-.ls-svg-glyph {
-  width: 20px;
-  height: 20px;
-  background: #fff;
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
+.ls-svg-img {
+  width: 32px;
+  height: 32px;
 }
 .app-sidebar-logo-text {
   font-size: 15px;
@@ -540,7 +527,7 @@ onLoad(() => {
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'/><polyline points='16 17 21 12 16 7'/><line x1='21' y1='12' x2='9' y2='12'/></svg>") center/contain no-repeat;
 }
 
-/* ===== 主区域与顶栏 ===== */
+/* 主区域与顶栏 */
 .app-main {
   flex: 1;
   margin-left: 240px;
@@ -610,31 +597,20 @@ onLoad(() => {
   width: 100%;
 }
 
-/* ===== 主题横幅 ===== */
+/* 主题横幅（浅色简洁，不使用大面积彩色） */
 .cs-banner {
   position: relative;
-  overflow: hidden;
   border-radius: 18px;
-  background: linear-gradient(120deg, #7F1D1D 0%, #DC2626 55%, #F97316 100%);
-  color: #fff;
-  padding: 32px 36px;
+  background: #FFFFFF;
+  border: 1px solid var(--rule-border);
+  background-image: linear-gradient(120deg, #F8FAFF 0%, #FFFFFF 60%, #F0F6FF 100%);
+  padding: 28px 34px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
   margin-bottom: 24px;
-  box-shadow: 0 14px 34px rgba(220, 38, 38, 0.22);
-}
-.cs-banner::after {
-  content: "";
-  position: absolute;
-  right: -80px;
-  top: -80px;
-  width: 260px;
-  height: 260px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.16), transparent 70%);
-  pointer-events: none;
+  box-shadow: 0 10px 30px rgba(37, 99, 235, 0.06);
 }
 .cs-banner-main {
   display: flex;
@@ -643,19 +619,20 @@ onLoad(() => {
   min-width: 0;
 }
 .cs-banner-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.16);
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: var(--cs-primary-tint-3);
+  border: 1px solid var(--cs-primary-tint-1);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 .cs-gavel-glyph {
-  width: 30px;
-  height: 30px;
-  background: #fff;
+  width: 28px;
+  height: 28px;
+  background: var(--cs-primary);
   -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='m14.5 15.5 3 3L19 17l-3-3'/><path d='m8 12 4.5 4.5'/><path d='M2 22 7.5 16.5'/><path d='M18.5 5.5a2 2 0 0 0-2.8 0L9.2 11.9a2 2 0 0 0 0 2.8l2.7 2.7a2 2 0 0 0 2.8 0l6.4-6.4a2 2 0 0 0 0-2.8l-2.7-2.7z'/></svg>") center/contain no-repeat;
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='m14.5 15.5 3 3L19 17l-3-3'/><path d='m8 12 4.5 4.5'/><path d='M2 22 7.5 16.5'/><path d='M18.5 5.5a2 2 0 0 0-2.8 0L9.2 11.9a2 2 0 0 0 0 2.8l2.7 2.7a2 2 0 0 0 2.8 0l6.4-6.4a2 2 0 0 0 0-2.8l-2.7-2.7z'/></svg>") center/contain no-repeat;
 }
@@ -664,8 +641,9 @@ onLoad(() => {
 }
 .cs-banner-title {
   display: block;
-  font-size: 22px;
+  font-size: 21px;
   font-weight: 700;
+  color: #1E293B;
   letter-spacing: 0.5px;
 }
 .cs-banner-desc {
@@ -673,34 +651,34 @@ onLoad(() => {
   margin-top: 6px;
   font-size: 13px;
   line-height: 1.7;
-  color: rgba(255, 255, 255, 0.88);
-  max-width: 560px;
+  color: var(--rule-muted-foreground);
+  max-width: 620px;
 }
 .cs-banner-stats {
   display: flex;
-  gap: 28px;
+  gap: 32px;
   flex-shrink: 0;
-  padding-left: 24px;
-  border-left: 1px solid rgba(255, 255, 255, 0.25);
+  padding-left: 28px;
+  border-left: 1px solid var(--rule-border);
 }
 .cs-banner-stat {
   text-align: center;
 }
 .cs-banner-stat-num {
   display: block;
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 800;
   line-height: 1.1;
+  color: var(--cs-primary);
   font-variant-numeric: tabular-nums;
 }
 .cs-banner-stat-label {
   display: block;
   margin-top: 4px;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--rule-muted-foreground);
 }
 
-/* ===== 工具栏 ===== */
 .cs-toolbar {
   display: flex;
   align-items: center;
@@ -730,7 +708,7 @@ onLoad(() => {
   color: var(--cs-accent-deep);
 }
 .cs-pill.is-active {
-  background: linear-gradient(135deg, #DC2626, #F97316);
+  background: var(--cs-primary);
   border-color: transparent;
   color: #fff;
 }
@@ -748,7 +726,7 @@ onLoad(() => {
 }
 .cs-search:focus-within {
   border-color: var(--cs-accent);
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 .cs-search-icon {
   width: 15px;
@@ -768,7 +746,7 @@ onLoad(() => {
   background: transparent;
 }
 
-/* ===== 空 / 加载状态 ===== */
+/* 空 / 加载状态 */
 .cs-empty {
   display: flex;
   flex-direction: column;
@@ -815,7 +793,7 @@ onLoad(() => {
   color: var(--rule-muted-foreground);
 }
 
-/* ===== 案例卡片 ===== */
+/* 案例卡片 */
 .cs-list {
   display: flex;
   flex-direction: column;
@@ -831,54 +809,37 @@ onLoad(() => {
 }
 .cs-card:hover {
   border-color: var(--cs-accent);
-  box-shadow: 0 10px 26px rgba(220, 38, 38, 0.10);
+  box-shadow: 0 10px 26px rgba(37, 99, 235, 0.10);
   transform: translateY(-2px);
 }
 .cs-card.is-open {
   border-color: var(--cs-accent);
-  box-shadow: 0 12px 30px rgba(220, 38, 38, 0.14);
+  box-shadow: 0 12px 30px rgba(37, 99, 235, 0.12);
 }
 .cs-card-head {
   display: flex;
   gap: 18px;
-  padding: 20px;
+  padding: 22px 24px;
+  min-width: 0;
 }
-.cs-card-cover {
-  width: 132px;
-  height: 172px;
-  border-radius: 10px;
-  background-size: cover;
-  background-position: center;
-  position: relative;
-  flex-shrink: 0;
-  overflow: hidden;
-}
-.cs-card-cover-plain {
-  background: linear-gradient(150deg, #7F1D1D 0%, #DC2626 55%, #F97316 100%);
-}
-.cs-card-cover-mask {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.38), transparent 55%);
-}
-.cs-gavel-badge {
-  position: absolute;
-  left: 10px;
-  top: 10px;
-  width: 30px;
-  height: 30px;
-  border-radius: 9px;
-  background: rgba(255, 255, 255, 0.92);
+.cs-ico {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: var(--cs-primary-tint-3);
+  border: 1px solid var(--cs-primary-tint-1);
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
 }
-.cs-gavel-mini {
-  width: 16px;
-  height: 16px;
+.cs-ico-glyph {
+  width: 22px;
+  height: 22px;
   background: var(--cs-primary);
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m14.5 15.5 3 3L19 17l-3-3'/><path d='m8 12 4.5 4.5'/><path d='M2 22 7.5 16.5'/><path d='M18.5 5.5a2 2 0 0 0-2.8 0L9.2 11.9a2 2 0 0 0 0 2.8l2.7 2.7a2 2 0 0 0 2.8 0l6.4-6.4a2 2 0 0 0 0-2.8l-2.7-2.7z'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m14.5 15.5 3 3L19 17l-3-3'/><path d='m8 12 4.5 4.5'/><path d='M2 22 7.5 16.5'/><path d='M18.5 5.5a2 2 0 0 0-2.8 0L9.2 11.9a2 2 0 0 0 0 2.8l2.7 2.7a2 2 0 0 0 2.8 0l6.4-6.4a2 2 0 0 0 0-2.8l-2.7-2.7z'/></svg>") center/contain no-repeat;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><path d='m14.5 15.5 3 3L19 17l-3-3'/><path d='m8 12 4.5 4.5'/><path d='M2 22 7.5 16.5'/><path d='M18.5 5.5a2 2 0 0 0-2.8 0L9.2 11.9a2 2 0 0 0 0 2.8l2.7 2.7a2 2 0 0 0 2.8 0l6.4-6.4a2 2 0 0 0 0-2.8l-2.7-2.7z'/></svg>") center/contain no-repeat;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><path d='m14.5 15.5 3 3L19 17l-3-3'/><path d='m8 12 4.5 4.5'/><path d='M2 22 7.5 16.5'/><path d='M18.5 5.5a2 2 0 0 0-2.8 0L9.2 11.9a2 2 0 0 0 0 2.8l2.7 2.7a2 2 0 0 0 2.8 0l6.4-6.4a2 2 0 0 0 0-2.8l-2.7-2.7z'/></svg>") center/contain no-repeat;
 }
 .cs-card-main {
   flex: 1;
@@ -886,11 +847,31 @@ onLoad(() => {
   display: flex;
   flex-direction: column;
 }
+.cs-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.cs-chevron {
+  width: 9px;
+  height: 9px;
+  border-right: 2px solid var(--rule-muted-foreground);
+  border-bottom: 2px solid var(--rule-muted-foreground);
+  transform: rotate(45deg);
+  margin-top: 5px;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+.cs-chevron.is-open {
+  transform: rotate(225deg);
+}
 .cs-card-tags {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+  min-width: 0;
 }
 .cs-tag {
   font-size: 12px;
@@ -901,8 +882,8 @@ onLoad(() => {
   color: var(--cs-primary);
 }
 .cs-tag-soft {
-  background: #FFFBEB;
-  color: var(--cs-accent-deep);
+  background: #F1F5F9;
+  color: #64748B;
 }
 .cs-card-title {
   margin-top: 10px;
@@ -911,15 +892,17 @@ onLoad(() => {
   color: var(--rule-foreground);
   line-height: 1.5;
   display: -webkit-box;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 .cs-card-meta {
-  margin-top: 8px;
+  margin-top: 4px;
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  align-items: baseline;
+  gap: 16px;
+  min-width: 0;
 }
 .cs-meta-item {
   font-size: 13px;
@@ -927,42 +910,48 @@ onLoad(() => {
   font-variant-numeric: tabular-nums;
 }
 .cs-meta-desc {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
-  line-height: 1.6;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cs-meta-count {
+  flex-shrink: 0;
 }
 .cs-card-footer {
-  margin-top: auto;
+  margin-top: 14px;
   padding-top: 14px;
+  border-top: 1px solid var(--rule-border);
+  display: flex;
+  justify-content: flex-end;
 }
 .cs-read-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 32px;
-  padding: 0 16px;
+  height: 34px;
+  padding: 0 18px;
   border-radius: 8px;
   font-size: 13px;
   font-weight: 600;
-  color: #fff;
-  background: linear-gradient(135deg, #DC2626, #F97316);
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.24);
+  color: var(--cs-primary);
+  background: var(--cs-primary-tint-3);
+  border: 1px solid var(--cs-primary-tint-2);
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
-.cs-read-icon {
-  width: 13px;
-  height: 13px;
+.cs-read-btn:hover {
   background: #fff;
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='m9 18 6-6-6-6'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='m9 18 6-6-6-6'/></svg>") center/contain no-repeat;
+  border-color: var(--cs-primary);
 }
 
-/* ===== 展开正文 ===== */
+/* 展开正文 */
 .cs-body {
   border-top: 1px dashed var(--rule-border);
   padding: 22px 24px 24px;
-  background: #FDF9F3;
+  background: #F8FAFC;
+  margin-left: 88px;
 }
 .cs-body-loading {
   display: flex;
@@ -1019,17 +1008,16 @@ onLoad(() => {
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71'/><path d='M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71'/></svg>") center/contain no-repeat;
 }
 
-/* ===== 响应式 ===== */
 @media (max-width: 1100px) {
   .cs-banner {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
   }
   .cs-banner-stats {
     padding-left: 0;
     padding-top: 16px;
     border-left: none;
-    border-top: 1px solid rgba(255, 255, 255, 0.25);
+    border-top: 1px solid var(--rule-border);
     width: 100%;
     justify-content: space-between;
   }
@@ -1054,11 +1042,12 @@ onLoad(() => {
     padding: 20px 16px;
   }
   .cs-card-head {
-    flex-direction: column;
+    gap: 14px;
+    padding: 18px 16px;
   }
-  .cs-card-cover {
-    width: 100%;
-    height: 120px;
+  .cs-body {
+    margin-left: 0;
+    padding: 18px 16px;
   }
 }
 </style>

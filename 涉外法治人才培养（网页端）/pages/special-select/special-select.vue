@@ -1,12 +1,12 @@
 <template>
   <view class="special-shell">
-    <!-- ===== App Shell (Sidebar + Main) ===== -->
+    <!-- 应用外壳（侧边栏 + 主内容区） -->
     <view class="app-shell">
-      <!-- ===== Left Sidebar ===== -->
+      <!-- 左侧导航栏 -->
       <aside class="app-sidebar">
         <view class="app-sidebar-logo">
           <view class="app-sidebar-logo-icon">
-            <view class="ls-svg-glyph" aria-hidden="true"></view>
+            <image class="ls-svg-img" src="/static/logo.png" mode="aspectFit"></image>
           </view>
           <text class="app-sidebar-logo-text">涉外法治人才培养</text>
         </view>
@@ -49,7 +49,7 @@
         </view>
       </aside>
 
-      <!-- ===== Main Content Area ===== -->
+      <!-- 主内容区 -->
       <view class="app-main">
         <header class="app-topbar">
           <text class="app-topbar-title">专项测评</text>
@@ -162,9 +162,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* =========================================================
-   Brand Design Tokens（与问卷测评一致）
-   ========================================================= */
+/* 品牌设计变量（与问卷测评一致） */
 .special-shell {
   --rule-primary: #2563EB;
   --rule-primary-hover: #1D4ED8;
@@ -221,7 +219,7 @@ onMounted(() => {
 
 .app-shell { display: flex; min-height: 100vh; background: var(--rule-background); }
 
-/* ===== Sidebar ===== */
+/* 侧边导航栏 */
 .app-sidebar {
   position: fixed; left: 0; top: 0; height: 100vh; width: 240px;
   display: flex; flex-direction: column;
@@ -236,15 +234,13 @@ onMounted(() => {
   color: inherit;
 }
 .app-sidebar-logo-icon {
-  width: 36px; height: 36px; border-radius: 8px;
-  background: var(--rule-primary);
+  width: 36px; height: 36px;
   display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0; overflow: hidden;
+  flex-shrink: 0;
 }
-.ls-svg-glyph {
-  width: 20px; height: 20px; background: #fff;
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
+.ls-svg-img {
+  width: 32px;
+  height: 32px;
 }
 .app-sidebar-logo-text {
   font-size: 15px; font-weight: 600;
@@ -323,7 +319,7 @@ onMounted(() => {
 }
 .app-sidebar-logout-text { font-size: 13px; font-weight: 500; }
 
-/* ===== Main ===== */
+/* 主内容区 */
 .app-main {
   flex: 1; margin-left: 240px;
   display: flex; flex-direction: column;
@@ -339,7 +335,7 @@ onMounted(() => {
 .app-topbar-meta { font-size: 13px; color: var(--rule-muted-foreground); }
 .app-content { flex: 1; padding: 32px; }
 
-/* ===== 专项选择页 ===== */
+/* 专项选择页 */
 .special-main { max-width: 960px; margin: 0 auto; }
 .special-head { margin-bottom: 28px; }
 .back-btn {
@@ -447,8 +443,7 @@ onMounted(() => {
   margin-top: 28px;
 }
 
-/* ===== Responsive ===== */
-@media (max-width: 1024px) {
+@media (max-width: 768px) {
   .special-grid { grid-template-columns: repeat(3, 1fr); }
 }
 @media (max-width: 768px) {

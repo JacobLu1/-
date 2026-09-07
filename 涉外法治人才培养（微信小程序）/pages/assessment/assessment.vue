@@ -17,7 +17,7 @@
             <text>剩余时间</text>
           </view>
           <view class="cd-time num">{{ formatTime(totalSec) }}</view>
-          <view class="cd-sub">总时长 45 分钟</view>
+          <view class="cd-sub">总时长 20 分钟</view>
         </view>
         <view class="nav-block">
           <view class="nav-head">
@@ -189,7 +189,7 @@
       </view>
     </view>
 
-    <!-- Toast -->
+    <!-- 提交成功提示（轻提示浮层） -->
     <view class="toast" :class="{ show: showToast }">
       <text class="t-ico ri-checkbox-circle-line"></text>
       <view class="t-txt">试卷已提交，成绩生成中</view>
@@ -204,7 +204,7 @@ export default {
       statusBarHeight: 0,
       total: 0,
       current: 1,
-      totalSec: 45 * 60,
+      totalSec: 20 * 60,
       cdTimer: null,
       loading: true,
       special: '',
@@ -271,6 +271,23 @@ export default {
         let list = r.list || []
         if (this.special) {
           list = list.filter(q => (q.dimension || '综合') === this.special)
+        } else {
+          // 综合测评随机组卷：15 单选 + 5 判断 + 1 主观，共 21 题，每次进入都轮换；类型不足则取尽
+          const shuf = (a) => {
+            const x = [...a]
+            for (let i = x.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1))
+              const t = x[i]
+              x[i] = x[j]
+              x[j] = t
+            }
+            return x
+          }
+          const pick = (a, n) => shuf(a).slice(0, n)
+          const singles = list.filter(q => q.type === 'single')
+          const judges = list.filter(q => q.type === 'judge')
+          const subs = list.filter(q => q.type === 'subjective')
+          list = shuf([...pick(singles, 15), ...pick(judges, 5), ...pick(subs, 1)])
         }
         const typeMap = { single: '单选题', multi: '多选题', judge: '判断题', subjective: '主观题' }
         this.questions = list.map((q, i) => ({
@@ -282,6 +299,7 @@ export default {
           options: Array.isArray(q.options) ? q.options.map(o => ({ key: o.key, text: o.text })) : [],
           multi: q.type === 'multi',
           answer: q.answer,
+          analysis: q.analysis || '',
           dimension: q.dimension || '综合',
           caseText: q.caseText || '',
           placeholder: q.placeholder || '',
@@ -415,7 +433,7 @@ export default {
       }
       // 计算用时
       const endTime = Date.now()
-      const usedSeconds = this.startTime ? Math.floor((endTime - this.startTime) / 1000) : (45 * 60 - this.totalSec)
+      const usedSeconds = this.startTime ? Math.floor((endTime - this.startTime) / 1000) : (20 * 60 - this.totalSec)
       const usedMinutes = Math.floor(usedSeconds / 60)
       const usedSecs = usedSeconds % 60
       const timeStr = `${usedMinutes}分${usedSecs}秒`
@@ -484,8 +502,74 @@ export default {
           subjective: this.questions
             .filter(q => q.type === '主观题')
             .map(q => this.answers[q.n] || '')
-        }
+        },
+        items: this.buildItems()
       }
+    },
+    // 判断题答案归一为“对/错”
+    judgeTextOf(v) {
+      return v === true || v === '对' ? '对' : v === false || v === '错' ? '错' : ''
+    },
+    // 客观题判定（多选按字母数组排序比对）
+    objIsCorrectOf(q, ans) {
+      if (Array.isArray(q.answer)) {
+        const a = Array.isArray(ans) ? [...ans].sort().join(',') : ''
+        return a !== '' && a === [...q.answer].sort().join(',')
+      }
+      return ans === q.answer
+    },
+    // 逐题快照：还原题干、选项、标准答案、解析与用户作答（供记录详情 / 错题本使用）
+    buildItems() {
+      const list = []
+      this.questions.forEach(q => {
+        if (q.type === '主观题') {
+          list.push({
+            questionId: q.id || '',
+            type: 'subjective',
+            subType: q.caseText ? 'case' : 'essay',
+            title: q.stem || '',
+            options: [],
+            answer: String(q.answer == null ? '' : q.answer),
+            analysis: q.analysis || '',
+            caseText: q.caseText || '',
+            placeholder: q.placeholder || '',
+            userAnswer: this.answers[q.n] || '',
+            isCorrect: null
+          })
+          return
+        }
+        const raw = q.rawType
+        const ans = this.answers[q.n]
+        const blank = ans === undefined || ans === null || ans === '' || (Array.isArray(ans) && !ans.length)
+        let isCorrect = false
+        if (raw === 'judge') {
+          const uv = this.judgeTextOf(ans)
+          const cv = this.judgeTextOf(q.answer)
+          isCorrect = !!uv && uv === cv
+        } else {
+          isCorrect = !blank && this.objIsCorrectOf(q, ans)
+        }
+        const userAnswer = raw === 'judge'
+          ? this.judgeTextOf(ans)
+          : (Array.isArray(ans) ? ans : (blank ? '' : String(ans)))
+        const correctAnswer = raw === 'judge'
+          ? this.judgeTextOf(q.answer)
+          : (Array.isArray(q.answer) ? q.answer : String(q.answer == null ? '' : q.answer))
+        list.push({
+          questionId: q.id || '',
+          type: raw,
+          subType: '',
+          title: q.stem || '',
+          options: q.options || [],
+          answer: correctAnswer,
+          analysis: q.analysis || '',
+          caseText: '',
+          placeholder: '',
+          userAnswer,
+          isCorrect
+        })
+      })
+      return list
     },
     async saveResult(result) {
       const token = uni.getStorageSync('token')
@@ -561,7 +645,6 @@ page {
   flex-direction: column;
   background: linear-gradient(160deg, #EAF3FF 0%, #F4F9FF 45%, #E6F1FE 100%);
   position: relative;
-  overflow: hidden;
 }
 
 .page-wrap::before,
@@ -584,14 +667,14 @@ page {
   bottom: 80rpx; left: -180rpx;
 }
 
-/* ============ Status bar safe-area ============ */
+/* 状态栏安全区占位 */
 .status-bar {
   width: 100%;
   flex-shrink: 0;
   background: transparent;
 }
 
-/* ============ Fixed quiz area (整页固定，无需滚动) ============ */
+/* 固定答题区（整页固定，无需滚动） */
 .quiz-area {
   position: relative; z-index: 5;
   flex: 1;
@@ -624,21 +707,27 @@ page {
   background: linear-gradient(135deg, rgba(91,157,249,0.18), rgba(6,182,212,0.12));
   border: 2rpx solid rgba(91,157,249,0.28);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 .countdown-block.urgent {
   background: linear-gradient(135deg, rgba(251,113,133,0.22), rgba(245,158,11,0.18));
   border-color: rgba(251,113,133,0.35);
 }
 .cd-label {
-  display: flex; align-items: center; gap: 6rpx;
-  font-size: 20rpx; font-weight: 600; color: var(--ink-2);
+  display: flex; align-items: center; justify-content: center; gap: 6rpx;
+  font-size: 22rpx; font-weight: 600; color: var(--ink-2);
 }
-.cd-ico { font-size: 24rpx; line-height: 1; }
+.cd-ico { font-size: 26rpx; line-height: 1; }
 .cd-time {
-  margin-top: 8rpx;
-  font-size: 44rpx; font-weight: 700; color: var(--brand-deep);
-  letter-spacing: 1rpx;
+  margin-top: 10rpx;
+  font-size: 62rpx; font-weight: 800; color: var(--brand-deep);
+  letter-spacing: 2rpx;
   line-height: 1.1;
+  font-variant-numeric: tabular-nums;
 }
 .countdown-block.urgent .cd-time { color: #E11D48; animation: countGlow 1.5s ease-in-out infinite; }
 .cd-sub {
@@ -646,7 +735,7 @@ page {
   font-size: 19rpx; color: var(--muted);
 }
 
-/* Navigator block */
+/* 题号导航区 */
 .nav-block {
   flex: 1.3;
   display: flex; flex-direction: column;
@@ -702,7 +791,7 @@ page {
   box-shadow: 0 6rpx 16rpx rgba(46,123,224,0.45);
 }
 
-/* Progress */
+/* 作答进度条 */
 .prog-wrap {
   margin-top: 10rpx;
   padding-top: 12rpx;
@@ -731,7 +820,7 @@ page {
   background: linear-gradient(90deg, transparent, rgba(120,160,210,0.28), transparent);
 }
 
-/* ============ Question card ============ */
+/* 题目卡片 */
 .q-card {
   flex: 1;
   min-height: 0;
@@ -771,7 +860,7 @@ page {
   line-height: 1.5;
 }
 
-/* Single / Multiple options */
+/* 单选 / 多选选项 */
 .q-opts {
   margin-top: 16rpx;
   display: flex; flex-direction: column; gap: 12rpx;
@@ -816,7 +905,7 @@ page {
   color: var(--brand-deep);
 }
 
-/* Judge */
+/* 判断题选项 */
 .judge-opts {
   margin-top: 16rpx;
   display: grid; grid-template-columns: 1fr 1fr; gap: 14rpx;
@@ -852,7 +941,7 @@ page {
   font-size: 28rpx; font-weight: 600; color: var(--ink);
 }
 
-/* Subjective */
+/* 主观题作答区 */
 .subj-wrap {
   margin-top: 16rpx;
 }
@@ -879,7 +968,7 @@ page {
 }
 .subj-count.over { color: #E11D48; background: var(--rose-soft); }
 
-/* ============ Chip ============ */
+/* 题型标签 */
 .chip {
   display: inline-flex; align-items: center;
   height: 48rpx; padding: 0 20rpx;
@@ -893,7 +982,7 @@ page {
 .chip.green { background: var(--green-soft); color: #15803D; border-color: rgba(34,197,94,0.25); }
 .chip.violet { background: var(--violet-soft); color: #6D28D9; border-color: rgba(139,92,246,0.25); }
 
-/* ============ Action bar (in-flow, above tabbar) ============ */
+/* 底部操作栏（普通文档流，位于 tabbar 上方） */
 .action-bar {
   position: relative;
   z-index: 60;
@@ -938,7 +1027,7 @@ page {
 }
 .ab-ico { font-size: 32rpx; line-height: 1; }
 
-/* ============ Modal ============ */
+/* 弹窗 */
 .modal-backdrop {
   position: fixed; inset: 0;
   z-index: 100;
@@ -1009,7 +1098,7 @@ page {
   box-shadow: 0 14rpx 32rpx rgba(251,113,133,0.36);
 }
 
-/* ============ Toast ============ */
+/* 轻提示浮层 */
 .toast {
   position: fixed;
   left: 50%; top: 40%;
@@ -1035,7 +1124,7 @@ page {
   font-size: 26rpx; color: #fff; font-weight: 600;
 }
 
-/* ============ Animations ============ */
+/* 动画 */
 @keyframes fadeUp { from { opacity: 0; transform: translateY(36rpx); } to { opacity: 1; transform: translateY(0); } }
 @keyframes pop { 0% { transform: scale(.6); opacity: 0; } 60% { transform: scale(1.08); } 100% { transform: scale(1); opacity: 1; } }
 @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }

@@ -10,7 +10,7 @@
       <!-- 顶部品牌 -->
       <view class="brand-row">
         <view class="brand-mark">
-          <view class="brand-icon"></view>
+          <image class="brand-icon-img" src="/static/logo.png" mode="aspectFit"></image>
         </view>
         <view class="brand-name">
           <text class="brand-name-cn">涉外法治人才培养平台</text>
@@ -146,7 +146,7 @@ export default {
 </script>
 
 <style scoped>
-/* ============ 设计令牌 ============ */
+/* 设计令牌 */
 .register-page {
   --blue-500: #3B82F6;
   --blue-600: #2563EB;
@@ -171,7 +171,7 @@ export default {
   padding: 56px 24px 48px;
 }
 
-/* ============ 背景层 ============ */
+/* 背景层 */
 .bg-mesh {
   position: absolute;
   inset: 0;
@@ -209,7 +209,7 @@ export default {
   background: rgba(96, 165, 250, 0.30);
 }
 
-/* ============ 顶部品牌 ============ */
+/* 顶部品牌 */
 .brand-row {
   position: relative;
   z-index: 1;
@@ -221,30 +221,13 @@ export default {
 .brand-mark {
   width: 48px;
   height: 48px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, var(--blue-500), var(--blue-700));
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
 }
-.brand-icon {
-  width: 24px;
-  height: 24px;
-  border: 2px solid #fff;
-  border-radius: 50%;
-  position: relative;
-}
-.brand-icon::before {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #fff;
+.brand-icon-img {
+  width: 44px;
+  height: 44px;
 }
 .brand-name {
   display: flex;
@@ -263,7 +246,7 @@ export default {
   margin-top: 2px;
 }
 
-/* ============ 注册卡片 ============ */
+/* 注册卡片 */
 .panel {
   position: relative;
   z-index: 1;

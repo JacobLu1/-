@@ -1,10 +1,10 @@
-<template>
+﻿﻿﻿﻿﻿﻿<template>
   <div class="app-shell">
-      <!-- ===== Left Sidebar ===== -->
+      <!-- 左侧导航栏 -->
       <aside class="app-sidebar">
         <view class="app-sidebar-logo">
           <view class="app-sidebar-logo-icon">
-            <view class="ls-svg-glyph" aria-hidden="true"></view>
+            <image class="ls-svg-img" src="/static/logo.png" mode="aspectFit"></image>
           </view>
           <text class="app-sidebar-logo-text">涉外法治人才培养</text>
         </view>
@@ -47,8 +47,8 @@
         </view>
       </aside>
 
-    <!-- ===== Main Content Area ===== -->
-    <div class="app-main">
+    <!-- 主内容区 -->
+    <view class="app-main">
       <header class="app-topbar">
         <div class="app-topbar-left">
           <div class="app-back-btn" @click="goBack">
@@ -63,264 +63,170 @@
         <span class="app-topbar-meta">{{ todayDateText }}</span>
       </header>
       <main class="app-content">
+        <div class="le-layout">
+          <!-- 左列：课程信息 + 播放器 + 双语文本 -->
+          <div class="le-main">
 
-        <!-- ===== Shared SVG gradient defs ===== -->
-        <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
-          <defs>
-            <linearGradient id="lt-grad-high" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="var(--state-success)"/>
-              <stop offset="100%" stop-color="var(--state-success)" stop-opacity="0.6"/>
-            </linearGradient>
-            <linearGradient id="lt-grad-mid" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="var(--rule-primary)"/>
-              <stop offset="100%" stop-color="var(--rule-primary-active)"/>
-            </linearGradient>
-            <linearGradient id="lt-grad-low" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="var(--state-warning)"/>
-              <stop offset="100%" stop-color="var(--state-warning)" stop-opacity="0.6"/>
-            </linearGradient>
-          </defs>
-        </svg>
-
-        <!-- ===== Hero Title Block ===== -->
-        <section class="lt-hero" aria-label="听力实训概览">
-          <div class="lt-hero-main">
-            <span class="lt-hero-tag">
-              <span class="lt-hero-tag-icon"></span>
-              听力实训
-            </span>
-            <h2 class="lt-hero-title">每周法律英语听力实训</h2>
-            <p class="lt-hero-subtitle">坚持每日听力训练，巩固涉外法律英语能力</p>
-            <div class="lt-hero-stats">
-              <div class="lt-stat">
-                <span class="lt-stat-num">{{ weeklyTasks.length }}</span>
-                <span class="lt-stat-label">本周任务</span>
-              </div>
-              <span class="lt-stat-sep"></span>
-              <div class="lt-stat">
-                <span class="lt-stat-num">{{ completedCount }}/{{ weeklyTasks.length }}</span>
-                <span class="lt-stat-label">已完成</span>
-              </div>
-              <span class="lt-stat-sep"></span>
-              <div class="lt-stat">
-                <span class="lt-stat-num">{{ averageAccuracy }}%</span>
-                <span class="lt-stat-label">平均正确率</span>
-              </div>
-            </div>
-          </div>
-          <div class="lt-hero-art">
-            <div class="lt-earphones">
-              <div class="lt-earphone lt-earphone-band"></div>
-              <div class="lt-earphone lt-earphone-left"></div>
-              <div class="lt-earphone lt-earphone-right"></div>
-              <div class="lt-eq">
-                <span class="lt-eq-bar" :class="{'is-playing': isPlaying}"></span>
-                <span class="lt-eq-bar" :class="{'is-playing': isPlaying}"></span>
-                <span class="lt-eq-bar" :class="{'is-playing': isPlaying}"></span>
-                <span class="lt-eq-bar" :class="{'is-playing': isPlaying}"></span>
-                <span class="lt-eq-bar" :class="{'is-playing': isPlaying}"></span>
-              </div>
-            </div>
-            <span class="lt-art-dot lt-art-dot-1"></span>
-            <span class="lt-art-dot lt-art-dot-2"></span>
-          </div>
-        </section>
-
-        <!-- ===== Section 1: 本周听力任务 ===== -->
-        <section class="lc-section" :class="{'is-visible': visibleSections[0]}" aria-label="本周听力任务">
-          <div class="lc-section-header">
-            <div class="lc-section-title-wrap">
-              <span class="lc-section-bar"></span>
-              <div>
-                <h2 class="lc-section-title">本周听力任务</h2>
-                <p class="lc-section-subtitle">按日安排听力素材，循序渐进提升法律英语听力水平</p>
-              </div>
-            </div>
-            <button v-if="lessons.length" class="lt-all-tasks-btn" type="button" @click="showAllLessons = !showAllLessons">
-              <span>{{ showAllLessons ? '收起全部任务' : '全部听力任务' }}</span>
-              <span class="lt-all-tasks-btn-count">{{ lessons.length }}</span>
-            </button>
-          </div>
-          <div class="lt-task-grid">
-            <!-- Task Cards -->
-            <div v-for="(task, index) in weeklyTasks" :key="index"
-                 class="lt-task-card"
-                 :class="{'is-done': task.status === 'done', 'is-active': currentIndex === index}"
-                 @click="selectLesson(index, true)">
-              <div class="lt-task-top">
-                <span class="lt-task-badge">{{ task.dayNum }}</span>
-                <span class="lt-task-day">{{ task.day }}</span>
-                <span class="lt-diff" :class="`lt-diff-${task.difficulty}`">{{ task.difficultyText }}</span>
-              </div>
-              <h3 class="lt-task-title">{{ task.title }}</h3>
-              <div class="lt-task-progress">
-                <div class="lt-progress-track">
-                  <div class="lt-progress-fill" :style="{width: task.progress + '%'}"></div>
+            <!-- 课程信息 -->
+            <section class="le-card le-lesson-info">
+              <div class="le-lesson-top">
+                <div class="le-lesson-summary">
+                  <div class="le-breadcrumb">
+                    <span>听力训练</span>
+                    <svg class="le-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    <span>第 {{ currentIndex + 1 }} 课</span>
+                  </div>
+                  <h1 class="le-lesson-title">{{ playerTitle }}</h1>
+                  <p class="le-lesson-subtitle">{{ currentSubtitle }}</p>
                 </div>
-                <span class="lt-progress-pct">{{ task.progress }}%</span>
+                <div class="le-lesson-tags">
+                <span class="le-tag">
+                  <svg class="le-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+                  听力训练
+                </span>
+                <span class="le-tag">
+                  <svg class="le-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+                  {{ currentDifficultyText }}
+                </span>
+                <span class="le-tag">
+                  <svg class="le-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                  {{ playerTotalTime || '--:--' }}
+                </span>
+                </div>
               </div>
-              <span class="lt-status" :class="`lt-status-${task.status}`">{{ task.statusText }}</span>
-            </div>
-          </div>
-          <div v-if="showAllLessons && lessons.length" class="lt-all-tasks">
-            <button v-for="(lesson, index) in lessons" :key="lesson.id" type="button"
-                    class="lt-all-task"
-                    :class="{'is-active': currentLesson && currentLesson.id === lesson.id}"
-                    @click="selectLessonById(lesson.id, true)">
-              <span class="lt-all-task-index">{{ String(index + 1).padStart(2, '0') }}</span>
-              <span class="lt-all-task-title">{{ lesson.title }}</span>
-              <span class="lt-all-task-meta">{{ lesson.difficultyText }} · {{ lesson.statusText }}</span>
-              <span class="lt-all-task-arrow"></span>
-            </button>
-          </div>
-          <div v-if="!weeklyTasks.length" class="lt-empty">暂无听力任务</div>
-        </section>
 
-        <!-- ===== Section 2: 听力练习操作台 ===== -->
-        <section ref="studioSection" class="lc-section" :class="{'is-visible': visibleSections[1]}" aria-label="听力练习操作台">
-          <div class="lc-section-header">
-            <div class="lc-section-title-wrap">
-              <span class="lc-section-bar"></span>
-              <div>
-                <h2 class="lc-section-title">听力练习操作台</h2>
-                <p class="lc-section-subtitle">{{ playerTitle }}</p>
-              </div>
-            </div>
-          </div>
-          <div class="lt-studio">
-            <!-- Audio Player Area -->
-            <div class="lt-studio-player">
-              <div class="lt-player-top">
-                <button class="lt-play-btn" type="button" aria-label="播放/暂停" @click="togglePlay">
-                  <svg v-if="!isPlaying" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                    <polygon points="6 3 20 12 6 21 6 3"></polygon>
-                  </svg>
-                  <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                    <rect x="6" y="4" width="4" height="16" rx="1"></rect>
-                    <rect x="14" y="4" width="4" height="16" rx="1"></rect>
-                  </svg>
+              <div class="le-lesson-divider"></div>
+
+              <div class="le-player-row">
+                <button class="le-play-btn" type="button" aria-label="播放/暂停" @click="togglePlay">
+                  <svg v-if="!isPlaying" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
+                  <svg v-else viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"></rect><rect x="14" y="4" width="4" height="16" rx="1"></rect></svg>
                 </button>
-                <div class="lt-player-info">
-                  <div class="lt-player-head">
-                    <div class="lt-player-title">{{ playerTitle }}</div>
-                    <div class="lt-eq lt-eq-sm" :class="{'is-on': isPlaying}">
-                      <span class="lt-eq-bar"></span>
-                      <span class="lt-eq-bar"></span>
-                      <span class="lt-eq-bar"></span>
-                      <span class="lt-eq-bar"></span>
+                <div class="le-player-body">
+                  <div class="le-player-meta">
+                    <span class="le-player-name">Lesson {{ currentIndex + 1 }} — {{ playerTitle }}</span>
+                    <div class="le-player-tools">
+                      <button class="le-speed-btn" type="button" @click="cycleRate">{{ playbackRate }}x</button>
+                      <button class="le-ico-btn" type="button" aria-label="上一课" @click="prevLesson">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
+                      </button>
+                      <button class="le-ico-btn" type="button" aria-label="下一课" @click="nextLesson">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
+                      </button>
+                      <button class="le-ico-btn" type="button" aria-label="音量">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
+                      </button>
                     </div>
                   </div>
-                  <div class="lt-player-bar">
-                    <div class="lt-progress-bar">
-                      <div class="lt-progress-fill lt-player-fill" :style="{width: playerProgress + '%'}"></div>
+                  <div class="le-progress">
+                    <span class="le-progress-time">{{ playerCurrentTime }}</span>
+                    <div class="le-progress-track">
+                      <div class="le-progress-fill" :style="{width: playerProgress + '%'}"></div>
                     </div>
-                    <span class="lt-player-time">{{ playerCurrentTime }} / {{ playerTotalTime }}</span>
+                    <span class="le-progress-time">{{ playerTotalTime }}</span>
                   </div>
-                </div>
-                <div class="lt-player-controls">
-                  <button class="lt-ctrl-btn" type="button" aria-label="倍速">{{ playbackRate }}x</button>
-                  <button class="lt-ctrl-btn" type="button" aria-label="音量">
-                    <i data-lucide="volume-2"></i>
-                  </button>
                 </div>
               </div>
-            </div>
-            <!-- Panels: Transcript + Quiz -->
-            <div class="lt-studio-panels">
-              <!-- Panel A: 法律原文文本 -->
-              <div class="lt-panel lt-panel-transcript">
-                <div class="lt-panel-header">
-                  <h3 class="lt-panel-title">法律原文文本</h3>
-                  <div class="lt-lang-toggle">
-                    <span class="lt-lang-tag" :class="{'is-active': currentLang === 'en'}" @click="currentLang = 'en'">英文</span>
-                    <span class="lt-lang-tag" :class="{'is-active': currentLang === 'zh'}" @click="currentLang = 'zh'">中文</span>
-                  </div>
-                </div>
-                <p v-if="currentTranscript" class="lt-transcript">{{ currentTranscript }}</p>
-                <p v-else-if="isTranscriptLoading" class="lt-empty">原文加载中...</p>
-                <p v-else class="lt-empty">{{ currentLang === 'zh' ? '暂无中文文本' : '暂无听力原文' }}</p>
-              </div>
-              <!-- Panel B: 习题作答区域 -->
-              <div class="lt-panel lt-panel-quiz">
-                <div class="lt-panel-header">
-                  <h3 class="lt-panel-title">习题作答</h3>
-                  <span class="lt-quiz-count">{{ quizQuestions.length }}题</span>
-                </div>
-                <div class="lt-quiz-list">
-                  <div v-if="!quizQuestions.length" class="lt-empty">暂无习题</div>
-                  <div v-for="(question, qIndex) in quizQuestions" :key="qIndex" class="lt-quiz-item">
-                    <div class="lt-quiz-q">{{ question.question }}</div>
-                    <div class="lt-quiz-options">
-                      <div v-for="(option, oIndex) in question.options" 
-                           :key="oIndex" 
-                           class="lt-quiz-option" 
-                           :class="{'is-selected': selectedAnswers[qIndex] === oIndex}"
-                           @click="selectAnswer(qIndex, oIndex)">
-                        <span class="lt-quiz-radio"></span>
-                        <span>{{ option }}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <button class="lt-submit-btn" type="button" @click="submitAnswers">
-                  提交作答
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M5 12h14"></path>
-                    <path d="m12 5 7 7-7 7"></path>
-                  </svg>
+            </section>
+
+            <!-- 双语文本 -->
+            <section class="le-card le-bilingual">
+              <div class="le-tabs">
+                <button class="le-tab" :class="{'is-active': textView === 'both'}" type="button" @click="setTextView('both')">
+                  <svg class="le-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6"></path><path d="m4 14 6-6 2-3"></path><path d="M2 5h12"></path><path d="M7 2h1"></path><path d="m22 22-5-10-5 10"></path><path d="M14 18h6"></path></svg>
+                  双语对照
                 </button>
+                <button class="le-tab" :class="{'is-active': textView === 'en'}" type="button" @click="setTextView('en')">English</button>
+                <button class="le-tab" :class="{'is-active': textView === 'zh'}" type="button" @click="setTextView('zh')">中文</button>
               </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- ===== Section 3: 历史练习记录 ===== -->
-        <section class="lc-section" :class="{'is-visible': visibleSections[2]}" aria-label="历史练习记录">
-          <div class="lc-section-header">
-            <div class="lc-section-title-wrap">
-              <span class="lc-section-bar"></span>
-              <div>
-                <h2 class="lc-section-title">历史练习记录</h2>
-                <p class="lc-section-subtitle">查看过往听力练习完成情况</p>
-              </div>
-            </div>
-          </div>
-          <div class="lt-history-grid">
-            <div v-if="!historyRecords.length" class="lt-empty">暂无历史记录</div>
-            <div v-for="(record, index) in historyRecords" 
-                 :key="index" 
-                 class="lt-history-card"
-                 :class="`lt-card-${record.level}`">
-              <div class="lt-history-ring-wrap">
-                <svg class="lt-history-ring" viewBox="0 0 100 100">
-                  <circle class="lt-ring-track" cx="50" cy="50" r="42"></circle>
-                  <circle class="lt-ring-fill" cx="50" cy="50" r="42" 
-                          stroke-dasharray="263.89" 
-                          :stroke-dashoffset="record.strokeDashoffset"></circle>
-                </svg>
-                <span class="lt-history-ring-pct">{{ record.accuracy }}%</span>
-              </div>
-              <span class="lt-history-acc-label">正确率</span>
-              <h3 class="lt-history-title">{{ record.title }}</h3>
-              <div class="lt-history-meta">
-                <div class="lt-history-date">
-                  <i data-lucide="calendar"></i> {{ record.date }}
+              <div class="le-bilingual-body" :class="{'is-single': textView !== 'both'}">
+                <div v-if="textView !== 'zh'" class="le-text-col">
+                  <div class="le-text-head">
+                    <svg class="le-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                    English Original
+                  </div>
+                  <template v-if="transcriptParagraphs.en.length">
+                    <p v-for="(para, i) in transcriptParagraphs.en" :key="'en' + i" class="le-text">{{ para }}</p>
+                  </template>
+                  <p v-else-if="isTranscriptLoading" class="le-text le-text-empty">原文加载中...</p>
+                  <p v-else class="le-text le-text-empty">暂无英文原文</p>
                 </div>
-                <div class="lt-history-time">
-                  <i data-lucide="clock"></i> 用时 {{ record.duration }}
+                <div v-if="textView !== 'en'" class="le-text-col le-text-col-zh">
+                  <div class="le-text-head">
+                    <svg class="le-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                    中文译文
+                  </div>
+                  <template v-if="transcriptParagraphs.zh.length">
+                    <p v-for="(para, i) in transcriptParagraphs.zh" :key="'zh' + i" class="le-text">{{ para }}</p>
+                  </template>
+                  <p v-else-if="isTranscriptLoading" class="le-text le-text-empty">原文加载中...</p>
+                  <p v-else class="le-text le-text-empty">暂无中文译文</p>
                 </div>
               </div>
-            </div>
+            </section>
           </div>
-        </section>
 
+          <!-- 右列：本周任务清单 -->
+          <aside class="le-side">
+            <section class="le-card le-checklist">
+              <div class="le-checklist-head">
+                <div class="le-checklist-title">
+                  <svg class="le-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                  本周任务清单
+                </div>
+                <span class="le-checklist-week">第 {{ weekIndex + 1 }} 周</span>
+              </div>
+
+              <div class="le-checklist-progress">
+                <div class="le-checklist-progress-head">
+                  <span>完成进度</span>
+                  <span class="le-checklist-progress-num">{{ completedCount }} / {{ weeklyTasks.length }}</span>
+                </div>
+                <div class="le-progress-track le-progress-track-lg">
+                  <div class="le-progress-fill" :style="{width: (weeklyTasks.length ? Math.round(completedCount / weeklyTasks.length * 100) : 0) + '%'}"></div>
+                </div>
+              </div>
+
+              <div class="le-task-list">
+                <div v-for="(task, index) in weeklyTasks" :key="index"
+                     class="le-task"
+                     :class="{
+                       'is-done': task.status === 'done',
+                       'is-active': currentIndex === index
+                     }"
+                     @click="selectLesson(index)">
+                  <svg v-if="task.status === 'done'" class="le-task-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                  <svg v-else-if="currentIndex === index" class="le-task-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="1"></circle></svg>
+                  <svg v-else class="le-task-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle></svg>
+                  <div class="le-task-body">
+                    <div class="le-task-line">
+                      <span class="le-task-day">{{ task.dayName || task.day }}</span>
+                      <span class="le-task-title" :class="{'is-done': task.status === 'done'}">{{ task.title }}</span>
+                    </div>
+                    <span class="le-task-sub">{{ task.difficultyText }} · {{ task.statusText }}</span>
+                  </div>
+                  <span v-if="currentIndex === index" class="le-task-badge">进行中</span>
+                </div>
+                <div v-if="!weeklyTasks.length" class="le-empty">暂无听力任务</div>
+              </div>
+
+              <div class="le-checklist-foot">
+                <div class="le-checklist-foot-label">
+                  <svg class="le-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg>
+                  本周累计听力
+                </div>
+                <span class="le-checklist-foot-num">--</span>
+              </div>
+            </section>
+          </aside>
+        </div>
       </main>
-    </div>
+    </view>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { requireLogin, getDisplayName, getLevelText } from '@/utils/auth.js'
 
@@ -343,17 +249,13 @@ const playerCurrentTime = ref('00:00')
 const playerTotalTime = ref('00:00')
 const playerTitle = ref('暂无练习内容')
 const playbackRate = ref(1.0)
-const currentLang = ref('en')
-const selectedAnswers = ref({})
-const visibleSections = ref([false, false, false])
+const textView = ref('both')
 
 // 听力资源
 const lessons = ref([])
 const currentLesson = ref(null)
 const currentIndex = ref(-1)
 const weeklyTasks = ref([])
-const studioSection = ref(null)
-const showAllLessons = ref(false)
 const isTranscriptLoading = ref(false)
 let audioInstance = null
 let activeTranscriptId = ''
@@ -364,20 +266,19 @@ const transcripts = ref({
   zh: ''
 })
 
-const currentTranscript = computed(() => transcripts.value[currentLang.value])
+// 按行拆分段落，供双语对照逐段展示
+const transcriptParagraphs = computed(() => ({
+  en: transcripts.value.en.split(/\r?\n/).map(t => t.trim()).filter(Boolean),
+  zh: transcripts.value.zh.split(/\r?\n/).map(t => t.trim()).filter(Boolean)
+}))
 
-// 习题数据
-const quizQuestions = ref([])
-
-// 历史记录数据
-const historyRecords = ref([])
+// 当前课程信息
+const currentSubtitle = computed(() => currentLesson.value ? `法律英语听力 · ${currentLesson.value.difficultyText}` : '')
+const currentDifficultyText = computed(() => currentLesson.value ? currentLesson.value.difficultyText : '--')
+const weekIndex = computed(() => getWeekIndex())
 
 // 统计计算
 const completedCount = computed(() => weeklyTasks.value.filter(t => t.status === 'done').length)
-const averageAccuracy = computed(() => {
-  if (!historyRecords.value.length) return 0
-  return Math.round(historyRecords.value.reduce((sum, r) => sum + r.accuracy, 0) / historyRecords.value.length)
-})
 
 // 方法
 function formatTime(seconds) {
@@ -546,23 +447,32 @@ function buildWeeklyTasks() {
   if (!total) return []
   const weekIndex = getWeekIndex()
   const start = (((weekIndex * 7) % total) + total) % total
+  const DAY_NAMES = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
   const tasks = []
   for (let i = 0; i < Math.min(7, total); i += 1) {
     const lesson = lessons.value[(start + i) % total]
     tasks.push({
       ...lesson,
       dayNum: String(i + 1).padStart(2, '0'),
-      day: `第${i + 1}天`
+      day: `第${i + 1}天`,
+      dayName: DAY_NAMES[i] || `第${i + 1}天`
     })
   }
   return tasks
 }
 
-function scrollToStudio() {
-  const el = studioSection.value && (studioSection.value.$el || studioSection.value)
-  if (el && el.scrollIntoView) {
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
+function preloadAudioDuration(audioUrl) {
+  if (!audioUrl || typeof Audio === 'undefined') return
+  const probe = new Audio()
+  probe.preload = 'metadata'
+  probe.src = audioUrl
+  probe.addEventListener('loadedmetadata', () => {
+    if (probe.duration && !isNaN(probe.duration)) {
+      playerTotalTime.value = formatTime(probe.duration)
+    }
+    probe.remove()
+  }, { once: true })
+  probe.addEventListener('error', () => { probe.remove() }, { once: true })
 }
 
 function applyLesson(lesson, autoPlay = false) {
@@ -573,12 +483,6 @@ function applyLesson(lesson, autoPlay = false) {
     en: currentLesson.value.transcriptEn || '',
     zh: currentLesson.value.transcriptZh || ''
   }
-  quizQuestions.value = currentLesson.value.questions.map(q => ({
-    question: q.question,
-    options: q.options || [],
-    answer: q.answer
-  }))
-  selectedAnswers.value = {}
   playerTitle.value = currentLesson.value.title
   playerProgress.value = 0
   playerCurrentTime.value = '00:00'
@@ -588,8 +492,10 @@ function applyLesson(lesson, autoPlay = false) {
     audioInstance.pause()
     audioInstance = null
   }
+  if (currentLesson.value.audioUrl) {
+    preloadAudioDuration(currentLesson.value.audioUrl)
+  }
   if (autoPlay) {
-    nextTick(scrollToStudio)
     togglePlay()
   }
   if (!currentLesson.value.contentLoaded) {
@@ -667,7 +573,22 @@ async function loadLessonDetail(id) {
   }
 }
 
+const LISTENING_CACHE_KEY = 'lt_lessons_cache'
+const LISTENING_CACHE_TTL = 10 * 60 * 1000
+
 async function loadListeningLessons() {
+  const now = Date.now()
+  // 缓存命中：直接渲染
+  try {
+    const cached = uni.getStorageSync(LISTENING_CACHE_KEY)
+    if (cached && cached.expireAt && cached.expireAt > now && Array.isArray(cached.list)) {
+      lessons.value = cached.list
+      weeklyTasks.value = buildWeeklyTasks()
+      if (lessons.value.length) selectLesson(0)
+      return
+    }
+  } catch (e) {}
+
   try {
     const resourcesObj = uniCloud.importObject('resources', { customUI: true })
     const r = (await resourcesObj.listPublic({ type: 'listening' })) || {}
@@ -689,6 +610,9 @@ async function loadListeningLessons() {
       questions: [],
       contentLoaded: false
     }))
+    try {
+      uni.setStorageSync(LISTENING_CACHE_KEY, { expireAt: now + LISTENING_CACHE_TTL, list: lessons.value })
+    } catch (e) {}
     weeklyTasks.value = buildWeeklyTasks()
     if (lessons.value.length) selectLesson(0)
   } catch (e) {
@@ -702,20 +626,24 @@ const togglePlay = () => {
     return
   }
   if (!audioInstance && typeof Audio !== 'undefined') {
-    audioInstance = new Audio(currentLesson.value.audioUrl)
-    audioInstance.playbackRate = playbackRate.value
-    audioInstance.addEventListener('loadedmetadata', () => {
-      playerTotalTime.value = formatTime(audioInstance.duration)
-    })
-    audioInstance.addEventListener('timeupdate', () => {
-      playerCurrentTime.value = formatTime(audioInstance.currentTime)
-      playerTotalTime.value = formatTime(audioInstance.duration)
-      if (audioInstance.duration) {
-        playerProgress.value = Math.round((audioInstance.currentTime / audioInstance.duration) * 100)
+    const audio = new Audio(currentLesson.value.audioUrl)
+    audioInstance = audio
+    audio.playbackRate = playbackRate.value
+    audio.addEventListener('loadedmetadata', () => {
+      if (audio === audioInstance && audio.duration) {
+        playerTotalTime.value = formatTime(audio.duration)
       }
     })
-    audioInstance.addEventListener('ended', () => {
-      isPlaying.value = false
+    audio.addEventListener('timeupdate', () => {
+      if (audio !== audioInstance) return
+      playerCurrentTime.value = formatTime(audio.currentTime)
+      playerTotalTime.value = formatTime(audio.duration)
+      if (audio.duration) {
+        playerProgress.value = Math.round((audio.currentTime / audio.duration) * 100)
+      }
+    })
+    audio.addEventListener('ended', () => {
+      if (audio === audioInstance) isPlaying.value = false
     })
   }
   if (!audioInstance) {
@@ -736,33 +664,28 @@ const togglePlay = () => {
   }
 }
 
-const selectAnswer = (qIndex, oIndex) => {
-  selectedAnswers.value[qIndex] = oIndex
+const RATES = [1.0, 1.25, 1.5, 2.0]
+
+const setTextView = (mode) => {
+  textView.value = mode
 }
 
-const submitAnswers = () => {
-  if (!quizQuestions.value.length) {
-    uni.showToast({ title: '暂无习题', icon: 'none' })
-    return
+const cycleRate = () => {
+  const idx = RATES.indexOf(playbackRate.value)
+  playbackRate.value = RATES[(idx + 1) % RATES.length]
+  if (audioInstance) {
+    audioInstance.playbackRate = playbackRate.value
   }
-  let correct = 0
-  quizQuestions.value.forEach((question, qIndex) => {
-    const selectedIndex = selectedAnswers.value[qIndex]
-    if (selectedIndex === undefined) return
-    const selected = String.fromCharCode(65 + selectedIndex)
-    const answer = String(question.answer || '').trim().toUpperCase()
-    if (selected === answer) correct += 1
-  })
-  const accuracy = Math.round((correct / quizQuestions.value.length) * 100)
-  uni.showToast({ title: `答对 ${correct}/${quizQuestions.value.length} 题`, icon: 'none' })
-  historyRecords.value.unshift({
-    level: accuracy >= 80 ? 'high' : accuracy >= 60 ? 'mid' : 'low',
-    strokeDashoffset: String(263.89 - (accuracy / 100) * 263.89),
-    accuracy,
-    title: currentLesson.value ? currentLesson.value.title : '听力练习',
-    date: todayDateText.value,
-    duration: '--'
-  })
+}
+
+const prevLesson = () => {
+  if (!currentLesson.value || weeklyTasks.value.length <= 1) return
+  selectLesson(Math.max(0, currentIndex.value - 1))
+}
+
+const nextLesson = () => {
+  if (!currentLesson.value || weeklyTasks.value.length <= 1) return
+  selectLesson(Math.min(weeklyTasks.value.length - 1, currentIndex.value + 1))
 }
 
 const navigateTo = (url) => {
@@ -790,16 +713,6 @@ const handleLogout = () => {
   })
 }
 
-// 滚动动画
-onMounted(() => {
-  // 不再需要 Lucide 图标初始化，现在使用 CSS mask-based 图标
-
-  // 模拟 IntersectionObserver 的滚动显示
-  setTimeout(() => {
-    visibleSections.value = [true, true, true]
-  }, 100)
-})
-
 onLoad(() => {
   // 登录鉴权：未登录跳转登录页
   if (!requireLogin()) return
@@ -814,15 +727,11 @@ onLoad(() => {
 </script>
 
 <style scoped>
-/* ============================================
-   每周法律英语听力实训 - 样式
-   ============================================ */
+/* 每周法律英语听力实训 - 样式 */
 
-/* ============================================
-   Brand CSS Variables
-   ============================================ */
+/* 品牌主题色变量 */
 .app-shell {
-  /* === Brand Primary === */
+  /* 品牌主色 */
   --rule-primary: #2563EB;
   --rule-primary-hover: #1D4ED8;
   --rule-primary-active: #1E40AF;
@@ -831,7 +740,7 @@ onLoad(() => {
   --rule-primary-tint-2: #BFDBFE;
   --rule-primary-tint-3: #EFF6FF;
 
-  /* === Semantic === */
+  /* 语义色 */
   --rule-background: #F8FAFC;
   --rule-foreground: #0F172A;
   --rule-card: #FFFFFF;
@@ -844,13 +753,12 @@ onLoad(() => {
   --rule-input: #E2E8F0;
   --rule-ring: #2563EB;
 
-  /* === Radius === */
+  /* 圆角 */
   --rule-radius-small: 4px;
   --rule-radius-medium: 8px;
   --rule-radius-large: 16px;
   --rule-radius-full: 9999px;
 
-  /* === State Colors === */
   --state-success: #16A34A;
   --state-success-tint: #DCFCE7;
   --state-warning: #D97706;
@@ -860,7 +768,7 @@ onLoad(() => {
   --state-info: #2563EB;
   --state-info-tint: #DBEAFE;
 
-  /* === Neutrals === */
+  /* 中性色 */
   --rule-ink: #0F172A;
   --rule-ink-2: #475569;
   --rule-ink-3: #94A3B8;
@@ -868,12 +776,12 @@ onLoad(() => {
   --rule-surface: #FFFFFF;
   --rule-surface-2: #F8FAFC;
 
-  /* === Shadows === */
+  /* 阴影 */
   --rule-shadow-1: 0 1px 2px rgba(15,23,42,.04), 0 1px 1px rgba(15,23,42,.02);
   --rule-shadow-2: 0 8px 24px -8px rgba(15,23,42,.12);
   --rule-shadow-3: 0 24px 60px -20px rgba(15,23,42,.20);
 
-  /* === Base Shell Layout === */
+  /* 基础整体布局 */
   display: flex;
   min-height: 100vh;
   background: var(--rule-background);
@@ -883,7 +791,7 @@ onLoad(() => {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ===== Sidebar ===== */
+/* 侧边导航栏 */
 .app-sidebar {
   position: fixed; left: 0; top: 0; height: 100vh; width: 240px;
   display: flex; flex-direction: column;
@@ -900,18 +808,14 @@ onLoad(() => {
 }
 
 .app-sidebar-logo-icon {
-  width: 36px; height: 36px; border-radius: 8px;
-  background: var(--rule-primary);
+  width: 36px; height: 36px;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
-  overflow: hidden;
 }
 
-.ls-svg-glyph {
-  width: 20px; height: 20px;
-  background: #fff;
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
+.ls-svg-img {
+  width: 32px;
+  height: 32px;
 }
 
 .app-sidebar-logo-text {
@@ -944,7 +848,7 @@ onLoad(() => {
 }
 .app-nav-item.is-active:hover { background: var(--rule-primary-hover); color: #fff; }
 
-/* Nav icons (mask-based SVGs) */
+/* 导航图标（基于遮罩的 SVG） */
 .navi-icon {
   width: 20px; height: 20px; flex-shrink: 0;
   background: currentColor;
@@ -973,7 +877,7 @@ onLoad(() => {
           mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z'/%3E%3Cpath d='M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z'/%3E%3C/svg%3E") center/contain no-repeat;
 }
 
-/* ===== Sidebar User ===== */
+/* 侧边栏用户信息 */
 .app-sidebar-user {
   padding: 16px 12px;
   border-top: 1px solid var(--rule-border);
@@ -1099,7 +1003,7 @@ onLoad(() => {
   box-sizing: border-box;
 }
 
-/* === Transition curve (共享给该页面其他动画使用) === */
+/* 缓动曲线（该页面其他动画共用） */
 :root {
   --lt-ease: cubic-bezier(.2,.8,.2,1);
 }
@@ -1115,1232 +1019,489 @@ onLoad(() => {
   color: var(--rule-muted-foreground);
 }
 
-.lt-empty {
-  padding: 28px 16px;
-  border: 1px dashed var(--rule-border);
-  border-radius: 12px;
-  color: var(--rule-muted-foreground);
-  font-size: 13px;
-  text-align: center;
-}
+/* ===== 法律英语听力训练 — 主内容样式（参考设计稿复刻） ===== */
 
-/* === Section common === */
-.lc-section {
-  margin-bottom: 64px;
-  opacity: 0;
-  transform: translateY(30px) scale(0.98);
-  transition: opacity 0.7s var(--lt-ease), transform 0.7s var(--lt-ease);
-}
-
-.lc-section:last-child {
-  margin-bottom: 0;
-}
-
-.lc-section.is-visible {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-}
-
-.lc-section-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 32px;
-}
-
-.lt-all-tasks-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 36px;
-  padding: 0 14px;
-  border: 1px solid var(--rule-border);
-  border-radius: 9999px;
-  background: var(--rule-card);
-  color: var(--rule-primary);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.lt-all-tasks-btn:hover {
-  background: var(--rule-primary-tint-3);
-  border-color: var(--rule-primary-tint-2);
-  box-shadow: 0 4px 12px -6px rgba(37, 99, 235, 0.35);
-}
-
-.lt-all-tasks-btn-count {
-  min-width: 20px;
-  padding: 1px 7px;
-  border-radius: 9999px;
-  background: var(--rule-primary-tint-1);
-  color: var(--rule-primary);
-  font-size: 12px;
-  text-align: center;
-}
-
-.lc-section-title-wrap {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.lc-section-bar {
-  width: 6px;
-  height: 28px;
-  border-radius: 3px;
-  flex-shrink: 0;
-  background: linear-gradient(180deg, var(--rule-primary), rgba(37, 99, 235, 0.05));
-}
-
-.lc-section-title {
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--rule-foreground);
-  letter-spacing: -0.02em;
-  line-height: 1.2;
-}
-
-.lc-section-subtitle {
-  font-size: 14px;
-  color: var(--rule-muted-foreground);
-  margin-top: 4px;
-}
-
-/* === Hero title block === */
-.lt-hero {
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+/* 整体布局：左列 + 右侧 380px 任务栏 */
+.le-layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
   gap: 32px;
-  background: linear-gradient(120deg, #0F2E6B 0%, #1D4ED8 55%, #2563EB 100%);
-  border-radius: 20px;
-  padding: 40px 48px;
-  margin-bottom: 64px;
-  box-shadow: 0 20px 50px -20px rgba(37, 99, 235, 0.5);
+  align-items: start;
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
 }
 
-.lt-hero::before {
-  content: '';
-  position: absolute;
-  top: -60%;
-  right: -10%;
-  width: 60%;
-  height: 220%;
-  pointer-events: none;
-  background: radial-gradient(circle, rgba(255,255,255,0.14), transparent 70%);
-}
-
-.lt-hero::after {
-  content: '';
-  position: absolute;
-  left: -60px;
-  bottom: -140px;
-  width: 300px;
-  height: 300px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,255,255,0.08), transparent 65%);
-}
-
-.lt-hero > * {
-  position: relative;
-  z-index: 1;
-}
-
-.lt-hero-main {
+.le-main {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
   min-width: 0;
 }
 
-.lt-hero-tag {
+.le-card {
+  background: #FFFFFF;
+  border: 1px solid #E0E5EE;
+  border-radius: 16px;
+  box-sizing: border-box;
+}
+
+/* 通用小图标 */
+.le-svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* —— 课程信息 —— */
+.le-lesson-info { padding: 20px 28px; }
+
+/* 课程信息横向单行排版：标题区在左、标签靠右 */
+.le-lesson-top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.le-lesson-summary {
+  flex: 1;
+  min-width: 0;
+}
+
+.le-lesson-divider {
+  height: 1px;
+  background: #E0E5EE;
+  margin: 20px 0 24px;
+}
+
+.le-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #9AABC0;
+  margin-bottom: 12px;
+}
+.le-breadcrumb .le-svg { width: 12px; height: 12px; }
+
+.le-lesson-title {
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: #1B2436;
+  margin: 0 0 8px;
+}
+
+.le-lesson-subtitle {
+  font-size: 18px;
+  color: #5A6B82;
+  margin: 0 0 16px;
+}
+
+.le-lesson-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-shrink: 0;
+  margin-bottom: 4px;
+}
+
+.le-tag {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 12px;
-  background: rgba(255,255,255,0.16);
-  border: 1px solid rgba(255,255,255,0.28);
-  border-radius: 9999px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--rule-primary-foreground);
-  backdrop-filter: blur(4px);
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: #EFF2F7;
+  font-size: 13px;
+  color: #5A6B82;
 }
+.le-tag .le-svg { width: 14px; height: 14px; }
 
-.lt-hero-tag-icon {
-  width: 12px;
-  height: 12px;
-  background: #fff;
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z'/><path d='M16 9a5 5 0 0 1 0 6'/><path d='M19.364 18.364a9 9 0 0 0 0-12.728'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z'/><path d='M16 9a5 5 0 0 1 0 6'/><path d='M19.364 18.364a9 9 0 0 0 0-12.728'/></svg>") center/contain no-repeat;
-}
-
-.lt-hero-title {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--rule-primary-foreground);
-  letter-spacing: -0.02em;
-  margin: 16px 0 8px;
-  line-height: 1.3;
-}
-
-.lt-hero-subtitle {
-  font-size: 14px;
-  color: var(--rule-primary-tint-1);
-  margin: 0;
-  line-height: 1.6;
-}
-
-.lt-hero-stats {
+/* —— 音频播放器（已并入课程信息卡片） —— */
+.le-player-row {
   display: flex;
   align-items: center;
-  gap: 28px;
-  margin-top: 24px;
+  gap: 16px;
 }
 
-.lt-stat {
+.le-play-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--rule-primary);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: opacity 0.2s;
+}
+.le-play-btn:hover { opacity: 0.9; }
+.le-play-btn svg { width: 20px; height: 20px; color: #FFFFFF; }
+
+.le-player-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.le-player-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.le-player-name {
+  font-size: 14px;
+  color: #5A6B82;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.le-player-tools {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.le-speed-btn {
+  font-size: 13px;
+  color: #5A6B82;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  background: #FFFFFF;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+/* 清掉 uni-app 按钮自带的灰盒子与边框伪元素 */
+.le-speed-btn::after {
+  display: none;
+  border: none;
+  background: none;
+}
+.le-speed-btn:hover { color: var(--rule-primary); }
+
+.le-ico-btn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #9AABC0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+}
+.le-ico-btn::after {
+  display: none;
+  border: none;
+  background: none;
+}
+.le-ico-btn:hover { color: var(--rule-primary); }
+.le-ico-btn svg { width: 16px; height: 16px; }
+
+/* 进度条 */
+.le-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.le-progress-time {
+  font-size: 12px;
+  color: #9AABC0;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.le-progress-track {
+  flex: 1;
+  height: 6px;
+  background: #EFF2F7;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.le-progress-fill {
+  height: 100%;
+  background: var(--rule-primary);
+  border-radius: 999px;
+  transition: width 0.2s ease;
+}
+
+.le-progress-track-lg { height: 8px; }
+
+/* —— 双语文本 —— */
+.le-bilingual { overflow: hidden; }
+
+.le-tabs {
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  border-bottom: 1px solid #E0E5EE;
+}
+
+.le-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #9AABC0;
+  background: #FFFFFF;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+/* 清掉 uni-app 按钮自带的灰盒子与边框伪元素 */
+.le-tab::after {
+  display: none;
+  border: none;
+  background: none;
+}
+.le-tab .le-svg { width: 16px; height: 16px; }
+.le-tab.is-active {
+  color: var(--rule-primary);
+  border-bottom-color: var(--rule-primary);
+}
+.le-tab:not(.is-active):hover { color: #1B2436; }
+
+.le-bilingual-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+.le-bilingual-body.is-single { grid-template-columns: 1fr; }
+
+.le-text-col { padding: 24px; }
+
+.le-text-col-zh {
+  background: #F7F8FB;
+  border-left: 1px solid #E0E5EE;
+}
+.le-bilingual-body.is-single .le-text-col-zh { border-left: none; }
+
+.le-text-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #9AABC0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 16px;
+}
+
+.le-text {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #1B2436;
+  margin: 0 0 16px;
+}
+.le-text:last-child { margin-bottom: 0; }
+.le-text-col-zh .le-text { line-height: 1.8; }
+
+.le-text-empty { color: #9AABC0; }
+
+/* —— 右侧任务清单 —— */
+/* 固定在内容区顶部（topbar 64px + 内容上边距），滚动时不再上移、不被 hero 遮挡 */
+.le-side {
+  min-width: 0;
+  position: sticky;
+  top: 96px;
+  height: calc(100vh - 128px);
+  display: flex;
+  align-items: center;
+}
+
+.le-checklist {
+  width: 100%;
+  padding: 8px 24px;
+}
+
+.le-checklist-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.le-checklist-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1B2436;
+}
+.le-checklist-title .le-svg { color: var(--rule-primary); }
+
+.le-checklist-week {
+  font-size: 13px;
+  color: #9AABC0;
+}
+
+.le-checklist-progress { margin-bottom: 20px; }
+
+.le-checklist-progress-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: #5A6B82;
+}
+
+.le-checklist-progress-num {
+  font-weight: 500;
+  color: var(--rule-primary);
+}
+
+.le-task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.le-task {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.le-task:hover { background: #EFF2F7; }
+.le-task.is-active {
+  background: #EFF2F7;
+  border: 1px solid rgba(43, 74, 124, 0.2);
+}
+
+.le-task-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+.le-task.is-done .le-task-icon { color: #2D7A52; }
+.le-task.is-active .le-task-icon { color: var(--rule-primary); }
+.le-task:not(.is-done):not(.is-active) .le-task-icon { color: #9AABC0; }
+
+.le-task-body {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.lt-stat-num {
-  font-size: 24px;
-  font-weight: 800;
-  color: var(--rule-primary-foreground);
-  font-variant-numeric: tabular-nums;
-  line-height: 1.1;
-}
-
-.lt-stat-label {
-  font-size: 12px;
-  color: rgba(255,255,255,0.7);
-}
-
-.lt-stat-sep {
-  width: 1px;
-  height: 32px;
-  background: rgba(255,255,255,0.25);
-}
-
-/* === Hero 耳机装饰 === */
-.lt-hero-art {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 220px;
-}
-
-.lt-earphones {
-  position: relative;
-  width: 170px;
-  height: 150px;
-  filter: drop-shadow(0 22px 28px rgba(2,20,70,0.45));
-  animation: lt-float 4.5s ease-in-out infinite;
-}
-
-@keyframes lt-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
-}
-
-.lt-earphone {
-  position: absolute;
-  background: linear-gradient(160deg, #93C5FD, #DBEAFE);
-  border-radius: 14px;
-}
-
-.lt-earphone-band {
-  top: 4px;
-  left: 26px;
-  width: 118px;
-  height: 46px;
-  border-radius: 60px 60px 12px 12px;
-  background: linear-gradient(160deg, #60A5FA, #2563EB);
-  border: none;
-}
-
-.lt-earphone-left {
-  top: 44px;
-  left: 4px;
-  width: 44px;
-  height: 72px;
-  border-radius: 18px 18px 30px 30px;
-}
-
-.lt-earphone-right {
-  top: 44px;
-  right: 4px;
-  width: 44px;
-  height: 72px;
-  border-radius: 18px 18px 30px 30px;
-}
-
-.lt-eq {
-  position: absolute;
-  left: 50%;
-  top: 58px;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: flex-end;
-  gap: 4px;
-  height: 40px;
-  padding: 8px 10px;
-  background: rgba(255,255,255,0.9);
-  border-radius: 12px;
-  box-shadow: 0 8px 20px -6px rgba(2,20,70,0.35);
-}
-
-.lt-eq-bar {
-  width: 5px;
-  border-radius: 3px;
-  background: linear-gradient(180deg, var(--rule-primary), #60A5FA);
-  height: 6px;
-  transform-origin: bottom;
-}
-
-.lt-eq .lt-eq-bar.is-playing {
-  animation: lt-eq-bounce 0.9s ease-in-out infinite;
-}
-
-.lt-eq .lt-eq-bar.is-playing:nth-child(1) { animation-delay: 0s; }
-.lt-eq .lt-eq-bar.is-playing:nth-child(2) { animation-delay: 0.15s; }
-.lt-eq .lt-eq-bar.is-playing:nth-child(3) { animation-delay: 0.3s; }
-.lt-eq .lt-eq-bar.is-playing:nth-child(4) { animation-delay: 0.45s; }
-.lt-eq .lt-eq-bar.is-playing:nth-child(5) { animation-delay: 0.6s; }
-
-@keyframes lt-eq-bounce {
-  0%, 100% { height: 8px; }
-  30% { height: 32px; }
-  60% { height: 16px; }
-  80% { height: 26px; }
-}
-
-.lt-art-dot {
-  position: absolute;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.18);
-}
-
-.lt-art-dot-1 { width: 46px; height: 46px; top: 10px; right: 0; }
-.lt-art-dot-2 { width: 26px; height: 26px; bottom: 16px; left: 8px; background: rgba(255,255,255,0.12); }
-
-/* === Task cards === */
-.lt-task-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-}
-
-.lt-all-tasks {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  max-height: 360px;
-  overflow-y: auto;
-  margin-top: 18px;
-  padding-right: 4px;
-}
-
-.lt-all-task {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  min-height: 52px;
-  padding: 10px 14px;
-  border: 1px solid var(--rule-border);
-  border-radius: 12px;
-  background: var(--rule-card);
-  color: var(--rule-foreground);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
-}
-
-.lt-all-task:hover {
-  transform: translateY(-1px);
-  background: var(--rule-primary-tint-3);
-  border-color: var(--rule-primary-tint-2);
-}
-
-.lt-all-task.is-active {
-  border-color: var(--rule-primary);
-  background: var(--rule-primary-tint-3);
-}
-
-.lt-all-task-index {
-  flex-shrink: 0;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--rule-primary);
-}
-
-.lt-all-task-title {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.lt-all-task-meta {
-  flex-shrink: 0;
-  font-size: 12px;
-  color: var(--rule-muted-foreground);
-}
-
-.lt-all-task-arrow {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-  background: currentColor;
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='m9 18 6-6-6-6'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='m9 18 6-6-6-6'/></svg>") center/contain no-repeat;
-}
-
-.lt-task-card {
-  position: relative;
-  background: linear-gradient(135deg, var(--rule-card), var(--rule-primary-tint-3));
-  border: 1px solid rgba(226, 232, 240, 0.55);
-  border-radius: 16px;
-  padding: 22px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  box-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 10px 28px -14px rgba(15,23,42,0.10);
-  transition: transform 0.3s var(--lt-ease), box-shadow 0.3s var(--lt-ease), border-color 0.3s var(--lt-ease);
-}
-
-.lt-task-card:hover {
-  transform: translateY(-6px);
-  border-color: rgba(37, 99, 235, 0.3);
-  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.12), 0 22px 44px -14px rgba(37, 99, 235, 0.38);
-}
-
-.lt-task-card.is-done:hover {
-  border-color: rgba(22, 163, 74, 0.35);
-  box-shadow: 0 4px 8px rgba(22, 163, 74, 0.12), 0 22px 44px -14px rgba(22, 163, 74, 0.38);
-}
-
-.lt-task-card.is-active {
-  border: 2px solid transparent;
-  background: linear-gradient(135deg, var(--rule-card), var(--rule-primary-tint-3)) padding-box,
-              linear-gradient(135deg, var(--rule-primary), var(--rule-primary-active)) border-box;
-}
-
-.lt-task-card.is-active::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  z-index: -1;
-  box-shadow: 0 18px 38px -10px rgba(37, 99, 235, 0.42);
-  animation: lt-pulse-glow 2.4s ease-in-out infinite;
-}
-
-@keyframes lt-pulse-glow {
-  0%, 100% { opacity: 0.65; }
-  50% { opacity: 1; }
-}
-
-.lt-task-badge {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--rule-ink-3), var(--rule-muted-foreground));
-  color: var(--rule-primary-foreground);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  font-weight: 700;
-  flex-shrink: 0;
-  box-shadow: 0 5px 12px -3px rgba(148, 163, 184, 0.55);
-}
-
-.lt-task-card.is-done .lt-task-badge {
-  background: linear-gradient(135deg, var(--state-success), rgba(22, 163, 74, 0.88));
-  box-shadow: 0 6px 14px -4px rgba(22, 163, 74, 0.48);
-}
-
-.lt-task-card.is-active .lt-task-badge {
-  background: linear-gradient(135deg, var(--rule-primary), var(--rule-primary-active));
-  box-shadow: 0 6px 14px -4px rgba(37, 99, 235, 0.48);
-}
-
-.lt-task-top {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.lt-task-day {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--rule-ink-2);
-}
-
-.lt-task-card.is-active .lt-task-day {
-  color: var(--rule-primary);
-}
-
-.lt-task-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--rule-foreground);
-  line-height: 1.4;
-  min-height: 42px;
-}
-
-.lt-task-progress {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.lt-progress-track {
-  flex: 1;
-  height: 8px;
-  background: var(--rule-muted);
-  border-radius: 9999px;
-  overflow: hidden;
-}
-
-.lt-progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--rule-primary), var(--rule-primary-active));
-  border-radius: 9999px;
-  transition: width 0.8s var(--lt-ease);
-}
-
-.lt-task-card.is-done .lt-progress-fill {
-  background: linear-gradient(90deg, var(--state-success), rgba(22, 163, 74, 0.85));
-}
-
-.lt-progress-pct {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--rule-primary);
-  font-variant-numeric: tabular-nums;
-  min-width: 36px;
-  text-align: right;
-}
-
-.lt-task-card.is-done .lt-progress-pct {
-  color: var(--state-success);
-}
-
-/* === Difficulty tags === */
-.lt-diff {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 4px 12px;
-  border-radius: 9999px;
-  margin-left: auto;
-}
-
-.lt-diff-beginner {
-  background: var(--state-success-tint);
-  color: var(--state-success);
-}
-
-.lt-diff-intermediate {
-  background: var(--state-warning-tint);
-  color: var(--state-warning);
-}
-
-.lt-diff-advanced {
-  background: var(--state-error-tint);
-  color: var(--state-error);
-}
-
-/* === Status tags === */
-.lt-status {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 4px 14px;
-  border-radius: 9999px;
-  width: fit-content;
-}
-
-.lt-status-done {
-  background: var(--state-success-tint);
-  color: var(--state-success);
-}
-
-.lt-status-active {
-  background: var(--rule-primary-tint-1);
-  color: var(--rule-primary);
-}
-
-.lt-status-pending {
-  background: var(--rule-muted);
-  color: var(--rule-muted-foreground);
-}
-
-/* === Studio (floating islands) === */
-.lt-studio {
-  background: var(--rule-surface-2);
-  border-radius: 20px;
-  padding: 16px;
-  box-shadow: var(--rule-shadow-2);
-}
-
-.lt-studio-player {
-  background: linear-gradient(135deg, var(--rule-primary-active), var(--rule-primary));
-  border-radius: 14px;
-  padding: 32px;
-  margin-bottom: 16px;
-  box-shadow: 0 20px 44px -16px rgba(37, 99, 235, 0.52);
-}
-
-.lt-player-top {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.lt-play-btn {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: var(--rule-card);
-  border: none;
-  color: var(--rule-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  flex-shrink: 0;
-  box-shadow: 0 8px 22px -4px rgba(255,255,255,0.45);
-  transition: transform 0.3s var(--lt-ease), box-shadow 0.3s var(--lt-ease);
-}
-
-.lt-play-btn:hover {
-  transform: scale(1.08);
-  box-shadow: 0 12px 30px -4px rgba(255,255,255,0.55);
-}
-
-.lt-play-btn svg {
-  width: 26px;
-  height: 26px;
-  margin-left: 2px;
-}
-
-.lt-player-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.lt-player-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.lt-player-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--rule-primary-foreground);
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.lt-eq-sm {
-  position: static;
-  transform: none;
-  height: 26px;
-  padding: 6px 8px;
-  background: rgba(255,255,255,0.16);
-  border: 1px solid rgba(255,255,255,0.22);
-  box-shadow: none;
-  flex-shrink: 0;
-}
-
-.lt-eq-sm .lt-eq-bar {
-  width: 3px;
-  height: 5px;
-  background: #fff;
-}
-
-.lt-eq-sm.is-on .lt-eq-bar {
-  animation: lt-eq-bounce-sm 0.8s ease-in-out infinite;
-}
-
-.lt-eq-sm.is-on .lt-eq-bar:nth-child(1) { animation-delay: 0s; }
-.lt-eq-sm.is-on .lt-eq-bar:nth-child(2) { animation-delay: 0.2s; }
-.lt-eq-sm.is-on .lt-eq-bar:nth-child(3) { animation-delay: 0.4s; }
-.lt-eq-sm.is-on .lt-eq-bar:nth-child(4) { animation-delay: 0.6s; }
-
-@keyframes lt-eq-bounce-sm {
-  0%, 100% { height: 5px; }
-  30% { height: 18px; }
-  60% { height: 9px; }
-  80% { height: 14px; }
-}
-
-.lt-player-bar {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.lt-progress-bar {
-  flex: 1;
-  height: 6px;
-  background: rgba(255,255,255,0.25);
-  border-radius: 9999px;
-  cursor: pointer;
-  position: relative;
-}
-
-.lt-player-fill {
-  height: 100%;
-  background: var(--rule-primary-foreground);
-  border-radius: 9999px;
-  transition: width 0.2s ease;
-}
-
-.lt-player-time {
-  font-size: 12px;
-  color: var(--rule-primary-tint-1);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
-.lt-player-controls {
+.le-task-line {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
+}
+
+.le-task-day {
+  font-size: 12px;
+  color: #9AABC0;
+  width: 32px;
   flex-shrink: 0;
 }
+.le-task.is-active .le-task-day { color: var(--rule-primary); font-weight: 500; }
 
-.lt-ctrl-btn {
-  height: 36px;
-  min-width: 36px;
-  padding: 0 12px;
-  border-radius: 9999px;
-  background: rgba(255,255,255,0.16);
-  border: 1px solid rgba(255,255,255,0.22);
-  color: var(--rule-primary-foreground);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.le-task-title {
+  font-size: 14px;
+  color: #1B2436;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.le-task.is-done .le-task-title {
+  color: #9AABC0;
+  text-decoration: line-through;
+}
+.le-task.is-active .le-task-title { font-weight: 500; }
+
+.le-task-sub {
   font-size: 12px;
-  font-weight: 600;
-  transition: background 0.3s var(--lt-ease);
+  color: #9AABC0;
 }
+.le-task.is-active .le-task-sub { color: #5A6B82; }
 
-.lt-ctrl-btn:hover {
-  background: rgba(255,255,255,0.3);
-}
-
-.lt-ctrl-btn svg {
-  width: 16px;
-  height: 16px;
-}
-
-/* === Studio panels === */
-.lt-studio-panels {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.lt-panel {
-  background: var(--rule-card);
-  border-radius: 14px;
-  padding: 24px 28px;
-  box-shadow: 0 2px 8px -2px rgba(15,23,42,0.06);
-}
-
-.lt-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-
-.lt-panel-title {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--rule-foreground);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.lt-panel-title::before {
-  content: '';
-  width: 4px;
-  height: 18px;
-  border-radius: 2px;
-  background: linear-gradient(180deg, var(--rule-primary), var(--rule-primary-active));
-}
-
-.lt-quiz-count {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--rule-primary);
-  background: var(--rule-primary-tint-3);
-  padding: 4px 12px;
-  border-radius: 9999px;
-}
-
-/* === Language toggle === */
-.lt-lang-toggle {
-  display: inline-flex;
-  gap: 4px;
-  background: var(--rule-muted);
-  padding: 3px;
-  border-radius: 9999px;
-}
-
-.lt-lang-tag {
-  font-size: 12px;
+.le-task-badge {
+  font-size: 11px;
   font-weight: 500;
-  padding: 4px 14px;
-  border-radius: 9999px;
-  cursor: pointer;
-  transition: background 0.3s var(--lt-ease), color 0.3s var(--lt-ease), box-shadow 0.3s var(--lt-ease);
-}
-
-.lt-lang-tag.is-active {
-  background: var(--rule-card);
-  color: var(--rule-primary);
-  box-shadow: 0 2px 6px -1px rgba(15,23,42,0.14);
-}
-
-.lt-lang-tag:not(.is-active) {
-  color: var(--rule-muted-foreground);
-}
-
-/* === Transcript === */
-.lt-transcript {
-  font-size: 14px;
-  line-height: 1.85;
-  color: var(--rule-ink-2);
-  margin: 0;
-  max-height: 320px;
-  overflow-y: auto;
-  overflow-wrap: break-word;
-  white-space: pre-wrap;
-  overscroll-behavior: contain;
-  padding-left: 18px;
-  padding-right: 8px;
-  padding-bottom: 8px;
-  border-left: 3px solid;
-  border-image: linear-gradient(180deg, var(--rule-primary), var(--rule-primary-tint-2)) 1;
-  font-family: var(--rule-font-sans);
-}
-
-/* === Quiz options === */
-.lt-quiz-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.lt-quiz-item {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.lt-quiz-q {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--rule-foreground);
-  line-height: 1.5;
-}
-
-.lt-quiz-options {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.lt-quiz-option {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-size: 13px;
-  color: var(--rule-ink-2);
-  background: var(--rule-surface-2);
-  border: 1.5px solid transparent;
-  transition: background 0.3s var(--lt-ease), border-color 0.3s var(--lt-ease), color 0.3s var(--lt-ease), transform 0.3s var(--lt-ease);
-}
-
-.lt-quiz-option:hover {
-  background: var(--rule-primary-tint-3);
-  color: var(--rule-foreground);
-  border-color: var(--rule-primary-tint-2);
-  transform: translateX(2px);
-}
-
-.lt-quiz-radio {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: 2px solid var(--rule-border);
+  color: #FFFFFF;
+  background: var(--rule-primary);
+  padding: 2px 8px;
+  border-radius: 4px;
   flex-shrink: 0;
-  transition: border-color 0.3s var(--lt-ease), background 0.3s var(--lt-ease), box-shadow 0.3s var(--lt-ease);
 }
 
-.lt-quiz-option.is-selected {
-  background: var(--rule-primary-tint-3);
-  color: var(--rule-primary);
-  border-color: var(--rule-primary);
+.le-empty {
+  padding: 24px 0;
+  text-align: center;
+  font-size: 13px;
+  color: #9AABC0;
 }
 
-.lt-quiz-option.is-selected::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 10px;
-  bottom: 10px;
-  width: 3px;
-  border-radius: 0 3px 3px 0;
-  background: linear-gradient(180deg, var(--rule-primary), var(--rule-primary-active));
-}
-
-.lt-quiz-option.is-selected .lt-quiz-radio {
-  border-color: var(--rule-primary);
-  background: linear-gradient(135deg, var(--rule-primary), var(--rule-primary-active));
-  box-shadow: inset 0 0 0 3px var(--rule-card), 0 0 12px rgba(37, 99, 235, 0.55);
-}
-
-.lt-submit-btn {
-  display: inline-flex;
+.le-checklist-foot {
+  display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #E0E5EE;
+}
+
+.le-checklist-foot-label {
+  display: flex;
+  align-items: center;
   gap: 8px;
+  font-size: 13px;
+  color: #5A6B82;
+}
+
+.le-checklist-foot-num {
   font-size: 14px;
   font-weight: 600;
-  background: linear-gradient(135deg, var(--rule-primary), var(--rule-primary-active));
-  color: var(--rule-primary-foreground);
-  padding: 14px 24px;
-  border-radius: 9999px;
-  border: none;
-  cursor: pointer;
-  width: 100%;
-  margin-top: 24px;
-  box-shadow: 0 8px 20px -4px rgba(37, 99, 235, 0.42);
-  transition: transform 0.3s var(--lt-ease), box-shadow 0.3s var(--lt-ease);
-}
-
-.lt-submit-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 28px -4px rgba(37, 99, 235, 0.56);
-}
-
-.lt-submit-btn svg {
-  width: 16px;
-  height: 16px;
-  transition: transform 0.3s var(--lt-ease);
-}
-
-.lt-submit-btn:hover svg {
-  transform: translateX(4px);
-}
-
-/* === History cards === */
-.lt-history-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-}
-
-.lt-history-card {
-  position: relative;
-  overflow: hidden;
-  background: linear-gradient(135deg, var(--rule-card), var(--rule-primary-tint-3));
-  border: 1px solid rgba(226, 232, 240, 0.55);
-  border-radius: 16px;
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  text-align: center;
-  box-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 10px 28px -14px rgba(15,23,42,0.10);
-  transition: transform 0.3s var(--lt-ease), box-shadow 0.3s var(--lt-ease);
-}
-
-.lt-history-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-}
-
-.lt-card-high::before {
-  background: linear-gradient(90deg, var(--state-success), transparent);
-}
-
-.lt-card-mid::before {
-  background: linear-gradient(90deg, var(--rule-primary), transparent);
-}
-
-.lt-card-low::before {
-  background: linear-gradient(90deg, var(--state-warning), transparent);
-}
-
-.lt-card-high:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 22px 44px -14px rgba(22, 163, 74, 0.38);
-}
-
-.lt-card-mid:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 22px 44px -14px rgba(37, 99, 235, 0.38);
-}
-
-.lt-card-low:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 22px 44px -14px rgba(217, 119, 6, 0.38);
-}
-
-.lt-history-ring-wrap {
-  position: relative;
-  width: 96px;
-  height: 96px;
-}
-
-.lt-history-ring {
-  width: 96px;
-  height: 96px;
-  transform: rotate(-90deg);
-}
-
-.lt-ring-track {
-  fill: none;
-  stroke: var(--rule-muted);
-  stroke-width: 8;
-}
-
-.lt-ring-fill {
-  fill: none;
-  stroke-width: 8;
-  stroke-linecap: round;
-  transition: stroke-dashoffset 1s var(--lt-ease);
-}
-
-.lt-card-high .lt-ring-fill {
-  stroke: var(--state-success);
-}
-
-.lt-card-mid .lt-ring-fill {
-  stroke: var(--rule-primary);
-}
-
-.lt-card-low .lt-ring-fill {
-  stroke: var(--state-warning);
-}
-
-.lt-history-ring-pct {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
-  font-weight: 700;
+  color: #1B2436;
   font-variant-numeric: tabular-nums;
-  line-height: 1;
 }
 
-.lt-card-high .lt-history-ring-pct {
-  color: var(--state-success);
-}
-
-.lt-card-mid .lt-history-ring-pct {
-  color: var(--rule-primary);
-}
-
-.lt-card-low .lt-history-ring-pct {
-  color: var(--state-warning);
-}
-
-.lt-history-acc-label {
-  font-size: 12px;
-  color: var(--rule-muted-foreground);
-}
-
-.lt-history-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--rule-foreground);
-  line-height: 1.4;
-}
-
-.lt-history-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  width: 100%;
-}
-
-.lt-history-date,
-.lt-history-time {
-  font-size: 12px;
-  color: var(--rule-muted-foreground);
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  justify-content: center;
-}
-
-.lt-history-date svg,
-.lt-history-time svg {
-  width: 14px;
-  height: 14px;
-}
-
-/* === Responsive === */
-@media (max-width: 1024px) {
-  .lt-task-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .lt-history-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .lt-studio-panels {
-    grid-template-columns: 1fr;
-  }
+/* —— 响应式 —— */
+@media (max-width: 1100px) {
+  .le-layout { grid-template-columns: 1fr; }
+  .le-side { order: -1; position: static; height: auto; display: block; transform: none; }
 }
 
 @media (max-width: 768px) {
-  .app-sidebar {
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-  }
-  
-  .app-sidebar.open {
-    transform: translateX(0);
-  }
-  
-  .app-main {
-    margin-left: 0;
-  }
-  
-  .app-content {
-    padding: 20px;
-  }
-  
-  .lt-all-tasks {
-    grid-template-columns: 1fr;
-  }
-  
-  .lt-hero {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 28px;
-    padding: 32px 24px;
-  }
-  
-  .lt-hero-art {
-    width: 100%;
-    height: 170px;
-    transform: scale(0.9);
-  }
-  
-  .lt-hero-stats {
-    gap: 20px;
-  }
-  
-  .lt-player-top {
-    flex-wrap: wrap;
-  }
-  
-  .lt-player-controls {
-    width: 100%;
-    justify-content: flex-end;
-  }
+  .le-bilingual-body { grid-template-columns: 1fr; }
+  .le-text-col-zh { border-left: none; border-top: 1px solid #E0E5EE; }
+  .le-player-meta { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .le-lesson-top { flex-direction: column; align-items: flex-start; }
+  .le-lesson-tags { justify-content: flex-start; }
+  .le-lesson-title { font-size: 24px; }
+  .le-lesson-subtitle { font-size: 16px; }
 }
 
-@media (max-width: 640px) {
-  .lt-task-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .lt-history-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .lt-hero {
-    padding: 32px 24px;
-  }
-  
-  .lt-hero-title {
-    font-size: 24px;
-  }
-  
-  .lt-studio-player {
-    padding: 24px;
-  }
-  
-  .lt-panel {
-    padding: 20px;
-  }
-  
-  .lt-studio {
-    padding: 12px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .lc-section {
-    transition-duration: 0.01ms;
-  }
-  
-  .lt-task-card:hover,
-  .lt-history-card:hover {
-    transform: none;
-  }
-  
-  .lt-play-btn:hover {
-    transform: none;
-  }
-  
-  .lt-progress-fill,
-  .lt-ring-fill {
-    transition: none;
-  }
-  
-  .lt-task-card.is-active::before {
-    animation: none;
-  }
-  
-  .lt-submit-btn:hover svg {
-    transform: none;
-  }
-  
-  .lt-quiz-option:hover {
-    transform: none;
-  }
+@media (max-width: 480px) {
+  .le-lesson-tags { gap: 8px; }
+  .le-tag { font-size: 12px; }
 }
 </style>

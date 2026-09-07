@@ -1,27 +1,21 @@
 <template>
   <view class="page-wrap">
-    <!-- 状态栏安全区占位（iOS刘海屏 / 安卓挖孔屏适配） -->
-    <view class="status-bar" :style="{ height: statusBarHeight + 'px' }"></view>
-    <!-- Sub-header (返回学习中心, NO tabbar) -->
-    <view class="sub-header">
-      <view class="back" hover-class="bk-hover" @click="navBack" aria-label="返回">
-        <view class="bk-ico"></view>
+    <!-- 固定顶部区：状态栏 + 标题栏（不随内容滚动） -->
+    <view class="top-fixed">
+      <!-- 状态栏安全区占位（iOS刘海屏 / 安卓挖孔屏适配） -->
+      <view class="status-bar" :style="{ height: statusBarHeight + 'px' }"></view>
+      <!-- 顶部导航栏：返回学习中心（非 tabBar 页面） -->
+      <view class="sub-header">
+        <view class="back" hover-class="bk-hover" @click="navBack" aria-label="返回">
+          <view class="bk-ico"></view>
+        </view>
+        <text class="title">AI助手</text>
+        <view class="spacer"></view>
       </view>
-      <text class="title">AI助手</text>
-      <view class="spacer"></view>
     </view>
 
-    <!-- Chat scroll area -->
-    <scroll-view 
-      scroll-y 
-      class="chat-area" 
-      id="chat" 
-      role="log" 
-      aria-live="polite" 
-      aria-label="对话记录"
-      :scroll-into-view="scrollToId"
-      scroll-with-animation
-    >
+    <!-- 对话内容区：随页面整体滚动，上下预留固定栏空间 -->
+    <view class="chat-area" role="log" aria-live="polite" aria-label="对话记录" :style="{ paddingTop: topPad + 'px', paddingBottom: bottomPad + 'px' }">
       <view class="date-div"><text>今天</text></view>
 
       <view 
@@ -55,9 +49,9 @@
       </view>
 
       <view id="msg-bottom"></view>
-    </scroll-view>
+    </view>
 
-    <!-- Composer: suggested prompts + input -->
+    <!-- 底部输入区：吸底，页面滚动时始终可输入（与学习中心吸顶同思路） -->
     <view class="composer">
       <scroll-view scroll-x enable-flex class="suggest-row" role="list" aria-label="建议提问" show-scrollbar="false">
         <view
@@ -102,10 +96,11 @@ export default {
   data() {
     return {
       statusBarHeight: 0,
+      topPad: 0,
+      bottomPad: 0,
       messages: [],
       mid: 1,
       inputText: '',
-      scrollToId: 'msg-bottom',
       followChips: [],
       recording: false,
       reduceMotion: false,
@@ -134,6 +129,9 @@ export default {
   onReady() {
     // 顶部安全区适配：动态获取系统状态栏高度
     this.statusBarHeight = this.getStatusBarHeight()
+    // 固定头部高度 = 状态栏 + 标题栏(约118rpx)；固定输入区约260rpx并留安全余量
+    this.topPad = this.statusBarHeight + uni.upx2px(118)
+    this.bottomPad = uni.upx2px(260) + 16
     this.renderSeed()
   },
   onUnload() {
@@ -300,11 +298,10 @@ export default {
       return html
     },
     scrollBottom() {
-      // 关键：先置空再赋值，强制触发 scroll-into-view（同值不会重新滚动）
-      this.scrollToId = ''
+      // 整页外滚：渲染完成后滚到底部（数值大一些，由页面钳制）
       this.$nextTick(() => {
         setTimeout(() => {
-          this.scrollToId = 'msg-bottom'
+          uni.pageScrollTo({ scrollTop: 999999, duration: 250 })
         }, 60)
       })
     },
@@ -425,16 +422,24 @@ page {
   --r-pill: 999rpx;
 }
 
-/* ---------- Page wrap (Flex column 三段式：固定头/滚动区/固定底) ---------- */
+/* 页面容器：整页外滚动（与学习中心一致）；消息不足一屏时由 flex 撑满，输入区贴底 */
 .page-wrap {
-  height: 100vh;
-  background: linear-gradient(160deg, #EAF3FF 0%, #F4F9FF 45%, #E6F1FE 100%);
-  position: relative;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  background: linear-gradient(160deg, #EAF3FF 0%, #F4F9FF 45%, #E6F1FE 100%);
+  position: relative;
 }
-page { height: 100vh; overflow: hidden; }
+
+/* 固定顶部区：状态栏 + 标题栏（fixed，不随内容滚动），底色与页面背景一致 */
+.top-fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: #EAF3FF;
+}
 
 .page-wrap::before,
 .page-wrap::after {
@@ -456,14 +461,14 @@ page { height: 100vh; overflow: hidden; }
   bottom: 40rpx; right: -180rpx;
 }
 
-/* ---------- Status bar safe-area ---------- */
+/* 状态栏安全区占位 */
 .status-bar {
   width: 100%;
   flex-shrink: 0;
   background: transparent;
 }
 
-/* ---------- Sub-header (固定头部，不随内容滚动) ---------- */
+/* 顶部导航栏（固定头部，不随内容滚动） */
 .sub-header {
   position: relative; z-index: 45;
   flex: 0 0 auto;
@@ -498,18 +503,15 @@ page { height: 100vh; overflow: hidden; }
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='19' y1='12' x2='5' y2='12'/%3E%3Cpolyline points='12 19 5 12 12 5'/%3E%3C/svg%3E") center/contain no-repeat;
 }
 
-/* ---------- Chat layout (唯一滚动区域，头/底均固定) ---------- */
+/* 对话内容区：flex 撑满可视高度，超出时随页面整体滚动 */
 .chat-area {
   position: relative; z-index: 5;
   flex: 1 1 auto;
-  min-height: 0;          /* 关键：flex子项可收缩，保证Safari/Firefox下滚动生效 */
-  height: 0;              /* 配合flex:1让高度严格由父容器剩余空间决定 */
-  padding: 16rpx 32rpx 12rpx;
+  padding: 16rpx 32rpx 24rpx;
   box-sizing: border-box;
-  -webkit-overflow-scrolling: touch;  /* 移动端惯性滚动 */
 }
 
-/* ---------- Date divider ---------- */
+/* 日期分隔线 */
 .date-div {
   display: flex; align-items: center; justify-content: center;
   margin: 12rpx 0 28rpx;
@@ -522,7 +524,7 @@ page { height: 100vh; overflow: hidden; }
   border: 2rpx solid var(--glass-border-soft);
 }
 
-/* ---------- Messages ---------- */
+/* 消息列表 */
 .msg {
   display: flex; gap: 16rpx; align-items: flex-end;
   margin-bottom: 28rpx;
@@ -582,7 +584,7 @@ page { height: 100vh; overflow: hidden; }
   50% { transform: scale(1.03); }
 }
 
-/* Typing indicator dots */
+/* AI 思考中：三点跳动动画 */
 .msg.typing .bubble {
   display: flex; align-items: center; gap: 10rpx;
   padding: 28rpx 32rpx;
@@ -605,7 +607,7 @@ page { height: 100vh; overflow: hidden; }
   30% { transform: translateY(-12rpx); opacity: 1; }
 }
 
-/* ---------- Follow-up chip row ---------- */
+/* 追问建议标签行 */
 .follow-row {
   display: flex;
   margin-left: 80rpx;
@@ -632,11 +634,13 @@ page { height: 100vh; overflow: hidden; }
 }
 .fc-hover { box-shadow: 0 8rpx 24rpx rgba(46,123,224,0.2); transform: scale(0.94); }
 
-/* ---------- Composer (固定底部输入区，不随内容滚动) ---------- */
+/* 底部输入区：fixed 固定在屏幕底部，不随内容滚动 */
 .composer {
-  position: relative; z-index: 45;
-  flex: 0 0 auto;
-  flex-shrink: 0;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 45;
   padding: 16rpx 24rpx 28rpx;
   /* 底部安全区适配（iOS 底部横条），普通设备为 0 */
   padding-bottom: calc(28rpx + constant(safe-area-inset-bottom));
@@ -714,7 +718,7 @@ page { height: 100vh; overflow: hidden; }
 .send-ico { font-size: 32rpx; transform: translateX(2rpx); line-height: 1; }
 .sb-hover { transform: scale(0.9); }
 
-/* Sr only (screen reader only) */
+/* 屏幕阅读器专用（对视觉用户隐藏，仅供读屏软件识别） */
 .sr-only {
   position: absolute; width: 1rpx; height: 1rpx;
   padding: 0; margin: -1rpx; overflow: hidden;

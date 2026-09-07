@@ -13,7 +13,7 @@
       <!-- 品牌区域 -->
       <view class="brand-section">
           <view class="brand-logo anim-logo">
-            <view class="brand-logo-icon ls-svg-glyph" aria-hidden="true"></view>
+            <image class="brand-logo-img" src="/static/logo.png" mode="aspectFit"></image>
           </view>
           <view class="brand-title anim-title">涉外法治人才培养</view>
           <view class="brand-subtitle anim-subtitle">专业 · 国际 · 权威</view>
@@ -49,7 +49,7 @@
                 class="input-field-input"
                 type="text"
                 v-model="phone"
-                placeholder="请输入手机号"
+                placeholder="请输入账号名或手机号"
                 placeholder-class="input-placeholder"
               />
             </view>
@@ -117,7 +117,7 @@
       <view style="height: 80rpx;"></view>
     </scroll-view>
 
-    <!-- Toast -->
+    <!-- 轻提示浮层 -->
     <view class="toast" :class="{ show: showToast }">
       <text>{{ toastText }}</text>
     </view>
@@ -171,7 +171,7 @@ export default {
     },
     handleAccountLogin() {
       if (!this.phone.trim()) {
-        this.showToastMsg('请输入手机号')
+        this.showToastMsg('请输入账号名或手机号')
         return
       }
       if (!this.password.trim()) {
@@ -322,7 +322,7 @@ page {
   --wechat-green: #07c160;
 }
 
-/* ---------- Page wrap ---------- */
+/* 页面容器（整页竖向 Flex 布局） */
 .page-wrap {
   min-height: 100vh;
   background: linear-gradient(165deg, var(--legal-primary-300) 0%, var(--legal-primary-500) 40%, var(--legal-primary-700) 100%);
@@ -333,14 +333,14 @@ page {
 }
 page { min-height: 100vh; }
 
-/* ---------- Status bar ---------- */
+/* 状态栏安全区占位 */
 .status-bar {
   width: 100%;
   flex-shrink: 0;
   background: transparent;
 }
 
-/* ---------- Screen ---------- */
+/* 可滚动内容区 */
 .screen {
   position: relative;
   z-index: 1;
@@ -350,7 +350,7 @@ page { min-height: 100vh; }
   width: 100%;
 }
 
-/* ---------- Floating Orbs ---------- */
+/* 浮动装饰球 */
 .orb {
   position: absolute;
   border-radius: 50%;
@@ -403,7 +403,7 @@ page { min-height: 100vh; }
   to { transform: translate(30rpx, 50rpx); }
 }
 
-/* ---------- Brand Section ---------- */
+/* 品牌区域 */
 .brand-section {
   display: flex;
   flex-direction: column;
@@ -416,23 +416,17 @@ page { min-height: 100vh; }
 }
 
 .brand-logo {
-  width: 128rpx;
-  height: 128rpx;
-  border-radius: 50%;
-  background: var(--legal-primary);
+  width: 120rpx;
+  height: 120rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 32rpx;
-  box-shadow: 0 16rpx 48rpx rgba(26, 86, 219, 0.4);
 }
 
-.brand-logo-icon {
-  width: 64rpx;
-  height: 64rpx;
-  background: #ffffff;
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/%3E%3Cpath d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/%3E%3Cpath d='M7 21h10'/%3E%3Cpath d='M12 3v18'/%3E%3Cpath d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/%3E%3C/svg%3E") center/contain no-repeat;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/%3E%3Cpath d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/%3E%3Cpath d='M7 21h10'/%3E%3Cpath d='M12 3v18'/%3E%3Cpath d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/%3E%3C/svg%3E") center/contain no-repeat;
+.brand-logo-img {
+  width: 120rpx;
+  height: 120rpx;
 }
 
 .brand-title {
@@ -450,7 +444,7 @@ page { min-height: 100vh; }
   text-align: center;
 }
 
-/* ---------- Glass Card ---------- */
+/* 玻璃卡片 */
 .glass-card {
   width: 86%;
   max-width: 620rpx;
@@ -467,7 +461,7 @@ page { min-height: 100vh; }
   margin-right: auto;
 }
 
-/* ---------- Tab Switcher ---------- */
+/* 标签切换器 */
 .tab-switcher {
   position: relative;
   display: flex;
@@ -500,7 +494,7 @@ page { min-height: 100vh; }
   transition: transform 280ms cubic-bezier(0.3, 0, 0, 1);
 }
 
-/* ---------- Tab Panels ---------- */
+/* 登录面板切换 */
 .tab-panel {
   display: none;
 }
@@ -509,7 +503,7 @@ page { min-height: 100vh; }
   display: block;
 }
 
-/* ---------- Form Inputs ---------- */
+/* 表单输入框 */
 .input-group {
   margin-bottom: 28rpx;
 }
@@ -583,7 +577,7 @@ page { min-height: 100vh; }
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24'/%3E%3Cline x1='1' y1='1' x2='23' y2='23'/%3E%3C/svg%3E") center/contain no-repeat;
 }
 
-/* ---------- Forgot Link ---------- */
+/* 忘记密码链接 */
 .forgot-link {
   display: flex;
   justify-content: flex-end;
@@ -592,7 +586,7 @@ page { min-height: 100vh; }
   margin-bottom: 40rpx;
 }
 
-/* ---------- Login Button ---------- */
+/* 登录按钮 */
 .login-btn {
   width: 100%;
   height: 96rpx;
@@ -618,7 +612,7 @@ page { min-height: 100vh; }
   color: #ffffff;
 }
 
-/* ---------- WeChat Login Panel ---------- */
+/* 微信登录面板 */
 .wechat-icon-area {
   display: flex;
   flex-direction: column;
@@ -689,7 +683,7 @@ page { min-height: 100vh; }
   margin-top: 28rpx;
 }
 
-/* ---------- Footer ---------- */
+/* 底部区域 */
 .login-footer {
   margin-top: 56rpx;
   width: 86%;
@@ -761,7 +755,7 @@ page { min-height: 100vh; }
   font-weight: 500;
 }
 
-/* ---------- Toast ---------- */
+/* 轻提示浮层 */
 .toast {
   position: fixed;
   left: 50%;
@@ -789,7 +783,7 @@ page { min-height: 100vh; }
   transform: translateX(-50%) translateY(0);
 }
 
-/* ---------- Entrance Animations ---------- */
+/* 入场动画 */
 @keyframes fadeScaleUp {
   from { opacity: 0; transform: scale(0.8); }
   to { opacity: 1; transform: scale(1); }

@@ -1,88 +1,138 @@
 <template>
   <view class="cs-page">
+    <!-- 状态栏安全区占位 -->
     <view class="status-bar" :style="{ height: statusBarHeight + 'px' }"></view>
+    <!-- 自定义导航栏 -->
     <view class="cs-nav">
       <view class="cs-back" hover-class="cs-back-hover" @click="goBack">
         <text class="cs-back-arrow">‹</text>
         <text>返回</text>
       </view>
       <text class="cs-nav-title">文书案例研究</text>
-      <text class="cs-count">{{ cases.length }} 篇</text>
+      <view class="cs-nav-right"></view>
     </view>
 
-    <!-- 主题横幅 -->
-    <view class="cs-banner">
-      <view class="cs-banner-ico">
-        <text class="cs-banner-glyph"></text>
-      </view>
-      <view class="cs-banner-info">
-        <text class="cs-banner-title">文书案例研究</text>
-        <text class="cs-banner-desc">研读涉外法律文书与典型案例，拆解裁判思路</text>
+    <!-- 固定工具栏：分类 + 搜索（不随滚动消失） -->
+    <view class="cs-fixed">
+      <scroll-view scroll-x class="cs-pills" show-scrollbar="false">
+        <view
+          class="cs-pill"
+          :class="{ 'is-active': categoryFilter === 'all' }"
+          @click="categoryFilter = 'all'"
+        >全部（{{ cases.length }}）</view>
+        <view
+          class="cs-pill"
+          :class="{ 'is-active': categoryFilter === c }"
+          v-for="(c, i) in categories"
+          :key="i"
+          @click="categoryFilter = c"
+        >{{ c }}</view>
+      </scroll-view>
+      <view class="cs-search">
+        <text class="ri-search-line cs-search-ico"></text>
+        <input
+          class="cs-search-input"
+          type="text"
+          v-model="searchText"
+          placeholder="搜索文书 / 案例标题"
+          confirm-type="search"
+        />
+        <text v-if="searchText" class="ri-close-fill cs-search-clear" @click="searchText = ''"></text>
       </view>
     </view>
-
-    <!-- 分类筛选 -->
-    <scroll-view v-if="categories.length" scroll-x class="cs-cats" show-scrollbar="false">
-      <view class="cs-cat" :class="{ 'is-active': categoryFilter === 'all' }" @click="categoryFilter = 'all'">全部（{{ cases.length }}）</view>
-      <view
-        v-for="c in categories"
-        :key="c"
-        class="cs-cat"
-        :class="{ 'is-active': categoryFilter === c }"
-        @click="categoryFilter = c"
-      >{{ c }}</view>
-    </scroll-view>
 
     <scroll-view scroll-y class="cs-scroll" show-scrollbar="false">
+      <!-- 概览横幅 -->
+      <view class="hero">
+        <view class="hero-top">
+          <view class="hero-ico"><text class="ri-scales-3-line"></text></view>
+          <view class="hero-info">
+            <view class="hero-title">文书案例研究</view>
+            <view class="hero-sub">研读裁判文书、仲裁裁决与实务文件，拆解法律适用与裁判思路</view>
+          </view>
+        </view>
+        <view class="hero-stats">
+          <view class="hero-stat">
+            <text class="hero-stat-num">{{ cases.length }}</text>
+            <text class="hero-stat-label">案例总数</text>
+          </view>
+          <view class="hero-stat">
+            <text class="hero-stat-num">{{ categories.length }}</text>
+            <text class="hero-stat-label">案例分类</text>
+          </view>
+          <view class="hero-stat">
+            <text class="hero-stat-num">{{ totalWords }}</text>
+            <text class="hero-stat-label">累计字数</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 加载 / 空状态 -->
       <view v-if="loading" class="cs-empty">
         <view class="cs-spinner"></view>
-        <text>正在加载案例资源...</text>
+        <text class="cs-empty-title">正在加载案例资源...</text>
       </view>
       <view v-else-if="!cases.length" class="cs-empty">
-        <view class="cs-empty-ico"></view>
+        <text class="ri-inbox-archive-line cs-empty-ico"></text>
         <text class="cs-empty-title">暂无文书案例资源</text>
         <text class="cs-empty-sub">请在管理端录入 case 类型资源并上线</text>
       </view>
       <view v-else-if="!filteredCases.length" class="cs-empty">
-        <view class="cs-empty-ico"></view>
+        <text class="ri-search-line cs-empty-ico"></text>
         <text class="cs-empty-title">未找到匹配的案例</text>
+        <text class="cs-empty-sub">可尝试清空搜索关键词或切换分类</text>
       </view>
-      <template v-else>
+
+      <!-- 案例卡片列表 -->
+      <view v-else class="cs-list">
         <view
           class="cs-card"
-          v-for="item in filteredCases"
+          :class="{ 'is-open': expandedId === item.id }"
+          v-for="(item, idx) in filteredCases"
           :key="item.id"
-          :class="{ 'is-open': currentId === item.id }"
+          hover-class="cs-card-hover"
           @click="toggleDetail(item)"
         >
           <view class="cs-card-head">
-            <view v-if="item.cover" class="cs-cover" :style="{ backgroundImage: 'url(' + item.cover + ')' }"></view>
-            <view v-else class="cs-cover cs-cover-plain"></view>
-            <view class="cs-card-info">
+            <view class="cs-card-top">
               <view class="cs-tags">
                 <text class="cs-tag">{{ item.category || '未分类' }}</text>
                 <text v-if="item.meta" class="cs-tag cs-tag-soft">{{ item.meta }}</text>
               </view>
-              <text class="cs-title">{{ item.title }}</text>
-              <text v-if="item.wordCount" class="cs-words">约 {{ item.wordCount }} 字</text>
-              <text v-if="item.description" class="cs-summary">{{ item.description }}</text>
+              <text class="ri-arrow-down-s-line cs-fold-ico" :class="{ 'is-open': expandedId === item.id }"></text>
+            </view>
+            <text class="cs-card-title">{{ item.title }}</text>
+            <view class="cs-card-meta">
+              <text v-if="item.wordCount" class="cs-meta-item">约 {{ item.wordCount }} 字</text>
+              <text v-if="item.description" class="cs-meta-item cs-meta-desc">{{ item.description }}</text>
+            </view>
+            <view class="cs-card-footer">
+              <view class="cs-read-btn">
+                <text class="ri-book-open-line cs-read-ico"></text>
+                <text>{{ expandedId === item.id ? '收起研读' : '研读案例' }}</text>
+              </view>
             </view>
           </view>
 
-          <!-- 展开正文 -->
-          <view v-if="currentId === item.id" class="cs-body">
+          <!-- 展开的正文 -->
+          <view v-if="expandedId === item.id" class="cs-body">
             <view v-if="bodyLoading" class="cs-body-loading">
               <view class="cs-spinner cs-spinner-sm"></view>
               <text>正在加载正文...</text>
             </view>
-            <template v-else>
-              <text v-if="bodyContent" class="cs-content">{{ bodyContent }}</text>
+            <view v-else>
+              <text v-if="bodyContent" class="cs-body-text">{{ bodyContent }}</text>
               <text v-else class="cs-body-empty">暂无正文内容</text>
-              <view v-if="item.fileUrl" class="cs-link" @click.stop="openOriginal(item.fileUrl)">打开原文（PDF / 链接）</view>
-            </template>
+              <view v-if="item.fileUrl" class="cs-body-foot">
+                <view class="cs-original-btn" @click.stop="openOriginal(item.fileUrl)">
+                  <text class="ri-earth-line cs-original-ico"></text>
+                  <text>打开原文（PDF / 链接）</text>
+                </view>
+              </view>
+            </view>
           </view>
         </view>
-      </template>
+      </view>
     </scroll-view>
   </view>
 </template>
@@ -92,25 +142,36 @@ export default {
   data() {
     return {
       statusBarHeight: 0,
-      loading: false,
-      resourceLoading: false,
-      caseBodies: {},
       cases: [],
-      currentId: '',
+      loading: false,
       bodyLoading: false,
+      searchText: '',
+      categoryFilter: 'all',
+      expandedId: '',
       bodyContent: '',
-      categoryFilter: 'all'
+      caseBodies: {}
     }
   },
   computed: {
     categories() {
-      return [...new Set(this.cases.map(c => c.category).filter(Boolean))]
+      return [...new Set(this.cases.map((c) => c.category).filter(Boolean))]
     },
     filteredCases() {
-      return this.cases.filter(c => {
+      const q = (this.searchText || '').trim().toLowerCase()
+      return this.cases.filter((c) => {
         const matchCategory = this.categoryFilter === 'all' || c.category === this.categoryFilter
-        return matchCategory
+        const matchQuery =
+          !q ||
+          (c.title || '').toLowerCase().includes(q) ||
+          (c.category || '').toLowerCase().includes(q)
+        return matchCategory && matchQuery
       })
+    },
+    totalWords() {
+      const total = this.cases.reduce((sum, c) => sum + (Number(c.wordCount) || 0), 0)
+      if (total >= 10000) return (total / 10000).toFixed(1) + 'w'
+      if (total >= 1000) return (total / 1000).toFixed(1) + 'k'
+      return String(total)
     }
   },
   onLoad() {
@@ -118,26 +179,23 @@ export default {
     this.loadCases()
   },
   methods: {
-    getStatusBarHeight() {
-      try {
-        return uni.getWindowInfo().statusBarHeight || 0
-      } catch (e) {
-        try {
-          return uni.getSystemInfoSync().statusBarHeight || 0
-        } catch (err) {
-          return 0
-        }
-      }
-    },
     async loadCases() {
-      if (this.resourceLoading) return
-      this.resourceLoading = true
+      if (this.loading) return
       this.loading = true
       try {
+        const CACHE_KEY = 'cs_cases_cache'
+        const now = Date.now()
+        try {
+          const cached = uni.getStorageSync(CACHE_KEY)
+          if (cached && cached.expireAt > now && Array.isArray(cached.list)) {
+            this.cases = cached.list
+            return
+          }
+        } catch (e) {}
         const resourcesObj = uniCloud.importObject('resources', { customUI: true })
         const r = (await resourcesObj.listPublic({ type: 'case' })) || {}
         if (r.errCode === 0) {
-          this.cases = (r.list || []).map(doc => ({
+          this.cases = (r.list || []).map((doc) => ({
             id: doc._id,
             title: doc.title || '',
             category: doc.cat || '',
@@ -147,40 +205,43 @@ export default {
             cover: doc.cover || '',
             fileUrl: doc.fileUrl || ''
           }))
+          try {
+            uni.setStorageSync(CACHE_KEY, { expireAt: now + 5 * 60 * 1000, list: this.cases })
+          } catch (e) {}
         }
       } catch (e) {
         uni.showToast({ title: (e && e.errMsg) || '案例资源加载失败', icon: 'none' })
       } finally {
-        this.resourceLoading = false
         this.loading = false
       }
     },
     async toggleDetail(item) {
-      if (this.currentId === item.id) {
-        this.currentId = ''
+      if (this.expandedId === item.id) {
+        this.expandedId = ''
         this.bodyContent = ''
         return
       }
-      this.currentId = item.id
-      if (this.caseBodies && this.caseBodies[item.id] !== undefined) {
-        this.bodyContent = this.caseBodies[item.id]
-        return
-      }
-      this.caseBodies = this.caseBodies || {}
-      this.bodyLoading = true
-      try {
-        const resourcesObj = uniCloud.importObject('resources', { customUI: true })
-        const r = (await resourcesObj.get({ id: item.id })) || {}
-        if (r.errCode === 0 && r.doc) {
-          this.bodyContent = String(r.doc.content || '')
-        } else {
+      this.expandedId = item.id
+      this.bodyContent = this.caseBodies[item.id] || ''
+      if (this.caseBodies[item.id] === undefined) {
+        this.bodyLoading = true
+        try {
+          const resourcesObj = uniCloud.importObject('resources', { customUI: true })
+          const r = (await resourcesObj.get({ id: item.id })) || {}
+          if (r.errCode === 0 && r.doc) {
+            const content = String(r.doc.content || '')
+            this.caseBodies[item.id] = content
+            this.bodyContent = content
+          } else {
+            this.caseBodies[item.id] = ''
+            this.bodyContent = ''
+          }
+        } catch (e) {
+          this.caseBodies[item.id] = ''
           this.bodyContent = ''
+        } finally {
+          this.bodyLoading = false
         }
-      } catch (e) {
-        this.bodyContent = ''
-      } finally {
-        this.caseBodies[item.id] = this.bodyContent
-        this.bodyLoading = false
       }
     },
     openOriginal(url) {
@@ -193,10 +254,21 @@ export default {
         success: () => uni.showToast({ title: '原文地址已复制', icon: 'none' })
       })
     },
+    getStatusBarHeight() {
+      try {
+        return uni.getWindowInfo().statusBarHeight || 0
+      } catch (e) {
+        try {
+          return uni.getSystemInfoSync().statusBarHeight || 0
+        } catch (err) {
+          return 0
+        }
+      }
+    },
     goBack() {
       uni.navigateBack({
         fail: () => {
-          uni.navigateTo({ url: '/pages/legal-english/legal-english' })
+          uni.switchTab({ url: '/pages/index/index' })
         }
       })
     }
@@ -206,41 +278,47 @@ export default {
 
 <style>
 page {
-  background: #FDF8F3;
+  --brand: #2E7BE0;
+  --ink: #16314F;
+  --muted: #7A92B0;
+  --line: rgba(120, 160, 210, 0.14);
+  --bg: #f2f6fd;
+  background-color: var(--bg);
 }
 
 .cs-page {
   min-height: 100vh;
-  background: #FDF8F3;
-  color: #3A2416;
-  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
   display: flex;
   flex-direction: column;
+  background: var(--bg);
 }
 
 .status-bar {
-  background: #FFFFFF;
+  width: 100%;
+  background: #ffffff;
 }
 
+/* 导航栏 */
 .cs-nav {
-  position: sticky;
-  top: 0;
-  z-index: 20;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20rpx 32rpx;
-  background: #FFFFFF;
-  border-bottom: 1rpx solid rgba(180, 100, 60, 0.10);
+  height: 88rpx;
+  padding: 0 24rpx;
+  background: #ffffff;
+  border-bottom: 1rpx solid var(--line);
+  position: relative;
+  z-index: 20;
 }
 
 .cs-back {
   display: flex;
   align-items: center;
-  gap: 8rpx;
-  padding: 8rpx 16rpx 8rpx 8rpx;
-  font-size: 27rpx;
-  color: #B45309;
+  gap: 4rpx;
+  padding: 12rpx 16rpx;
+  margin-left: -16rpx;
+  font-size: 28rpx;
+  color: var(--brand);
 }
 
 .cs-back-hover {
@@ -248,291 +326,402 @@ page {
 }
 
 .cs-back-arrow {
-  font-size: 36rpx;
+  font-size: 44rpx;
   line-height: 1;
+  margin-top: -6rpx;
 }
 
 .cs-nav-title {
-  font-size: 31rpx;
-  font-weight: 700;
-  color: #7F1D1D;
-}
-
-.cs-count {
-  font-size: 24rpx;
-  color: #B45309;
+  font-size: 32rpx;
   font-weight: 600;
+  color: #1b2233;
 }
 
-/* 横幅 */
-.cs-banner {
-  margin: 24rpx 32rpx 0;
-  padding: 34rpx 30rpx;
-  border-radius: 30rpx;
-  background: linear-gradient(120deg, #7F1D1D 0%, #DC2626 60%, #F97316 100%);
-  display: flex;
-  align-items: center;
-  gap: 22rpx;
-  box-shadow: 0 16rpx 40rpx rgba(220, 38, 38, 0.22);
+.cs-nav-right {
+  width: 120rpx;
 }
 
-.cs-banner-ico {
-  width: 76rpx;
-  height: 76rpx;
-  border-radius: 20rpx;
-  background: rgba(255, 255, 255, 0.16);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.cs-banner-glyph {
-  width: 38rpx;
-  height: 38rpx;
-  background: #fff;
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='m14.5 15.5 3 3L19 17l-3-3'/><path d='m8 12 4.5 4.5'/><path d='M2 22 7.5 16.5'/><path d='M18.5 5.5a2 2 0 0 0-2.8 0L9.2 11.9a2 2 0 0 0 0 2.8l2.7 2.7a2 2 0 0 0 2.8 0l6.4-6.4a2 2 0 0 0 0-2.8l-2.7-2.7z'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='m14.5 15.5 3 3L19 17l-3-3'/><path d='m8 12 4.5 4.5'/><path d='M2 22 7.5 16.5'/><path d='M18.5 5.5a2 2 0 0 0-2.8 0L9.2 11.9a2 2 0 0 0 0 2.8l2.7 2.7a2 2 0 0 0 2.8 0l6.4-6.4a2 2 0 0 0 0-2.8l-2.7-2.7z'/></svg>") center/contain no-repeat;
-}
-
-.cs-banner-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.cs-banner-title {
-  display: block;
-  font-size: 33rpx;
-  font-weight: 800;
-  color: #fff;
-  letter-spacing: 1rpx;
-}
-
-.cs-banner-desc {
-  display: block;
-  margin-top: 6rpx;
-  font-size: 22rpx;
-  line-height: 1.6;
-  color: rgba(255, 255, 255, 0.88);
-}
-
-/* 分类筛选 */
-.cs-cats {
-  margin-top: 22rpx;
-  white-space: nowrap;
-  padding: 0 32rpx;
-  box-sizing: border-box;
-}
-
-.cs-cat {
-  display: inline-block;
-  margin-right: 14rpx;
-  padding: 10rpx 26rpx;
-  border-radius: 999rpx;
-  font-size: 24rpx;
-  font-weight: 600;
-  color: #8A5A44;
-  background: #FFFFFF;
-  border: 1rpx solid rgba(180, 100, 60, 0.18);
-}
-
-.cs-cat.is-active {
-  background: linear-gradient(135deg, #DC2626, #F97316);
-  color: #fff;
-  border-color: transparent;
-}
-
-/* 滚动列表 */
+/* 滚动区 */
 .cs-scroll {
   flex: 1;
   height: 0;
-  padding: 24rpx 32rpx 60rpx;
   box-sizing: border-box;
 }
 
-/* 卡片 */
-.cs-card {
-  background: #FFFFFF;
-  border-radius: 26rpx;
-  margin-bottom: 22rpx;
+/* 概览横幅 */
+.hero {
+  margin: 24rpx 24rpx 0;
+  border-radius: 36rpx;
+  padding: 32rpx 30rpx 28rpx;
+  background: linear-gradient(135deg, #E11D48, #F97316);
+  box-shadow: 0 20rpx 50rpx rgba(225, 29, 72, 0.26);
+  position: relative;
   overflow: hidden;
-  border: 1rpx solid rgba(180, 100, 60, 0.12);
-  box-shadow: 0 10rpx 30rpx rgba(140, 60, 30, 0.06);
-  transition: border-color .2s;
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  right: -60rpx;
+  top: -60rpx;
+  width: 240rpx;
+  height: 240rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.hero-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 20rpx;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-ico {
+  width: 76rpx;
+  height: 76rpx;
+  flex-shrink: 0;
+  border-radius: 22rpx;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  color: #ffffff;
+}
+
+.hero-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.hero-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.hero-sub {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.hero-stats {
+  margin-top: 28rpx;
+  display: flex;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-stat {
+  flex: 1;
+  text-align: center;
+  border-right: 1rpx solid rgba(255, 255, 255, 0.2);
+}
+
+.hero-stat:last-child {
+  border-right: none;
+}
+
+.hero-stat-num {
+  display: block;
+  font-size: 36rpx;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.hero-stat-label {
+  margin-top: 4rpx;
+  font-size: 20rpx;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* 固定工具栏 */
+.cs-fixed {
+  flex-shrink: 0;
+  padding: 24rpx 24rpx 12rpx;
+  background: var(--bg);
+  border-bottom: 1rpx solid var(--line);
+  z-index: 10;
+}
+
+.cs-pills {
+  white-space: nowrap;
+}
+
+.cs-pill {
+  display: inline-block;
+  height: 56rpx;
+  padding: 0 26rpx;
+  margin-right: 14rpx;
+  border-radius: 999rpx;
+  background: #ffffff;
+  border: 1rpx solid rgba(120, 160, 210, 0.24);
+  color: var(--muted);
+  font-size: 24rpx;
+  font-weight: 500;
+  line-height: 54rpx;
+  vertical-align: top;
+}
+
+.cs-pill.is-active {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #ffffff;
+}
+
+.cs-search {
+  margin-top: 18rpx;
+  display: flex;
+  align-items: center;
+  height: 76rpx;
+  padding: 0 24rpx;
+  border-radius: 999rpx;
+  background: #ffffff;
+  border: 1rpx solid rgba(120, 160, 210, 0.18);
+}
+
+.cs-search-ico {
+  font-size: 30rpx;
+  color: var(--muted);
+  margin-right: 12rpx;
+}
+
+.cs-search-input {
+  flex: 1;
+  min-width: 0;
+  font-size: 26rpx;
+  color: var(--ink);
+}
+
+.cs-search-clear {
+  font-size: 30rpx;
+  color: #a9bad1;
+}
+
+/* 列表 */
+.cs-list {
+  padding: 20rpx 24rpx 40rpx;
+}
+
+.cs-card {
+  border-radius: 28rpx;
+  background: #ffffff;
+  border: 1rpx solid rgba(120, 160, 210, 0.14);
+  box-shadow: 0 12rpx 36rpx rgba(46, 123, 224, 0.06);
+  padding: 28rpx 26rpx;
+  margin-bottom: 20rpx;
+  transition: border-color 0.2s ease;
 }
 
 .cs-card.is-open {
-  border-color: #F59E0B;
+  border-color: rgba(46, 123, 224, 0.45);
 }
 
-.cs-card-head {
+.cs-card-hover {
+  opacity: 0.85;
+}
+
+.cs-card-top {
   display: flex;
-  gap: 20rpx;
-  padding: 26rpx;
-}
-
-.cs-cover {
-  width: 150rpx;
-  height: 190rpx;
-  border-radius: 16rpx;
-  background-size: cover;
-  background-position: center;
-  flex-shrink: 0;
-}
-
-.cs-cover-plain {
-  background: linear-gradient(150deg, #7F1D1D 0%, #DC2626 55%, #F97316 100%);
-}
-
-.cs-card-info {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .cs-tags {
   display: flex;
   align-items: center;
-  gap: 10rpx;
   flex-wrap: wrap;
+  gap: 10rpx;
 }
 
 .cs-tag {
+  height: 40rpx;
+  padding: 0 16rpx;
+  border-radius: 10rpx;
+  background: rgba(46, 123, 224, 0.1);
+  color: var(--brand);
   font-size: 20rpx;
   font-weight: 600;
-  padding: 4rpx 14rpx;
-  border-radius: 999rpx;
-  background: #FEF2F2;
-  color: #DC2626;
+  line-height: 40rpx;
 }
 
 .cs-tag-soft {
-  background: #FFFBEB;
-  color: #D97706;
+  background: rgba(148, 163, 184, 0.12);
+  color: #64748b;
 }
 
-.cs-title {
-  margin-top: 12rpx;
-  font-size: 29rpx;
+.cs-fold-ico {
+  font-size: 30rpx;
+  color: #a9bad1;
+  transition: transform 0.25s ease;
+}
+
+.cs-fold-ico.is-open {
+  transform: rotate(180deg);
+}
+
+.cs-card-title {
+  display: block;
+  margin-top: 18rpx;
+  font-size: 30rpx;
   font-weight: 700;
-  color: #3A2416;
-  line-height: 1.5;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  color: var(--ink);
+  line-height: 1.4;
 }
 
-.cs-words {
-  margin-top: 8rpx;
-  font-size: 22rpx;
-  color: #A07A5F;
+.cs-card-meta {
+  margin-top: 10rpx;
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
 }
 
-.cs-summary {
-  margin-top: 6rpx;
+.cs-meta-item {
   font-size: 22rpx;
-  color: #8A7A6A;
-  line-height: 1.6;
+  color: var(--muted);
+  margin-right: 20rpx;
+}
+
+.cs-meta-desc {
   display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
   overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.cs-card-footer {
+  margin-top: 18rpx;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.cs-read-btn {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  height: 56rpx;
+  padding: 0 26rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, #E11D48, #F97316);
+  color: #ffffff;
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.cs-read-ico {
+  font-size: 26rpx;
 }
 
 /* 展开正文 */
 .cs-body {
-  border-top: 1rpx dashed rgba(180, 100, 60, 0.20);
-  padding: 26rpx;
-  background: #FDF6EE;
+  margin-top: 22rpx;
+  padding-top: 22rpx;
+  border-top: 1rpx dashed rgba(120, 160, 210, 0.25);
 }
 
 .cs-body-loading {
   display: flex;
   align-items: center;
   gap: 12rpx;
+  padding: 24rpx 0;
+  color: var(--muted);
   font-size: 24rpx;
-  color: #A07A5F;
 }
 
-.cs-content {
+.cs-body-text {
   display: block;
-  font-size: 27rpx;
-  line-height: 1.9;
-  color: #4A3326;
+  font-size: 26rpx;
+  line-height: 1.8;
+  color: #33455c;
   white-space: pre-wrap;
   word-break: break-word;
-  max-height: 800rpx;
-  overflow-y: auto;
 }
 
 .cs-body-empty {
+  display: block;
+  padding: 24rpx 0;
+  color: var(--muted);
   font-size: 24rpx;
-  color: #A07A5F;
-}
-
-.cs-link {
-  margin-top: 22rpx;
-  display: inline-flex;
-  align-items: center;
-  padding: 14rpx 30rpx;
-  border-radius: 999rpx;
-  font-size: 24rpx;
-  font-weight: 600;
-  color: #DC2626;
-  background: #FFFFFF;
-  border: 1rpx solid #FECACA;
-}
-
-/* 空 / 加载 */
-.cs-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 140rpx 40rpx;
   text-align: center;
 }
 
+.cs-body-foot {
+  margin-top: 20rpx;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.cs-original-btn {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  height: 56rpx;
+  padding: 0 24rpx;
+  border-radius: 999rpx;
+  background: rgba(46, 123, 224, 0.08);
+  border: 1rpx solid rgba(46, 123, 224, 0.25);
+  color: var(--brand);
+  font-size: 24rpx;
+  font-weight: 500;
+}
+
+.cs-original-ico {
+  font-size: 26rpx;
+}
+
+/* 空状态 / 加载 */
+.cs-empty {
+  margin: 24rpx;
+  padding: 80rpx 24rpx;
+  border-radius: 28rpx;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .cs-empty-ico {
-  width: 90rpx;
-  height: 90rpx;
-  border-radius: 24rpx;
-  background: #FEF2F2;
-  margin-bottom: 22rpx;
+  font-size: 72rpx;
+  color: #c3d0e4;
+  margin-bottom: 20rpx;
 }
 
 .cs-empty-title {
-  font-size: 28rpx;
-  font-weight: 700;
-  color: #3A2416;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: var(--ink);
 }
 
 .cs-empty-sub {
   margin-top: 10rpx;
-  font-size: 23rpx;
-  color: #A07A5F;
+  font-size: 22rpx;
+  color: var(--muted);
 }
 
 .cs-spinner {
-  width: 44rpx;
-  height: 44rpx;
-  border: 4rpx solid #FECACA;
-  border-top-color: #DC2626;
+  width: 48rpx;
+  height: 48rpx;
   border-radius: 50%;
-  animation: cs-spin 0.8s linear infinite;
-  margin-bottom: 16rpx;
+  border: 4rpx solid rgba(46, 123, 224, 0.2);
+  border-top-color: var(--brand);
+  animation: cs-rotate 0.8s linear infinite;
 }
 
 .cs-spinner-sm {
-  width: 26rpx;
-  height: 26rpx;
+  width: 28rpx;
+  height: 28rpx;
   border-width: 3rpx;
-  margin-bottom: 0;
 }
 
-@keyframes cs-spin {
-  to { transform: rotate(360deg); }
+@keyframes cs-rotate {
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

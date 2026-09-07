@@ -1,15 +1,15 @@
 <template>
   <view class="rd-shell">
-    <!-- ===== Brand CSS Variables ===== -->
+    <!-- 品牌主题色变量 -->
     <view class="css-vars" aria-hidden="true"></view>
 
-    <!-- ===== App Shell (Sidebar + Main) ===== -->
+    <!-- 应用外壳（侧边栏 + 主内容区） -->
     <view class="app-shell">
-      <!-- ===== Left Sidebar (与学习中心一致) ===== -->
+      <!-- 左侧导航栏（与学习中心一致） -->
       <aside class="app-sidebar">
         <view class="app-sidebar-logo">
           <view class="app-sidebar-logo-icon">
-            <view class="ls-svg-glyph" aria-hidden="true"></view>
+            <image class="ls-svg-img" src="/static/logo.png" mode="aspectFit"></image>
           </view>
           <text class="app-sidebar-logo-text">涉外法治人才培养</text>
         </view>
@@ -52,7 +52,7 @@
         </view>
       </aside>
 
-      <!-- ===== Main Content Area ===== -->
+      <!-- 主内容区 -->
       <view class="app-main">
         <header class="app-topbar">
           <view class="app-topbar-left">
@@ -178,7 +178,7 @@ const totalWords = computed(() => (book.value && book.value.content ? book.value
 
 const bookmarked = computed(() => bookmarks.value.includes(currentChapter.value))
 
-/* ===== 章节解析 ===== */
+/* 章节解析 */
 function splitChapters(content) {
   const lines = String(content || '').split('\n')
   const list = []
@@ -219,7 +219,7 @@ function splitChapters(content) {
   })
 }
 
-/* ===== 注释识别（小字显示） ===== */
+/* 注释识别（小字显示） */
 const NOTE_MARK_RE = /[\{\[【〔]\d{1,3}[\}\〕】\]]?|[(\（]\d{1,3}[\〕】\}]/g
 function splitParagraph(text) {
   if (!text) return [{ t: text || '', n: false }]
@@ -245,7 +245,7 @@ function splitParagraph(text) {
   ]
 }
 
-/* ===== 书签 ===== */
+/* 书签 */
 function loadBookmarks() {
   try { bookmarks.value = uni.getStorageSync('rd_bm_' + bookId.value) || [] } catch (e) { bookmarks.value = [] }
   if (!Array.isArray(bookmarks.value)) bookmarks.value = []
@@ -265,7 +265,7 @@ function hasBookmark(i) {
   return bookmarks.value.includes(i)
 }
 
-/* ===== 字号 ===== */
+/* 字号 */
 function loadFontSize() {
   try {
     const v = uni.getStorageSync('rd_fs')
@@ -282,7 +282,7 @@ function decreaseFont() {
   if (fontSize.value > 14) { fontSize.value -= 1; saveFontSize() }
 }
 
-/* ===== 跳转章节 ===== */
+/* 跳转章节 */
 function jumpToChapter(i) {
   if (!chapters.value[i]) return
   currentChapter.value = i
@@ -295,7 +295,7 @@ function jumpToChapter(i) {
   // #endif
 }
 
-/* ===== 滚动定位当前章节（H5） ===== */
+/* 滚动定位当前章节（H5） */
 function handleScroll() {
   if (!chapters.value.length) return
   // #ifdef H5
@@ -311,7 +311,6 @@ function handleScroll() {
   // #endif
 }
 
-/* ===== 数据加载 ===== */
 const BOOK_CACHE_TTL = 7 * 24 * 60 * 60 * 1000
 
 async function loadBook() {
@@ -405,7 +404,7 @@ onUnload(() => {
 
 <style scoped>
 .app-shell {
-  /* === Brand Primary === */
+  /* 品牌主色 */
   --rule-primary: #2563EB;
   --rule-primary-hover: #1D4ED8;
   --rule-primary-active: #1E40AF;
@@ -430,7 +429,7 @@ onUnload(() => {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ===== 左侧导航栏（与学习中心一致） ===== */
+/* 左侧导航栏（与学习中心一致） */
 .app-sidebar {
   position: fixed;
   left: 0;
@@ -454,23 +453,14 @@ onUnload(() => {
 }
 
 .app-sidebar-logo-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: var(--rule-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
-  overflow: hidden;
 }
 
-.ls-svg-glyph {
-  width: 20px;
-  height: 20px;
-  background: #fff;
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
+.ls-svg-img {
+  width: 32px;
+  height: 32px;
 }
 
 .app-sidebar-logo-text {
@@ -618,7 +608,7 @@ onUnload(() => {
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'/><polyline points='16 17 21 12 16 7'/><line x1='21' y1='12' x2='9' y2='12'/></svg>") center/contain no-repeat;
 }
 
-/* ===== 主区域与顶栏 ===== */
+/* 主区域与顶栏 */
 .app-main {
   flex: 1;
   margin-left: 240px;
@@ -697,7 +687,7 @@ onUnload(() => {
   box-sizing: border-box;
 }
 
-/* ===== 加载与空态 ===== */
+/* 加载与空态 */
 .rd-loading {
   display: flex;
   flex-direction: column;
@@ -752,7 +742,7 @@ onUnload(() => {
   color: var(--rule-muted-foreground);
 }
 
-/* ===== 阅读布局 ===== */
+/* 阅读布局 */
 .rd-layout {
   display: flex;
   align-items: flex-start;
@@ -816,6 +806,7 @@ onUnload(() => {
 
 .rd-book-summary {
   display: -webkit-box;
+  line-clamp: 3;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
@@ -873,11 +864,6 @@ onUnload(() => {
 .rd-tool-btn.is-active {
   background: var(--rule-primary-tint-3);
   color: var(--rule-primary);
-}
-
-.rd-tool-btn.is-on {
-  background: var(--rule-primary);
-  color: #fff;
 }
 
 .rd-tool-icon {
@@ -1069,7 +1055,6 @@ onUnload(() => {
   white-space: nowrap;
 }
 
-/* ===== 响应式 ===== */
 @media (max-width: 1200px) {
   .rd-toc { display: none; }
 }

@@ -4,7 +4,7 @@
       <aside class="app-sidebar">
         <view class="app-sidebar-logo">
           <view class="app-sidebar-logo-icon">
-            <view class="ls-svg-glyph" aria-hidden="true"></view>
+            <image class="ls-svg-img" src="/static/logo.png" mode="aspectFit"></image>
           </view>
           <text class="app-sidebar-logo-text">涉外法治人才培养</text>
         </view>
@@ -105,14 +105,14 @@
               <view class="video-info">
                 <text class="video-title">{{ video.title }}</text>
                 <view class="video-meta">
-                  <text class="video-meta-item">
+                  <view class="video-meta-item">
                     <view class="user-icon-sm"></view>
                     <text>{{ video.category }}</text>
-                  </text>
-                  <text class="video-meta-item">
+                  </view>
+                  <view class="video-meta-item">
                     <view class="eye-icon-sm"></view>
                     <text>{{ video.date || '已上线' }}</text>
-                  </text>
+                  </view>
                 </view>
               </view>
             </view>
@@ -384,23 +384,14 @@ onLoad(() => {
 }
 
 .app-sidebar-logo-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: var(--rule-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
-  overflow: hidden;
 }
 
-.ls-svg-glyph {
-  width: 20px;
-  height: 20px;
-  background: #fff;
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
+.ls-svg-img {
+  width: 32px;
+  height: 32px;
 }
 
 .app-sidebar-logo-text {
@@ -731,7 +722,7 @@ onLoad(() => {
   box-shadow: 0 4px 10px -2px rgba(37,99,235,.42);
 }
 
-/* ===== 视图切换 ===== */
+/* 视图切换 */
 .vl-view-toggle {
   display: inline-flex;
   gap: 4px;
@@ -885,6 +876,7 @@ onLoad(() => {
   /* 固定两行高度，单行标题自动空出第二行；超过两行省略 */
   min-height: calc(15px * 1.45 * 2);
   display: -webkit-box;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
@@ -924,7 +916,7 @@ onLoad(() => {
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z'/><circle cx='12' cy='12' r='3'/></svg>") center/contain no-repeat;
 }
 
-/* ===== 列表视图 ===== */
+/* 列表视图 */
 .video-list {
   display: flex;
   flex-direction: column;

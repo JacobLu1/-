@@ -1,10 +1,7 @@
 <template>
-  <!--
-    涉外法治人才培养首页
-    V1.2: IntersectionObserver 驱动区块滚动动画，支持来回反复触发
-  -->
+  <!--涉外法治人才培养平台首页（作用:展示平台的主要功能优势以及进入平台的入口）-->
   <view class="home-page">
-    <!-- ===================== HERO ===================== -->
+    <!-- 首页封面区域 -->
     <view class="hero" aria-label="平台首页">
       <view class="hero-mesh enter-anim enter-anim--shape" :style="heroMeshStyle" aria-hidden="true"></view>
       <view class="hero-shape hero-shape--1 enter-anim enter-anim--shape" :style="heroShape1Style" aria-hidden="true"></view>
@@ -22,16 +19,16 @@
       </view>
 
       <view class="scroll-indicator enter-anim enter-anim--5" aria-hidden="true">
+        <text class="scroll-text">滚动可查看平台介绍</text>
         <text class="scroll-chev">↓</text>
       </view>
     </view>
 
-    <!-- ===================== 1: 多维度测评体系 ===================== -->
+    <!-- 展示1:多维度测评体系 -->
     <view class="feature-section" aria-label="多维度测评体系">
       <view class="container">
         <view class="feature-grid">
-          <view id="reveal-0" :class="['feature-text', 'reveal', visibleSet.has('reveal-0') ? 'visible' : '']" style="--reveal-delay: 0.00s"
-          >
+          <view id="reveal-0" :class="['feature-text', 'reveal', visibleSet.has('reveal-0') ? 'visible' : '']" style="--reveal-delay: 0.00s">
             <view class="feature-eyebrow">
               <text class="eyebrow-icon">◈</text>
               <text class="eyebrow-text">测评体系</text>
@@ -54,7 +51,6 @@
             </view>
           </view>
 
-          <!-- 外层视差 + 内层 reveal 动画 -->
           <view class="feature-visual" :style="featureVisual1Style">
             <view id="reveal-1" :class="['reveal', visibleSet.has('reveal-1') ? 'visible' : '']" style="--reveal-delay: 0.15s"
             >
@@ -76,14 +72,13 @@
       </view>
     </view>
 
-    <!-- ===================== 2: 智能数据分析 ===================== -->
+    <!-- 展示2:智能数据分析 -->
     <view class="feature-section feature-section--alt" aria-label="智能数据分析">
       <view class="container">
         <view class="feature-grid feature-grid--reverse">
-          <view id="reveal-2" :class="['feature-text', 'reveal', visibleSet.has('reveal-2') ? 'visible' : '']" style="--reveal-delay: 0.00s"
-          >
+          <view id="reveal-2" :class="['feature-text', 'reveal', visibleSet.has('reveal-2') ? 'visible' : '']" style="--reveal-delay: 0.00s">
             <view class="feature-eyebrow">
-              <text class="eyebrow-icon">📊</text>
+              <text class="eyebrow-icon">↗</text>
               <text class="eyebrow-text">数据分析</text>
             </view>
             <text class="feature-heading">智能数据分析</text>
@@ -100,10 +95,8 @@
             </view>
           </view>
 
-          <!-- 外层视差 + 内层 reveal 动画 -->
           <view class="feature-visual" :style="featureVisual2Style">
-            <view id="reveal-3" :class="['reveal', visibleSet.has('reveal-3') ? 'visible' : '']" style="--reveal-delay: 0.15s"
-            >
+            <view id="reveal-3" :class="['reveal', visibleSet.has('reveal-3') ? 'visible' : '']" style="--reveal-delay: 0.15s">
               <view class="visual-card">
                 <view class="chart-wrap">
                   <view class="chart-bars">
@@ -144,23 +137,21 @@
       </view>
     </view>
 
-    <!-- ===================== 3: 权威法律库 + AI助手 ===================== -->
+    <!-- 展示3:权威法律库 + AI助手 -->
     <view class="feature-section" aria-label="权威法律库与AI智能助手">
       <view class="container">
-        <view id="reveal-4" :class="['section-head', 'reveal', visibleSet.has('reveal-4') ? 'visible' : '']" style="--reveal-delay: 0.00s"
-        >
+        <view id="reveal-4" :class="['section-head', 'reveal', visibleSet.has('reveal-4') ? 'visible' : '']" style="--reveal-delay: 0.00s">
           <view class="feature-eyebrow">
-            <text class="eyebrow-icon">📚</text>
+            <text class="eyebrow-icon">❐</text>
             <text class="eyebrow-text">资源与工具</text>
           </view>
           <text class="feature-heading">权威法律库与智能助手</text>
         </view>
 
         <view class="dual-grid">
-          <view id="reveal-5" :class="['dual-card', 'reveal', visibleSet.has('reveal-5') ? 'visible' : '']" style="--reveal-delay: 0.10s"
-          >
+          <view id="reveal-5" :class="['dual-card', 'reveal', visibleSet.has('reveal-5') ? 'visible' : '']" style="--reveal-delay: 0.10s">
             <view class="icon-badge">
-              <text class="badge-icon">📖</text>
+              <text class="badge-icon">⚖︎</text>
             </view>
             <text class="card-title">权威法律库</text>
             <text class="card-desc">汇聚国际公约、双边协定、涉外法律法规与典型案例，提供条目检索、条款对照与版本溯源，为测评与学习提供权威法源支撑。</text>
@@ -169,7 +160,7 @@
           <view id="reveal-6" :class="['dual-card', 'reveal', visibleSet.has('reveal-6') ? 'visible' : '']" style="--reveal-delay: 0.25s"
           >
             <view class="icon-badge">
-              <text class="badge-icon">🤖</text>
+              <text class="badge-icon">✦</text>
             </view>
             <text class="card-title">AI智能助手</text>
             <text class="card-desc">7×24小时在线法律咨询，支持测评答疑、条文解读与学习路径推荐。结合测评结果智能匹配提升建议，让专业指导随时可达。</text>
@@ -178,14 +169,14 @@
       </view>
     </view>
 
-    <!-- ===================== FOOTER ===================== -->
+    <!-- 底部区域 -->
     <view class="footer">
       <view class="footer-inner">
         <text class="footer-sign">© 2026 涉外法治人才培养平台</text>
         <view class="footer-links">
-          <text class="footer-link" @tap="handleFooterLink('关于我们')">关于我们</text>
-          <text class="footer-link" @tap="handleFooterLink('联系方式')">联系方式</text>
-          <text class="footer-link" @tap="handleFooterLink('隐私政策')">隐私政策</text>
+          <text class="footer-link">关于我们</text>
+          <text class="footer-link">联系方式</text>
+          <text class="footer-link">隐私政策</text>
         </view>
         <text class="footer-tech">技术支持:LexGlobal法视界技术组成员</text>
       </view>
@@ -193,17 +184,12 @@
   </view>
 </template>
 
-<script setup>
-/**
- * 涉外法治人才培养首页
- * IntersectionObserver 驱动区块滚动动画，支持来回反复触发
- * 视差滚动: 使用 onPageScroll 驱动
- */
 
+<script setup>
 import { ref, computed, reactive } from 'vue'
 import { onReady, onPageScroll } from '@dcloudio/uni-app'
 
-// ==================== 视差滚动数据 ====================
+// 视差滚动数据
 
 const scrollY = ref(0)
 
@@ -226,23 +212,12 @@ const featureVisual2Style = computed(() => ({
   transform: `translate3d(0, ${-scrollY.value * 0.04}px, 0)`
 }))
 
-// ==================== 滚动触发出场动画 ====================
-
-/** 所有需要出场动画的元素 id */
+// 滚动触发出场动画
 const REVEAL_IDS = ['reveal-0', 'reveal-1', 'reveal-2', 'reveal-3', 'reveal-4', 'reveal-5', 'reveal-6']
-
-/** 记录每个 reveal 元素距离页面顶部的绝对偏移 */
 const revealOffsets = reactive(new Map())
-
-/** 已滚入视口的元素（用于模板 :class 切换） */
 const visibleSet = reactive(new Set())
-
-/** 视口高度，onReady 时测量 */
 const viewportHeight = ref(800)
 
-/**
- * onReady: 页面元素渲染完成后，测量各 reveal 元素的初始偏移位置
- */
 onReady(() => {
   const sys = uni.getSystemInfoSync()
   viewportHeight.value = sys.windowHeight
@@ -306,10 +281,6 @@ async function loadOverview() {
   }
 }
 
-/**
- * 根据滚动位置检查哪些元素进入视口 → 切换 visibleSet
- * 触发阈值：元素顶部进入 "视口底部 × 0.78" 线时激活
- */
 const checkReveal = () => {
   const triggerY = scrollY.value + viewportHeight.value * 0.78
   REVEAL_IDS.forEach((id) => {
@@ -323,7 +294,7 @@ const checkReveal = () => {
   })
 }
 
-// ==================== 登录事件处理 ====================
+// 登录事件处理
 
 const handleEnterAssessment = () => {
   // 先判断是否已有登录态，未登录则跳登录页，已登录直接进测评
@@ -335,19 +306,7 @@ const handleEnterAssessment = () => {
   }
 }
 
-const handleLegalDB = () => {
-  uni.navigateTo({ url: '/pages/legal-db/legal-db' })
-}
-
-const handleAIAssistant = () => {
-  uni.navigateTo({ url: '/pages/ai-assistant/ai-assistant' })
-}
-
-const handleFooterLink = (link) => {
-  console.log('点击页脚链接:', link)
-}
-
-// ==================== 页面滚动 ====================
+// 页面滚动
 
 onPageScroll((e) => {
   scrollY.value = e.scrollTop
@@ -356,13 +315,7 @@ onPageScroll((e) => {
 </script>
 
 <style scoped>
-/*
-  ============================================================
-  涉外法治人才培养CSS
-  Style: Blue-White Professional, Modern & Comfortable
-  Brand Prefix: rule
-  ============================================================
-*/
+/* 涉外法治人才培养CSS Style: Blue-White Professional, Modern & Comfortable Brand Prefix: rule */
 
 .home-page {
   --rule-primary: #2563EB;
@@ -402,7 +355,7 @@ onPageScroll((e) => {
   overflow-x: hidden;
 }
 
-/* ==================== 容器 ==================== */
+/* 容器 */
 .container {
   width: 100%;
   max-width: 1200px;
@@ -410,7 +363,7 @@ onPageScroll((e) => {
   padding: 0 32px;
 }
 
-/* ==================== Hero 区==================== */
+/* 首屏展示区 */
 .hero {
   position: relative;
   min-height: 100vh;
@@ -513,12 +466,9 @@ onPageScroll((e) => {
   max-width: 600px;
 }
 
-/* ========================================================
-   Hero 首屏入场序列动画
-   仅页面首次加载时播放一次，与下方滚动反复动画区分开
-   ======================================================== */
+/* 首屏入场动画：仅页面首次加载时播放一次，与下方的滚动动画区分开 */
 
-/* 通用入场动画：基础参数 0.55s ease-out  transform/opacity */
+/* 通用入场动画：淡入上浮 */
 .enter-anim {
   opacity: 0;
   transform: translate3d(0, 20px, 0);
@@ -537,7 +487,7 @@ onPageScroll((e) => {
   }
 }
 
-/* ① 顶部标签【专业测评平台】 立即触发：延迟 0ms */
+/* 顶部标签【专业测评平台】 立即触发：延迟 0ms */
 .enter-anim--1 {
   animation-delay: 0ms;
   transform: translate3d(0, 16px, 0);
@@ -548,13 +498,13 @@ onPageScroll((e) => {
   to   { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
-/* ② 大标题：延迟 80ms */
+/* 大标题：延迟 80ms */
 .enter-anim--2 { animation-delay: 80ms; }
 
-/* ③ 副标题：延迟 160ms */
+/* 副标题：延迟 160ms */
 .enter-anim--3 { animation-delay: 160ms; }
 
-/* ④ 蓝色按钮：延迟 240ms，附带给轻微缩放 */
+/* 蓝色按钮：延迟 240ms，附带给轻微缩放 */
 .enter-anim--4 { animation-name: heroBtnIn; }
 .enter-anim--4 { animation-delay: 240ms; }
 @keyframes heroBtnIn {
@@ -568,7 +518,7 @@ onPageScroll((e) => {
   }
 }
 
-/* ⑤ 背景装饰图形 + 网格：缓慢淡入（不移动） */
+/* 背景装饰图形 + 网格：缓慢淡入（不移动） */
 .enter-anim--shape {
   opacity: 0;
   transform: translate3d(0, 0, 0);
@@ -595,10 +545,18 @@ onPageScroll((e) => {
   to   { opacity: 0.5; }
 }
 
-/* 滚动指示器：先淡入，再启动呼吸浮动动画 */
-.enter-anim--5 { animation-delay: 320ms; }
+/* 滚动指示器：只淡入不位移，避免动画 transform 覆盖居中布局 */
+.enter-anim--5 {
+  animation-delay: 320ms;
+  animation-name: heroFadeInOnly;
+  transform: none;
+}
+@keyframes heroFadeInOnly {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
 
-/* scroll-chev 无限上下浮动呼吸动画，引导滚动 */
+/* 箭头图标无限上下浮动的呼吸动画，引导用户向下滚动 */
 .scroll-chev {
   display: inline-block;
   animation: scrollBreathe 2.6s ease-in-out infinite;
@@ -610,9 +568,9 @@ onPageScroll((e) => {
   50%     { transform: translateY(8px);  opacity: 1; }
 }
 
-/* ==================== CTA button extra hover ==================== */
+/* 行动按钮的悬停特效 */
 
-/* CTA button */
+/* 行动按钮 */
 .cta-enter {
   display: inline-flex;
   align-items: center;
@@ -639,12 +597,14 @@ onPageScroll((e) => {
 .cta-enter:hover .cta-arrow { transform: translateX(4px); }
 .cta-enter:active { transform: translateY(0); box-shadow: var(--rule-shadow-1); }
 
-/* Scroll-down indicator */
+/* 向下滚动指示图标 */
 .scroll-indicator {
   position: absolute;
   bottom: 32px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: fit-content;
   z-index: 2;
   display: flex;
   flex-direction: column;
@@ -653,13 +613,18 @@ onPageScroll((e) => {
   font-size: 12px;
   letter-spacing: 0.04em;
 }
+.scroll-text {
+  margin-bottom: 2px;
+  white-space: nowrap;
+  text-align: center;
+}
 .scroll-chev { font-size: 22px; animation: bounceDown 2s ease-in-out infinite; }
 @keyframes bounceDown {
   0%,100% { transform: translateY(0); opacity: 0.7; }
   50%     { transform: translateY(6px); opacity: 1; }
 }
 
-/* ==================== Feature sections ==================== */
+/* 功能区块 */
 .feature-section {
   position: relative;
   min-height: 80vh;
@@ -730,7 +695,7 @@ onPageScroll((e) => {
 .unit { font-size: 16px; font-weight: 600; color: var(--rule-primary); margin-left: 2px; }
 .feature-stat-label { font-size: 13px; color: var(--rule-muted-foreground); }
 
-/* Visual: dimensions card */
+/* 可视化：维度卡片 */
 .visual-card {
   position: relative;
   background: var(--rule-card);
@@ -759,7 +724,7 @@ onPageScroll((e) => {
   color: var(--rule-primary-foreground);
 }
 
-/* Visual: bar chart */
+/* 可视化：柱状图 */
 .chart-wrap { display: flex; flex-direction: column; gap: 16px; }
 .chart-bars {
   display: flex;
@@ -785,7 +750,7 @@ onPageScroll((e) => {
 .dot { width: 10px; height: 10px; border-radius: var(--rule-radius-small); display: inline-block; }
 .legend-text { font-size: 13px; color: var(--rule-muted-foreground); }
 
-/* ===== Two-column cards ===== */
+/* 双栏卡片 */
 .dual-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
 .dual-card {
   background: var(--rule-card);
@@ -816,9 +781,6 @@ onPageScroll((e) => {
 .badge-icon { font-size: 22px; }
 .card-title { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; color: var(--rule-foreground); }
 .card-desc { font-size: 15px; line-height: 1.65; color: var(--rule-muted-foreground); }
-.card-link { margin-top: auto; font-size: 14px; font-weight: 600; color: var(--rule-primary); display: inline-flex; align-items: center; gap: 6px; }
-.link-arrow { font-size: 16px; transition: transform 0.2s cubic-bezier(.2,.8,.2,1); }
-.dual-card:hover .link-arrow { transform: translateX(3px); }
 
 .section-head {
   text-align: center;
@@ -831,7 +793,7 @@ onPageScroll((e) => {
 .section-head .feature-eyebrow { justify-content: center; }
 .section-head .feature-heading { max-width: 640px; }
 
-/* ==================== Footer ==================== */
+/* 页脚 */
 .footer { background: var(--rule-card); border-top: 1px solid var(--rule-border); padding: 48px 32px; }
 .footer-inner {
   max-width: 1200px;
@@ -848,7 +810,7 @@ onPageScroll((e) => {
 .footer-link { font-size: 14px; color: var(--rule-muted-foreground); transition: color 0.2s cubic-bezier(.2,.8,.2,1); cursor: pointer; }
 .footer-link:hover { color: var(--rule-primary); }
 
-/* ==================== Reveal 动画 ==================== */
+/* 滚动显现动画 */
 /* 滚动触发出场：JS 切换 .visible 类，CSS transition 驱动淡入上浮 */
 /* --reveal-delay 控制同区块内多个元素的交错出场延迟 */
 
@@ -867,7 +829,6 @@ onPageScroll((e) => {
   transform: translate3d(0, 0, 0);
 }
 
-/* ==================== Responsive ==================== */
 @media (max-width: 900px) {
   .feature-grid, .feature-grid--reverse { grid-template-columns: 1fr; gap: 40px; }
   .feature-grid--reverse .feature-text, .feature-grid--reverse .feature-visual { order: 0; }
@@ -883,12 +844,12 @@ onPageScroll((e) => {
   .hero-content { padding: 96px 20px; }
 }
 
-/* ===== Reduced motion ===== */
+/* 减弱动效适配 */
 @media (prefers-reduced-motion: reduce) {
   .home-page { scroll-behavior: auto; }
   .hero-mesh, .hero-shape--1, .hero-shape--2, .hero-shape--3, .scroll-chev { animation: none !important; opacity: 1 !important; }
   .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
-  .cta-enter, .cta-arrow, .dual-card, .chart-bar, .footer-link, .link-arrow { transition: none !important; }
+  .cta-enter, .cta-arrow, .dual-card, .chart-bar, .footer-link { transition: none !important; }
   /* 禁用 Hero 首屏入场序列动画，避免内容透明空白 */
   .enter-anim,
   .enter-anim--1,

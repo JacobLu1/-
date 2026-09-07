@@ -1,6 +1,5 @@
 /**
  * 视频地址配置
- *
  * 上线发布时：
  *   1. 把 backend/video/ 下的视频文件上传到 uniCloud 云存储（uniCloud 控制台 → 云存储）
  *   2. 把云存储中的视频目录地址填到 VIDEO_BASE_ONLINE，例如 'https://xxx.bspapp.com/upload/video/'

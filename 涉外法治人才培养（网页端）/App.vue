@@ -50,14 +50,12 @@
 		--radius-lg: 16px;
 	}
 
-	/* 通用容器 */
 	.container {
 		max-width: 1200px;
 		margin: 0 auto;
 		padding: 0 24px;
 	}
 
-	/* 通用按钮样式 */
 	.btn-primary {
 		background: var(--primary-color);
 		color: #FFFFFF;

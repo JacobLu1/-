@@ -1,12 +1,12 @@
 <template>
   <view class="profile-shell">
-    <!-- ===== App Shell (Sidebar + Main) ===== -->
+    <!-- 应用外壳（侧边栏 + 主内容区） -->
     <view class="app-shell">
-      <!-- ===== Left Sidebar ===== -->
+      <!-- 左侧导航栏 -->
       <aside class="app-sidebar">
         <view class="app-sidebar-logo">
           <view class="app-sidebar-logo-icon">
-            <view class="ls-svg-glyph" aria-hidden="true"></view>
+            <image class="ls-svg-img" src="/static/logo.png" mode="aspectFit"></image>
           </view>
           <text class="app-sidebar-logo-text">涉外法治人才培养</text>
         </view>
@@ -49,7 +49,7 @@
         </view>
       </aside>
 
-      <!-- ===== Main Content Area ===== -->
+      <!-- 主内容区 -->
       <view class="app-main">
         <header class="app-topbar">
           <text class="app-topbar-title">个人中心</text>
@@ -105,9 +105,14 @@
                     <tr v-if="!assessmentHistory.length">
                       <td colspan="4" class="pc-empty">暂无测评记录，完成测评后数据会展示在这里</td>
                     </tr>
-                    <tr v-for="(row, idx) in assessmentHistory" :key="idx">
+                    <tr v-for="(row, idx) in assessmentHistory" :key="idx" class="pc-history-row" @tap="viewRecord(row.id)">
                       <td>{{ row.date }}</td>
-                      <td>{{ row.name }}</td>
+                      <td>
+                        <view class="pc-history-name">
+                          <text>{{ row.name }}</text>
+                          <view class="pc-chevron pc-chevron-sm"></view>
+                        </view>
+                      </td>
                       <td class="col-score">{{ row.score }}分</td>
                       <td>
                         <text class="pc-grade" :class="row.gradeClass">{{ row.grade }}</text>
@@ -365,6 +370,10 @@ export default {
       if (score >= 70) return 'pc-grade-good'
       return ''
     },
+    viewRecord(id) {
+      if (!id) return
+      uni.navigateTo({ url: '/pages/survey/survey-detail?id=' + id })
+    },
     navigateTo(url) {
       uni.navigateTo({ url })
     },
@@ -482,9 +491,7 @@ export default {
 </script>
 
 <style scoped>
-/* ============================================================
-   Brand Design Tokens
-   ============================================================ */
+/* 品牌设计变量 */
 .profile-shell {
   --rule-primary: #2563EB;
   --rule-primary-hover: #1D4ED8;
@@ -540,12 +547,10 @@ export default {
   font-feature-settings: "cv11", "ss01";
 }
 
-/* ============================================================
-   Shell Layout
-   ============================================================ */
+/* 整体布局 */
 .app-shell { display: flex; min-height: 100vh; background: var(--rule-background); }
 
-/* ===== Sidebar ===== */
+/* 侧边导航栏 */
 .app-sidebar {
   position: fixed; left: 0; top: 0; height: 100vh; width: 240px;
   display: flex; flex-direction: column;
@@ -561,15 +566,13 @@ export default {
 }
 
 .app-sidebar-logo-icon {
-  width: 36px; height: 36px; border-radius: 8px;
-  background: var(--rule-primary);
+  width: 36px; height: 36px;
   display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0; overflow: hidden;
+  flex-shrink: 0;
 }
-.ls-svg-glyph {
-  width: 20px; height: 20px; background: #fff;
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
+.ls-svg-img {
+  width: 32px;
+  height: 32px;
 }
 .app-sidebar-logo-text {
   font-size: 15px; font-weight: 600;
@@ -617,7 +620,7 @@ export default {
           mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z'/%3E%3Cpath d='M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z'/%3E%3C/svg%3E") center/contain no-repeat;
 }
 
-/* ===== Sidebar User ===== */
+/* 侧边栏用户信息 */
 .app-sidebar-user { padding: 16px 12px; border-top: 1px solid var(--rule-border); }
 .app-sidebar-user-inner {
   display: flex; align-items: center; gap: 12px;
@@ -640,7 +643,7 @@ export default {
   color: var(--rule-muted-foreground);
 }
 
-/* ===== Sidebar Logout Button ===== */
+/* 侧边栏退出按钮 */
 .app-sidebar-logout {
   display: flex; align-items: center; gap: 8px;
   margin: 8px 12px 0; padding: 10px 12px;
@@ -662,7 +665,7 @@ export default {
   font-size: 13px; font-weight: 500;
 }
 
-/* ===== Main ===== */
+/* 主内容区 */
 .app-main {
   flex: 1; margin-left: 240px;
   display: flex; flex-direction: column;
@@ -678,15 +681,13 @@ export default {
 .app-topbar-meta { font-size: 13px; color: var(--rule-muted-foreground); }
 .app-content { flex: 1; padding: 32px; }
 
-/* ============================================================
-   Personal Center Page Styles
-   ============================================================ */
-.pc-main {
+/* 个人中心页面样式 */
+.profile-main {
   width: 100%; max-width: 920px; margin: 0 auto;
   display: flex; flex-direction: column; gap: 24px;
 }
 
-/* ===== Profile Header Card ===== */
+/* 个人资料头部卡片 */
 .pc-profile-card {
   background: var(--rule-card);
   border: 1px solid var(--rule-border);
@@ -731,7 +732,6 @@ export default {
 }
 .pc-profile-since { font-size: 13px; color: var(--rule-muted-foreground); }
 
-/* ===== Generic Info Card ===== */
 .pc-card {
   background: var(--rule-card);
   border: 1px solid var(--rule-border);
@@ -749,7 +749,7 @@ export default {
   background: var(--rule-primary); border-radius: 2px; flex-shrink: 0;
 }
 
-/* ===== Basic Info Grid ===== */
+/* 基本信息网格 */
 .pc-info-grid {
   display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px 32px;
 }
@@ -757,7 +757,7 @@ export default {
 .pc-info-label { font-size: 13px; color: var(--rule-muted-foreground); }
 .pc-info-value { font-size: 15px; color: var(--rule-foreground); word-break: break-word; }
 
-/* ===== Assessment History Table ===== */
+/* 测评历史记录表 */
 .pc-table { width: 100%; border-collapse: collapse; }
 .pc-table th {
   text-align: left; padding: 12px;
@@ -782,7 +782,25 @@ export default {
   background: var(--rule-primary-tint-3); color: var(--rule-primary);
 }
 
-/* ===== Account Settings ===== */
+/* 测评记录行可点击 */
+.pc-table tbody tr.pc-history-row { cursor: pointer; transition: background 0.15s ease; }
+.pc-table tbody tr.pc-history-row:hover { background: var(--rule-surface-2); }
+.pc-history-name {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-weight: 500; color: var(--rule-foreground);
+}
+.pc-history-row:hover .pc-history-name { color: var(--rule-primary); }
+.pc-chevron-sm {
+  width: 14px; height: 14px; background: var(--rule-ink-3);
+  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='9 18 15 12 9 6'/></svg>");
+          mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='9 18 15 12 9 6'/></svg>");
+  -webkit-mask-size: contain; mask-size: contain;
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+  -webkit-mask-position: center; mask-position: center;
+  flex-shrink: 0;
+}
+
+/* 账号设置 */
 .pc-settings-list { display: flex; flex-direction: column; }
 .pc-settings-item {
   display: flex; align-items: center; justify-content: space-between;
@@ -846,14 +864,14 @@ export default {
   flex-shrink: 0;
 }
 
-/* ===== Assessment Empty ===== */
+/* 无测评记录提示 */
 .pc-empty {
   text-align: center;
   color: var(--rule-muted-foreground);
   padding: 28px 12px !important;
 }
 
-/* ===== Edit Modal ===== */
+/* 编辑弹窗 */
 .pc-modal-mask {
   position: fixed;
   inset: 0;
@@ -969,7 +987,6 @@ export default {
 }
 .pc-modal-save:hover { background: var(--rule-primary-hover); }
 
-/* ===== Responsive ===== */
 @media (max-width: 768px) {
   .app-sidebar { transform: translateX(-100%); transition: transform 0.3s; }
   .app-main { margin-left: 0; }

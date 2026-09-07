@@ -1,10 +1,10 @@
 <template>
   <div class="app-shell">
-    <!-- ===== Left Sidebar ===== -->
+    <!-- 左侧导航栏 -->
     <aside class="app-sidebar">
       <view class="app-sidebar-logo">
         <view class="app-sidebar-logo-icon">
-          <view class="ls-svg-glyph" aria-hidden="true"></view>
+          <image class="ls-svg-img" src="/static/logo.png" mode="aspectFit"></image>
         </view>
         <text class="app-sidebar-logo-text">涉外法治人才培养</text>
       </view>
@@ -47,8 +47,8 @@
       </view>
     </aside>
 
-    <!-- ===== Main Content Area ===== -->
-    <div class="app-main">
+    <!-- 主内容区 -->
+    <view class="app-main">
       <header class="app-topbar">
         <div class="app-topbar-left">
           <div class="app-back-btn" @click="goBack">
@@ -61,7 +61,7 @@
       </header>
       <main class="app-content">
 
-        <!-- ===== 1. Header bar ===== -->
+        <!-- 1. Header bar -->
         <div class="vd-header-bar">
           <div class="vd-title-area">
             <h1 class="vd-video-title">{{ currentTitle }}</h1>
@@ -77,9 +77,9 @@
           </div>
         </div>
 
-        <!-- ===== 2. Main grid: video player + course outline ===== -->
+        <!-- 2. Main grid: video player + course outline -->
         <div class="vd-main-grid vd-reveal" :class="{'is-visible': visibleSections[0]}">
-          <!-- Left: Video player card -->
+          <!-- 左侧：视频播放器卡片 -->
           <div class="vd-player-card" :class="{'is-fullscreen': isFullscreen}" ref="playerCardRef">
             <div class="vd-player-wrap" @click="onPlayerAreaClick">
               <template v-if="!isEmbedVideo">
@@ -118,7 +118,7 @@
 
               </template>
 
-              <!-- B站官方嵌入播放器 -->
+              <!-- 哔哩哔哩官方嵌入播放器 -->
               <iframe
                 v-else
                 class="vd-embed-player"
@@ -224,7 +224,7 @@
             </div>
           </div>
 
-          <!-- Right: Course intro card -->
+          <!-- 右侧：课程简介卡片 -->
           <div class="vd-outline-card" :style="outlineCardStyle">
             <div class="vd-outline-header">
               <span class="vd-outline-title">
@@ -240,7 +240,7 @@
           </div>
         </div>
 
-        <!-- ===== 3. Related recommended videos ===== -->
+        <!-- 3. Related recommended videos -->
         <section class="vd-reveal" :class="{'is-visible': visibleSections[2]}" aria-label="相关推荐">
           <div class="doc-section-header">
             <h2 class="doc-section-title">相关推荐</h2>
@@ -279,7 +279,7 @@
         </section>
 
       </main>
-    </div>
+    </view>
   </div>
 </template>
 
@@ -301,12 +301,12 @@ const todayDateText = computed(() => {
   return `${y}年${m}月${d}日`
 })
 
-// ==================== AI 课程简介 ====================
+// 课程简介由 AI 生成
 const aiIntro = ref('')
 const aiIntroHtml = ref('')
 const aiGenerating = ref(false)
 
-// ==================== Markdown → HTML（课程简介排版） ====================
+// 将 Markdown 转为 HTML 排版课程简介
 function escapeHtml(str) {
   return String(str)
     .replace(/&/g, '&amp;')
@@ -378,7 +378,7 @@ function markdownToHtml(md) {
   return html
 }
 
-// ==================== 播放器状态 ====================
+// 播放器状态
 const playerCardRef = ref(null)
 const outlineCardStyle = ref({})
 
@@ -446,7 +446,7 @@ const hoverTimeFormatted = computed(() => {
 
 const volumePct = computed(() => Math.round((isMuted.value ? 0 : volume.value) * 100))
 
-// B站支持：播放页地址或官方嵌入地址统一转为 iframe 可加载地址
+// 哔哩哔哩支持：播放页地址或官方嵌入地址统一转为可加载的嵌入地址
 const buildBilibiliEmbedUrl = (fileUrl) => {
   if (!fileUrl) return ''
   const value = String(fileUrl).trim()
@@ -460,9 +460,9 @@ const buildBilibiliEmbedUrl = (fileUrl) => {
   return `https://player.bilibili.com/player.html?bvid=${bvid[0]}&page=${page}&high_quality=1&danmaku=0`
 }
 
-// ==================== 播放器核心逻辑 ====================
+// 播放器核心逻辑
 
-// uni-app H5 会把 <video> 编译为 <uni-video> 包装组件：模板上写的类名落在 uni-video 上，
+// 在 H5 端，uni-app 会把视频组件编译为自定义包装组件：模板上写的类名落在包装组件上，
 // 真实原生 video 元素是其内部后代（class 为 uni-video-video）。因此用后代选择器取真实元素，
 // 才能正常调用 play/pause/currentTime/volume 等原生 API。
 const getVideo = () => {
@@ -545,7 +545,7 @@ const onLoadedMeta = () => {
 const onTimeUpdate = () => {
   const v = getVideo()
   if (!v || !duration.value) return
-  // uni-app H5 的 uni-video 不转发 seeked/playing 事件，播放态跳转后 waiting 置起的
+  // 在 H5 端，播放组件不转发 seeked/playing 事件，播放态跳转后 waiting 置起的
   // 缓冲态无人清除；timeupdate 是转发的，播放恢复后借此兜底清除
   isBuffering.value = false
   if (!isDragging.value) {
@@ -881,7 +881,7 @@ onLoad(async (options) => {
 })
 
 async function loadResource(id) {
-  // id 未变 + 已经有资源：直接跳过网络请求
+  // 编号未变且已有资源：直接跳过网络请求
   if (id === lastLoadedId && currentResource.value) {
     return
   }
@@ -995,7 +995,7 @@ function recThumbStyle(video) {
   return { background: video.gradient }
 }
 
-// Fisher-Yates 洗牌
+// 随机洗牌算法
 function shuffle(arr) {
   const a = [...arr]
   for (let i = a.length - 1; i > 0; i--) {
@@ -1005,9 +1005,7 @@ function shuffle(arr) {
   return a
 }
 
-/* ============================================================
-   Cache helpers (shared with learning-center page)
-   ============================================================ */
+/* 缓存工具函数（与学习中心页面共用） */
 const RESOURCES_CACHE_KEY = 'lc_resources_all_cache'
 const RESOURCES_CACHE_TTL = 5 * 60 * 1000
 
@@ -1087,22 +1085,14 @@ function pickRecommended() {
       gradient: gradients[idx % gradients.length]
     }))
 }
-
-function refreshRecommended() {
-  pickRecommended()
-}
 </script>
 
 <style scoped>
-/* ============================================
-   视频学习详情 - 样式
-   ============================================ */
+/* 视频学习详情 - 样式 */
 
-/* ============================================
-   Brand CSS Variables
-   ============================================ */
+/* 品牌主题色变量 */
 .app-shell {
-  /* === Brand Primary === */
+  /* 品牌主色 */
   --rule-primary: #2563EB;
   --rule-primary-hover: #1D4ED8;
   --rule-primary-active: #1E40AF;
@@ -1111,7 +1101,7 @@ function refreshRecommended() {
   --rule-primary-tint-2: #BFDBFE;
   --rule-primary-tint-3: #EFF6FF;
 
-  /* === Semantic === */
+  /* 语义色 */
   --rule-background: #F8FAFC;
   --rule-foreground: #0F172A;
   --rule-card: #FFFFFF;
@@ -1124,13 +1114,12 @@ function refreshRecommended() {
   --rule-input: #E2E8F0;
   --rule-ring: #2563EB;
 
-  /* === Radius === */
+  /* 圆角 */
   --rule-radius-small: 4px;
   --rule-radius-medium: 8px;
   --rule-radius-large: 16px;
   --rule-radius-full: 9999px;
 
-  /* === State Colors === */
   --state-success: #16A34A;
   --state-success-tint: #DCFCE7;
   --state-warning: #D97706;
@@ -1140,7 +1129,7 @@ function refreshRecommended() {
   --state-info: #2563EB;
   --state-info-tint: #DBEAFE;
 
-  /* === Neutrals === */
+  /* 中性色 */
   --rule-ink: #0F172A;
   --rule-ink-2: #475569;
   --rule-ink-3: #94A3B8;
@@ -1148,12 +1137,12 @@ function refreshRecommended() {
   --rule-surface: #FFFFFF;
   --rule-surface-2: #F8FAFC;
 
-  /* === Shadows === */
+  /* 阴影 */
   --rule-shadow-1: 0 1px 2px rgba(15,23,42,.04), 0 1px 1px rgba(15,23,42,.02);
   --rule-shadow-2: 0 8px 24px -8px rgba(15,23,42,.12);
   --rule-shadow-3: 0 24px 60px -20px rgba(15,23,42,.20);
 
-  /* === Base Shell Layout === */
+  /* 基础整体布局 */
   display: flex;
   min-height: 100vh;
   background: var(--rule-background);
@@ -1163,7 +1152,7 @@ function refreshRecommended() {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ===== Sidebar ===== */
+/* 侧边导航栏 */
 .app-sidebar {
   position: fixed; left: 0; top: 0; height: 100vh; width: 240px;
   display: flex; flex-direction: column;
@@ -1180,18 +1169,14 @@ function refreshRecommended() {
 }
 
 .app-sidebar-logo-icon {
-  width: 36px; height: 36px; border-radius: 8px;
-  background: var(--rule-primary);
+  width: 36px; height: 36px;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
-  overflow: hidden;
 }
 
-.ls-svg-glyph {
-  width: 20px; height: 20px;
-  background: #fff;
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
+.ls-svg-img {
+  width: 32px;
+  height: 32px;
 }
 
 .app-sidebar-logo-text {
@@ -1224,7 +1209,7 @@ function refreshRecommended() {
 }
 .app-nav-item.is-active:hover { background: var(--rule-primary-hover); color: #fff; }
 
-/* Nav icons (mask-based SVGs) */
+/* 导航图标（基于遮罩的 SVG） */
 .navi-icon {
   width: 20px; height: 20px; flex-shrink: 0;
   background: currentColor;
@@ -1253,7 +1238,7 @@ function refreshRecommended() {
           mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z'/%3E%3Cpath d='M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z'/%3E%3C/svg%3E") center/contain no-repeat;
 }
 
-/* ===== Sidebar User ===== */
+/* 侧边栏用户信息 */
 .app-sidebar-user {
   padding: 16px 12px;
   border-top: 1px solid var(--rule-border);
@@ -1379,7 +1364,7 @@ function refreshRecommended() {
   box-sizing: border-box;
 }
 
-/* === Header bar === */
+/* 顶部工具栏 */
 .vd-header-bar {
   margin-bottom: 24px;
 }
@@ -1422,7 +1407,7 @@ function refreshRecommended() {
   border-radius: 6px;
 }
 
-/* === Main grid: player + outline === */
+/* 主区域网格（播放器 + 课程大纲） */
 .vd-main-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;
@@ -1432,7 +1417,7 @@ function refreshRecommended() {
   align-items: start;
 }
 
-/* === Player card === */
+/* 播放器卡片 */
 .vd-player-card {
   background: var(--rule-card);
   border: 1px solid var(--rule-border);
@@ -1658,7 +1643,7 @@ function refreshRecommended() {
   white-space: nowrap;
 }
 
-/* === 音量控制 === */
+/* 音量控制 */
 .vd-volume-ctrl {
   display: flex;
   align-items: center;
@@ -1690,7 +1675,7 @@ function refreshRecommended() {
   border-radius: 3px;
 }
 
-/* === 倍速控制 === */
+/* 倍速控制 */
 .vd-speed-ctrl {
   position: relative;
   flex-shrink: 0;
@@ -1808,7 +1793,7 @@ function refreshRecommended() {
   }
 }
 
-/* === Outline card === */
+/* 课程简介卡片 */
 .vd-outline-card {
   background: var(--rule-card);
   border: 1px solid var(--rule-border);
@@ -1832,11 +1817,6 @@ function refreshRecommended() {
   font-size: 16px;
   font-weight: 600;
   color: var(--rule-foreground);
-}
-
-.vd-outline-progress {
-  font-size: 12px;
-  color: var(--rule-muted-foreground);
 }
 
 .vd-empty {
@@ -1869,7 +1849,7 @@ function refreshRecommended() {
   word-break: break-word;
 }
 
-/* AI 生成的富文本简介 */
+/* 人工智能生成的富文本简介 */
 .vd-intro-html {
   display: block;
   font-size: 14px;
@@ -1878,7 +1858,7 @@ function refreshRecommended() {
   word-break: break-word;
 }
 
-/* AI 生成标记 */
+/* 人工智能生成标记 */
 .vd-ai-badge {
   font-size: 11px;
   font-weight: 500;
@@ -1889,7 +1869,7 @@ function refreshRecommended() {
   flex-shrink: 0;
 }
 
-/* AI 生成加载提示 */
+/* 人工智能生成加载提示 */
 .vd-ai-loading {
   color: var(--rule-muted-foreground) !important;
   animation: vdAiPulse 1.4s ease-in-out infinite;
@@ -1900,7 +1880,7 @@ function refreshRecommended() {
   50% { opacity: 1; }
 }
 
-/* === Section header (aligned with legal-db) === */
+/* 区块标题（与法律库保持一致） */
 .doc-section-header {
   display: flex;
   align-items: baseline;
@@ -1921,7 +1901,7 @@ function refreshRecommended() {
   color: var(--rule-muted-foreground);
 }
 
-/* === Recommended cards (redesigned, matching video-list) === */
+/* 推荐卡片（重新设计，与视频列表页保持一致） */
 .rec-card {
   background: var(--rule-card);
   border: 1px solid var(--rule-border);
@@ -2020,6 +2000,7 @@ function refreshRecommended() {
   color: var(--rule-foreground);
   line-height: 1.45;
   display: -webkit-box;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
@@ -2058,7 +2039,7 @@ function refreshRecommended() {
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z'/><circle cx='12' cy='12' r='3'/></svg>") center/contain no-repeat;
 }
 
-/* === Recommended grid (4 per row default) === */
+/* 推荐网格（默认每行 4 个） */
 .vd-rec-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -2071,7 +2052,7 @@ function refreshRecommended() {
   min-width: 0;
 }
 
-/* === Scroll reveal === */
+/* 滚动显现动画 */
 .vd-reveal {
   opacity: 0;
   transform: translateY(30px);
@@ -2083,7 +2064,6 @@ function refreshRecommended() {
   transform: translateY(0);
 }
 
-/* === Responsive === */
 @media (max-width: 1024px) {
   .vd-main-grid {
     grid-template-columns: 1fr;
@@ -2098,10 +2078,6 @@ function refreshRecommended() {
   .app-sidebar {
     transform: translateX(-100%);
     transition: transform 0.3s ease;
-  }
-  
-  .app-sidebar.open {
-    transform: translateX(0);
   }
   
   .app-main {
@@ -2141,14 +2117,6 @@ function refreshRecommended() {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .video-card:hover {
-    transform: none;
-  }
-  
-  .video-card:hover .video-thumb-gradient {
-    transform: none;
-  }
-  
   .vd-reveal {
     opacity: 1;
     transform: none;

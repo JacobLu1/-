@@ -1,34 +1,68 @@
 <template>
   <view class="rd-page">
-    <view class="status-bar" :style="{ height: statusBarHeight + 'px' }"></view>
-    <view class="rd-nav">
-      <view class="rd-back" hover-class="rd-back-hover" @click="goBack">
-        <text class="rd-back-arrow">‹</text>
-        <text>返回</text>
+    <view class="sticky-top">
+      <view class="status-bar" :style="{ height: statusBarHeight + 'px' }"></view>
+      <view class="rd-nav">
+        <view class="rd-back" hover-class="rd-back-hover" @click="goBack">
+          <text class="rd-back-arrow">‹</text>
+          <text>返回</text>
+        </view>
+        <text class="rd-nav-title">文本阅读</text>
+        <text class="rd-count">{{ filteredReadings.length }} 篇</text>
       </view>
-      <text class="rd-nav-title">文本阅读</text>
-      <text class="rd-count">{{ readings.length }} 篇</text>
+
+      <!-- 固定筛选：分类 + 搜索（不随滚动消失） -->
+      <view class="rd-filter">
+        <scroll-view scroll-x class="rd-pills" show-scrollbar="false">
+          <view
+            class="rd-pill"
+            :class="{ 'is-active': categoryFilter === 'all' }"
+            @click="categoryFilter = 'all'"
+          >全部（{{ readings.length }}）</view>
+          <view
+            class="rd-pill"
+            :class="{ 'is-active': categoryFilter === c }"
+            v-for="(c, i) in categories"
+            :key="i"
+            @click="categoryFilter = c"
+          >{{ c }}</view>
+        </scroll-view>
+        <view class="rd-search">
+          <text class="ri-search-line rd-search-ico"></text>
+          <input
+            class="rd-search-input"
+            type="text"
+            v-model="searchText"
+            placeholder="搜索标题 / 分类 / 简介"
+            confirm-type="search"
+          />
+          <text v-if="searchText" class="ri-close-fill rd-search-clear" @click="searchText = ''"></text>
+        </view>
+      </view>
     </view>
 
-    <scroll-view scroll-y class="rd-scroll" show-scrollbar="false">
+    <view class="rd-scroll">
       <view v-if="!readings.length" class="rd-empty">暂无文本阅读资源</view>
+      <view v-else-if="!filteredReadings.length" class="rd-empty">未找到匹配的阅读内容</view>
       <view
+        v-else
         class="rd-card"
-        v-for="item in readings"
+        v-for="item in filteredReadings"
         :key="item.id"
-        @click="toggleDetail(item.id)"
+        hover-class="rd-card-hover"
+        @click="openDetail(item)"
       >
         <view class="rd-card-head">
           <text class="rd-title">{{ item.title }}</text>
           <text class="rd-meta">{{ item.category || '未分类' }} · {{ item.meta || '未设置难度' }}</text>
         </view>
         <text v-if="item.description" class="rd-summary">{{ item.description }}</text>
-        <view v-if="currentId === item.id" class="rd-body">
-          <text class="rd-content">{{ item.content || '暂无正文，请打开原文链接。' }}</text>
-          <view v-if="item.fileUrl" class="rd-link" @click.stop="openOriginal(item.fileUrl)">打开原文</view>
+        <view class="rd-foot">
+          <text class="rd-read-btn">阅读全文</text>
+          <text class="ri-arrow-right-s-line rd-read-arrow"></text>
         </view>
       </view>
-    </scroll-view>
+    </view>
   </view>
 </template>
 
@@ -38,7 +72,25 @@ export default {
     return {
       statusBarHeight: 0,
       readings: [],
-      currentId: ''
+      searchText: '',
+      categoryFilter: 'all'
+    }
+  },
+  computed: {
+    categories() {
+      return [...new Set(this.readings.map((r) => r.category).filter(Boolean))]
+    },
+    filteredReadings() {
+      const q = (this.searchText || '').trim().toLowerCase()
+      return this.readings.filter((r) => {
+        const matchCategory = this.categoryFilter === 'all' || r.category === this.categoryFilter
+        const matchQuery =
+          !q ||
+          (r.title || '').toLowerCase().includes(q) ||
+          (r.category || '').toLowerCase().includes(q) ||
+          (r.description || '').toLowerCase().includes(q)
+        return matchCategory && matchQuery
+      })
     }
   },
   onLoad() {
@@ -76,8 +128,10 @@ export default {
         uni.showToast({ title: (e && e.errMsg) || '阅读资源加载失败', icon: 'none' })
       }
     },
-    toggleDetail(id) {
-      this.currentId = this.currentId === id ? '' : id
+    openDetail(item) {
+      uni.navigateTo({
+        url: '/pages/legal-english/reading-detail?id=' + encodeURIComponent(item.id || '')
+      })
     },
     openOriginal(url) {
       if (!url) {
@@ -110,6 +164,12 @@ page {
   background: #F4F7FC;
   color: #16314F;
   font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+.sticky-top {
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .status-bar {
@@ -156,8 +216,65 @@ page {
   font-size: 24rpx;
 }
 
-.rd-scroll {
-  height: calc(100vh - 88rpx);
+/* 固定筛选：分类 + 搜索 */
+.rd-filter {
+  padding: 20rpx 24rpx 16rpx;
+  background: #F4F7FC;
+  border-bottom: 1rpx solid rgba(120,160,210,.14);
+}
+
+.rd-pills {
+  white-space: nowrap;
+}
+
+.rd-pill {
+  display: inline-block;
+  height: 56rpx;
+  padding: 0 26rpx;
+  margin-right: 14rpx;
+  border-radius: 999rpx;
+  background: #FFFFFF;
+  border: 1rpx solid rgba(120,160,210,.26);
+  color: #7A92B0;
+  font-size: 24rpx;
+  font-weight: 500;
+  line-height: 54rpx;
+  vertical-align: top;
+}
+
+.rd-pill.is-active {
+  background: #2E7BE0;
+  border-color: #2E7BE0;
+  color: #FFFFFF;
+}
+
+.rd-search {
+  margin-top: 18rpx;
+  display: flex;
+  align-items: center;
+  height: 76rpx;
+  padding: 0 24rpx;
+  border-radius: 999rpx;
+  background: #FFFFFF;
+  border: 1rpx solid rgba(120,160,210,.18);
+}
+
+.rd-search-ico {
+  font-size: 30rpx;
+  color: #7A92B0;
+  margin-right: 12rpx;
+}
+
+.rd-search-input {
+  flex: 1;
+  min-width: 0;
+  font-size: 26rpx;
+  color: #16314F;
+}
+
+.rd-search-clear {
+  font-size: 30rpx;
+  color: #A9BAD1;
 }
 
 .rd-card {
@@ -191,31 +308,24 @@ page {
   line-height: 1.7;
 }
 
-.rd-body {
-  margin-top: 24rpx;
-  padding-top: 24rpx;
+.rd-card-hover { opacity: 0.88; }
+
+.rd-foot {
+  display: flex;
+  align-items: center;
+  margin-top: 22rpx;
+  padding-top: 22rpx;
   border-top: 1rpx solid rgba(120,160,210,.16);
 }
-
-.rd-content {
-  display: block;
-  color: #16314F;
-  font-size: 28rpx;
-  line-height: 1.9;
-  white-space: pre-wrap;
-  word-break: break-all;
-}
-
-.rd-link {
-  display: inline-flex;
-  margin-top: 24rpx;
-  padding: 14rpx 28rpx;
-  color: #2E7BE0;
-  background: #EEF5FF;
-  border: 1rpx solid rgba(46,123,224,.24);
-  border-radius: 999rpx;
+.rd-read-btn {
   font-size: 26rpx;
   font-weight: 600;
+  color: #2E7BE0;
+}
+.rd-read-arrow {
+  font-size: 32rpx;
+  color: #2E7BE0;
+  margin-top: -2rpx;
 }
 
 .rd-empty {

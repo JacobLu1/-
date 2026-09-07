@@ -1,8 +1,8 @@
 <template>
   <view class="page-wrap">
-    <!-- Status bar safe-area (iOS notch / Android punch-hole) -->
+    <!-- 状态栏安全区占位（iOS 刘海屏 / 安卓挖孔屏适配） -->
     <view class="status-bar" :style="{ height: statusBarHeight + 'px' }"></view>
-    <!-- Top bar: search + avatar -->
+    <!-- 顶部栏：搜索框 + 头像入口 -->
     <view class="topbar">
       <view class="search">
         <text class="search-ico ri-search-line"></text>
@@ -11,10 +11,10 @@
       <view class="avatar-btn" hover-class="avatar-hover" @click="navTo('/pages/profile/profile')">{{ avatarText }}</view>
     </view>
 
-    <!-- Scrollable screen body -->
+    <!-- 可滚动内容区 -->
     <scroll-view scroll-y class="screen" scroll-with-animation>
 
-      <!-- 1. Page header -->
+      <!-- 1. 页面标题区 -->
       <view class="page-head reveal d1">
         <view>
           <text class="page-title">我的数据中心</text>
@@ -23,7 +23,7 @@
         <view class="chip">近6个月</view>
       </view>
 
-      <!-- 2. Stats grid (4 mini cards) -->
+      <!-- 2. 数据统计卡片（4 个小卡片） -->
       <view class="stats-grid">
         <view class="gmini reveal d1">
           <view class="stat-ico ico-brand">
@@ -70,7 +70,7 @@
         </view>
       </view>
 
-      <!-- 3. Line chart card -->
+      <!-- 3. 折线图卡片（成绩趋势） -->
       <view class="card pad reveal d2" style="margin-top:16px;">
         <view class="card-head">
           <view class="card-title-row">
@@ -88,7 +88,7 @@
         </view>
       </view>
 
-      <!-- 4. Radar chart card -->
+      <!-- 4. 雷达图卡片（能力维度分布） -->
       <view class="card pad reveal d3" style="margin-top:16px;">
         <view class="card-head">
           <view class="card-title-row">
@@ -106,32 +106,32 @@
         </view>
       </view>
 
-      <!-- 5. Dimension bars card -->
+      <!-- 5. 维度条形卡片 -->
       <view class="card pad reveal d4" style="margin-top:16px;">
         <view class="card-head">
           <view class="card-title-row">
             <view class="title-bar"></view>
             <text class="card-title-text">能力维度测评</text>
           </view>
-          <text class="card-sub">当前水平 / 目标 100</text>
+          <text class="card-sub">最近一次测评 · 实际 / 目标 100</text>
         </view>
 
         <block v-if="dimensions.length">
           <view class="dim-row" v-for="(d, i) in dimensions" :key="i">
             <view class="dim-top">
               <text class="dim-name">{{ d.name }}</text>
-              <view class="lvl" :class="d.levelClass">{{ d.levelLabel }}</view>
+              <text class="dim-achieve-chip" :class="d.gapClass">达成 {{ d.achievePct }}%</text>
             </view>
             <view class="dim-bar">
-              <view class="dim-fill" :style="{ width: d.animatedWidth + '%' }"></view>
+              <view class="dim-fill" :class="d.fillClass" :style="{ width: d.animatedWidth + '%' }"></view>
               <view class="dim-target"></view>
             </view>
             <view class="dim-meta">
               <view>
                 <text class="dim-score">{{ d.score }}</text>
-                <text class="dim-score-max">/100</text>
+                <text class="dim-score-max">/ 目标 100</text>
               </view>
-              <text class="dim-gap-label">缺口 <text class="dim-gap-num">{{ d.gap }}%</text></text>
+              <text class="dim-gap-label" :class="d.gapClass">{{ d.gapText }}</text>
             </view>
           </view>
         </block>
@@ -148,7 +148,7 @@
           <text class="card-sub">全部 ›</text>
         </view>
         <block v-if="quizRecords.length">
-          <view class="record-row" v-for="(r, i) in quizRecords" :key="i">
+          <view class="record-row" v-for="(r, i) in quizRecords" :key="i" hover-class="rec-hover" @click="goDetail(r.id)">
             <view class="record-ico">
               <text class="record-ico-text ri-file-list-3-line"></text>
             </view>
@@ -161,12 +161,13 @@
               <text class="record-score-unit">分</text>
             </view>
             <view class="record-time">{{ r.time }}</view>
+            <text class="record-chev">›</text>
           </view>
         </block>
         <view v-else class="empty-note">暂无测评记录</view>
       </view>
 
-      <!-- 6. Footer note -->
+      <!-- 6. 底部说明 -->
       <view class="foot-note reveal d5">
         <view class="foot-dot"></view>
         <text>数据来自 survey_result 测评记录</text>
@@ -257,38 +258,43 @@ export default {
         time: r.time || '--'
       }))
 
-      const dimMap = {}
-      const dimCount = {}
-      list.forEach(r => {
-        ;(r.dimensions || []).forEach(d => {
-          const name = d.name || '综合'
-          dimMap[name] = (dimMap[name] || 0) + (Number(d.score) || 0)
-          dimCount[name] = (dimCount[name] || 0) + 1
-        })
-      })
-      this.dimensions = Object.keys(dimMap).map(name => {
-        const score = Math.round(dimMap[name] / dimCount[name])
+      // 能力维度缺口：与网页端评估报告口径一致，取“最近一次测评”各维度得分，目标 100
+      const latest = list[0] || {}
+      this.dimensions = (latest.dimensions || []).map(d => {
+        const score = Number(d.score) || 0
+        const gapPct = Math.max(0, 100 - score)
+        const achievePct = Math.min(100, score)
+        let gapClass = 'gap-excellent'
+        let fillClass = 'fill-excellent'
+        if (gapPct > 0 && gapPct <= 10) {
+          gapClass = 'gap-normal'
+          fillClass = 'fill-normal'
+        } else if (gapPct > 10) {
+          gapClass = 'gap-warning'
+          fillClass = 'fill-warning'
+        }
         return {
-          name,
+          name: d.name || '综合',
           score,
-          levelClass: score >= 85 ? 'senior' : score >= 70 ? 'mid' : 'junior',
-          levelLabel: score >= 85 ? '高级' : score >= 70 ? '中级' : '初级',
-          gap: 100 - score,
+          achievePct: Math.round(achievePct),
+          gapText: gapPct > 0 ? '缺 -' + gapPct.toFixed(1) + '%' : '已达标',
+          gapClass,
+          fillClass,
           animatedWidth: 0
         }
       })
 
-      const latest = list[0] || {}
-      this.radarData = (latest.dimensions || []).map(d => ({
-        label: d.name || '综合',
-        value: Number(d.score) || 0
-      }))
+      this.radarData = this.dimensions.map(x => ({ label: x.name, value: x.score }))
     },
     formatRecordName(r) {
       if (r.mode === 'special' && r.specialCategory) {
         return `${r.specialCategory}专项测评`
       }
       return '涉外法治综合测评'
+    },
+    goDetail(id) {
+      if (!id) return
+      uni.navigateTo({ url: '/pages/survey-detail/survey-detail?id=' + id })
     },
     formatDate(value) {
       if (!value) return '--'
@@ -588,7 +594,7 @@ page {
   --r-pill: 999rpx;
 }
 
-/* ---------- Page wrap ---------- */
+/* 页面容器（整页竖向 Flex 布局） */
 .page-wrap {
   min-height: 100vh;
   background: linear-gradient(160deg, #EAF3FF 0%, #F4F9FF 45%, #E6F1FE 100%);
@@ -617,14 +623,14 @@ page {
   bottom: 80rpx; left: -180rpx;
 }
 
-/* ---------- Status bar safe-area ---------- */
+/* 状态栏安全区占位 */
 .status-bar {
   width: 100%;
   flex-shrink: 0;
   background: transparent;
 }
 
-/* ---------- Top bar ---------- */
+/* 顶部栏：搜索框 + 头像 */
 .topbar {
   position: relative;
   z-index: 45;
@@ -675,7 +681,7 @@ page {
 }
 .avatar-hover { transform: scale(0.95); }
 
-/* ---------- Screen body ---------- */
+/* 可滚动内容区 */
 .screen {
   position: relative;
   z-index: 5;
@@ -684,7 +690,6 @@ page {
   padding: 16rpx 36rpx 220rpx;
 }
 
-/* ---------- Page header ---------- */
 .page-head {
   display: flex;
   align-items: flex-start;
@@ -705,7 +710,7 @@ page {
   display: block;
 }
 
-/* ---------- Chip ---------- */
+/* 时间范围标签 */
 .chip {
   display: inline-flex;
   align-items: center;
@@ -721,7 +726,7 @@ page {
   flex-shrink: 0;
 }
 
-/* ---------- Stats grid ---------- */
+/* 数据统计卡片网格 */
 .stats-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -792,7 +797,7 @@ page {
   background: var(--green-soft);
 }
 
-/* ---------- Card ---------- */
+/* 内容卡片 */
 .card {
   position: relative;
   background: var(--glass);
@@ -830,7 +835,7 @@ page {
   color: var(--muted);
 }
 
-/* ---------- Chart wrap ---------- */
+/* 图表容器 */
 .chart-wrap {
   position: relative;
 }
@@ -842,7 +847,7 @@ page {
   height: 528rpx;
 }
 
-/* ---------- Dimension bars ---------- */
+/* 能力维度条形 */
 .dim-row {
   padding: 26rpx 0;
   border-bottom: 2rpx solid var(--line);
@@ -904,30 +909,37 @@ page {
 }
 .dim-gap-label {
   color: var(--muted);
-  font-weight: 600;
+  font-weight: 700;
   font-size: 22rpx;
 }
-.dim-gap-num {
-  color: var(--rose);
-  font-weight: 800;
-  font-size: 22rpx;
-}
+.dim-gap-label.gap-excellent { color: #15803D; }
+.dim-gap-label.gap-warning { color: #B45309; }
 
-/* Level chips */
-.lvl {
-  height: 44rpx;
-  padding: 0 18rpx;
-  font-size: 22rpx;
+/* 达成率徽标（缺口状态配色：已达标/正常/待加强） */
+.dim-achieve-chip {
+  height: 40rpx;
+  padding: 0 16rpx;
+  font-size: 20rpx;
   border-radius: var(--r-pill);
   font-weight: 700;
   display: inline-flex;
   align-items: center;
 }
-.lvl.junior { background: var(--amber-soft); color: #B45309; }
-.lvl.mid { background: var(--violet-soft); color: #6D28D9; }
-.lvl.senior { background: var(--green-soft); color: #15803D; }
+.dim-achieve-chip.gap-excellent { background: var(--green-soft); color: #15803D; }
+.dim-achieve-chip.gap-normal { background: var(--blue-50); color: var(--brand-deep); }
+.dim-achieve-chip.gap-warning { background: var(--amber-soft); color: #B45309; }
 
-/* ---------- Quiz records ---------- */
+/* 缺口进度条分级配色 */
+.dim-fill.fill-excellent {
+  background: linear-gradient(90deg, #22C55E, #16A34A);
+  box-shadow: 0 4rpx 12rpx rgba(34, 197, 94, 0.32);
+}
+.dim-fill.fill-warning {
+  background: linear-gradient(90deg, #FBBF24, #F59E0B);
+  box-shadow: 0 4rpx 12rpx rgba(245, 158, 11, 0.32);
+}
+
+/* 测评记录列表 */
 .record-row {
   display: flex;
   align-items: center;
@@ -993,8 +1005,18 @@ page {
   width: 80rpx;
   text-align: right;
 }
+.record-chev {
+  color: var(--muted-2);
+  font-size: 32rpx;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-left: -4rpx;
+}
+.rec-hover {
+  background: rgba(91, 157, 249, 0.07);
+}
 
-/* ---------- Footer note ---------- */
+/* 底部说明 */
 .foot-note {
   text-align: center;
   font-size: 22rpx;
@@ -1012,7 +1034,7 @@ page {
   box-shadow: 0 0 0 6rpx var(--green-soft);
 }
 
-/* ---------- Animations ---------- */
+/* 入场动画 */
 @keyframes fadeUp { from { opacity: 0; transform: translateY(36rpx); } to { opacity: 1; transform: translateY(0); } }
 
 .reveal { opacity: 0; animation: fadeUp 0.6s cubic-bezier(.22,1,.36,1) forwards; }

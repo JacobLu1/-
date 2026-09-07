@@ -36,9 +36,44 @@
 			}
 		},
 		{
+			"path": "pages/legal-english/reading-detail",
+			"style": {
+				"navigationBarTitleText": "阅读详情",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/legal-english/legal-vocab",
+			"style": {
+				"navigationBarTitleText": "法律词汇",
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "pages/legal-english/listening-training",
 			"style": {
 				"navigationBarTitleText": "听力实训",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/legal-english/case-study",
+			"style": {
+				"navigationBarTitleText": "文书案例研究",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/legal-db/legal-db",
+			"style": {
+				"navigationBarTitleText": "法律库",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/legal-db/doc-detail",
+			"style": {
+				"navigationBarTitleText": "法规详情",
 				"navigationStyle": "custom"
 			}
 		},
@@ -71,16 +106,30 @@
 			}
 		},
 		{
-			"path": "pages/ai-assistant/ai-assistant",
+			"path": "pages/profile/edit-profile",
 			"style": {
-				"navigationBarTitleText": "AI助手",
+				"navigationBarTitleText": "编辑资料",
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/achievements/achievements",
+			"path": "pages/wrong-questions/wrong-questions",
 			"style": {
-				"navigationBarTitleText": "全部成就",
+				"navigationBarTitleText": "我的错题",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/survey-detail/survey-detail",
+			"style": {
+				"navigationBarTitleText": "测评记录详情",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/ai-assistant/ai-assistant",
+			"style": {
+				"navigationBarTitleText": "AI助手",
 				"navigationStyle": "custom"
 			}
 		},

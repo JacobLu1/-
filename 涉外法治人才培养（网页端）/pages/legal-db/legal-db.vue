@@ -1,15 +1,15 @@
 <template>
   <view class="legal-shell">
-    <!-- ===== Brand CSS Variables ===== -->
+    <!-- 品牌主题色变量 -->
     <view class="css-vars" aria-hidden="true"></view>
 
-    <!-- ===== App Shell (Sidebar + Main) ===== -->
+    <!-- 应用外壳（侧边栏 + 主内容区） -->
     <view class="app-shell">
-      <!-- ===== Left Sidebar ===== -->
+      <!-- 左侧导航栏 -->
       <aside class="app-sidebar">
         <view class="app-sidebar-logo">
           <view class="app-sidebar-logo-icon">
-            <view class="ls-svg-glyph" aria-hidden="true"></view>
+            <image class="ls-svg-img" src="/static/logo.png" mode="aspectFit"></image>
           </view>
           <text class="app-sidebar-logo-text">涉外法治人才培养</text>
         </view>
@@ -52,7 +52,7 @@
         </view>
       </aside>
 
-      <!-- ===== Main Content Area ===== -->
+      <!-- 主内容区 -->
       <view class="app-main">
         <header class="app-topbar">
           <text class="app-topbar-title">法律库</text>
@@ -61,8 +61,8 @@
 
         <main class="app-content">
           <view class="ll-wrap">
-            <!-- Search Bar -->
-            <view class="search-bar" aria-label="法规搜索">
+            <!-- 搜索栏 -->
+            <view class="ldb-search-bar" aria-label="法规搜索">
               <view class="search-input-wrap">
                 <view class="search-icon-svg"></view>
                 <input
@@ -83,7 +83,7 @@
               </view>
             </view>
 
-            <!-- Filter panel (expandable, matching the original filter logic) -->
+            <!-- 可展开的筛选面板（与原始筛选逻辑一致） -->
             <view v-if="showFilterPanel" class="filter-panel">
               <view class="filter-row">
                 <text class="filter-label">法律领域</text>
@@ -126,7 +126,7 @@
               </view>
             </view>
 
-            <!-- Category Filter Tags -->
+            <!-- 分类筛选标签 -->
             <view class="tag-row" role="group" aria-label="法规分类筛选">
               <view
                 class="tag-pill"
@@ -137,7 +137,7 @@
               >{{ item.name }}</view>
             </view>
 
-            <!-- Document List Section -->
+            <!-- 文档列表区域 -->
             <view class="doc-section-header">
               <text class="doc-section-title">法规文献</text>
               <text class="doc-section-meta">共 {{ filteredResults.length }} 条结果</text>
@@ -171,7 +171,7 @@
               </view>
             </view>
 
-            <!-- Pagination -->
+            <!-- 分页 -->
             <nav v-if="totalPages > 1" class="pagination" aria-label="分页导航">
               <view
                 class="page-btn page-nav"
@@ -209,9 +209,6 @@ import { ref, computed, onMounted } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { requireLogin, getDisplayName, getLevelText } from '@/utils/auth.js'
 
-/* ============================================================
-   Reactive State
-   ============================================================ */
 const searchKeyword = ref('')
 const activeCategory = ref('all')
 const selectedFields = ref([])
@@ -221,15 +218,12 @@ const currentPage = ref(1)
 const showFilterPanel = ref(false)
 const pageSize = 6
 
-// User info (hardcoded demo)
+// 用户信息（演示用写死数据）
 const userInitial = computed(() => (userName.value || '用').slice(0, 1))
 const userName = ref(getDisplayName())
 const userRole = ref(getLevelText())
 
-/* ============================================================
-   Data
-   ============================================================ */
-const categories = ref([{ key: 'all', name: '全部' }])
+const categories = [{ key: 'all', name: '全部' }]
 
 const legalFields = ['国际贸易法', '国际私法', '国际仲裁', '反垄断法', '数据保护法', '知识产权法', '投资法', '税法']
 const regions = ['中国', '欧盟', '美国', '英国', '新加坡', '国际']
@@ -249,25 +243,55 @@ function mergeCategoryOptions(extra = []) {
   }
 }
 
+const DOCS_CACHE_KEY = 'ld_docs_cache'
+const DOCS_CACHE_TTL = 10 * 60 * 1000
+const CATS_CACHE_KEY = 'ld_cats_cache'
+const CATS_CACHE_TTL = 10 * 60 * 1000
+
+// 返回分类数组（带缓存），由调用方统一合并
 async function loadCategories() {
+  const now = Date.now()
+  try {
+    const cached = uni.getStorageSync(CATS_CACHE_KEY)
+    if (cached && cached.expireAt && cached.expireAt > now && Array.isArray(cached.list)) {
+      return cached.list
+    }
+  } catch (e) {}
   try {
     const knowledgeObj = uniCloud.importObject('knowledge', { customUI: true })
     const r = (await knowledgeObj.getCategories({ status: '已上线' })) || {}
-    if (r.errCode === 0 && Array.isArray(r.list)) {
-      mergeCategoryOptions(r.list)
-    } else {
-      mergeCategoryOptions([])
-    }
+    const list = (r.errCode === 0 && Array.isArray(r.list)) ? r.list : []
+    try {
+      uni.setStorageSync(CATS_CACHE_KEY, { expireAt: now + CATS_CACHE_TTL, list })
+    } catch (e) {}
+    return list
   } catch (e) {
-    mergeCategoryOptions([])
+    return []
   }
 }
 
 async function loadDocs() {
   loading.value = true
+  const now = Date.now()
+  // 1) 缓存命中：直接渲染，仅刷新分类（分类也有缓存）
+  try {
+    const cached = uni.getStorageSync(DOCS_CACHE_KEY)
+    if (cached && cached.expireAt && cached.expireAt > now && Array.isArray(cached.list)) {
+      results.value = cached.list
+      currentPage.value = 1
+      mergeCategoryOptions(await loadCategories())
+      loading.value = false
+      return
+    }
+  } catch (e) {}
+
   try {
     const knowledgeObj = uniCloud.importObject('knowledge', { customUI: true })
-    const r = (await knowledgeObj.listPublic({ category: 'all', keyword: '', page: 1, pageSize: 500 })) || {}
+    // 2) 列表与分类并行拉取，消除串行等待
+    const [r, catList] = await Promise.all([
+      knowledgeObj.listPublic({ category: 'all', keyword: '', page: 1, pageSize: 500 }),
+      loadCategories()
+    ])
     if (r.errCode === 0) {
       results.value = (r.list || []).map(doc => ({
         id: doc._id,
@@ -284,10 +308,13 @@ async function loadDocs() {
         date: doc.date || ''
       }))
       currentPage.value = 1
-      await loadCategories()
+      try {
+        uni.setStorageSync(DOCS_CACHE_KEY, { expireAt: now + DOCS_CACHE_TTL, list: results.value })
+      } catch (e) {}
     } else {
       uni.showToast({ title: r.errMsg || '知识库加载失败', icon: 'none' })
     }
+    mergeCategoryOptions(catList)
   } catch (e) {
     uni.showToast({ title: (e && e.errMsg) || '知识库加载失败', icon: 'none' })
   } finally {
@@ -295,9 +322,6 @@ async function loadDocs() {
   }
 }
 
-/* ============================================================
-   Computed
-   ============================================================ */
 const todayDateText = computed(() => {
   const now = new Date()
   const y = now.getFullYear()
@@ -309,7 +333,7 @@ const todayDateText = computed(() => {
 const filteredResults = computed(() => {
   let list = [...results.value]
 
-  // Keyword search
+  // 关键词搜索
   if (searchKeyword.value) {
     const kw = searchKeyword.value.toLowerCase()
     list = list.filter(item =>
@@ -319,12 +343,12 @@ const filteredResults = computed(() => {
     )
   }
 
-  // Category filter (tag-pill)
+  // 分类筛选（标签式）
   if (activeCategory.value !== 'all') {
     list = list.filter(item => (item.category || '综合') === activeCategory.value)
   }
 
-  // Advanced filters
+  // 高级筛选
   if (selectedFields.value.length) {
     list = list.filter(item => item.fields.some(f => selectedFields.value.includes(f)))
   }
@@ -356,9 +380,6 @@ const visiblePages = computed(() => {
   return pages
 })
 
-/* ============================================================
-   Methods
-   ============================================================ */
 function navigateTo(url) {
   uni.navigateTo({ url })
 }
@@ -438,9 +459,6 @@ function categoryName(item) {
   return item.type || '法规'
 }
 
-/* ============================================================
-   Lifecycle
-   ============================================================ */
 onMounted(() => {
   loadDocs()
 })
@@ -452,11 +470,9 @@ onLoad(() => {
 </script>
 
 <style scoped>
-/* ============================================================
-   Brand Design Tokens (from 法律库.html)
-   ============================================================ */
+/* 品牌设计变量（来自法律库页面） */
 .legal-shell {
-  /* === Brand Primary === */
+  /* 品牌主色 */
   --rule-primary: #2563EB;
   --rule-primary-hover: #1D4ED8;
   --rule-primary-active: #1E40AF;
@@ -465,7 +481,7 @@ onLoad(() => {
   --rule-primary-tint-2: #BFDBFE;
   --rule-primary-tint-3: #EFF6FF;
 
-  /* === Semantic === */
+  /* 语义色 */
   --rule-background: #F8FAFC;
   --rule-foreground: #0F172A;
   --rule-card: #FFFFFF;
@@ -478,13 +494,12 @@ onLoad(() => {
   --rule-input: #E2E8F0;
   --rule-ring: #2563EB;
 
-  /* === Radius === */
+  /* 圆角 */
   --rule-radius-small: 4px;
   --rule-radius-medium: 8px;
   --rule-radius-large: 16px;
   --rule-radius-full: 9999px;
 
-  /* === State Colors === */
   --state-success: #16A34A;
   --state-success-tint: #DCFCE7;
   --state-warning: #D97706;
@@ -494,7 +509,7 @@ onLoad(() => {
   --state-info: #2563EB;
   --state-info-tint: #DBEAFE;
 
-  /* === Neutrals === */
+  /* 中性色 */
   --rule-ink: #0F172A;
   --rule-ink-2: #475569;
   --rule-ink-3: #94A3B8;
@@ -502,7 +517,7 @@ onLoad(() => {
   --rule-surface: #FFFFFF;
   --rule-surface-2: #F8FAFC;
 
-  /* === Shadows === */
+  /* 阴影 */
   --rule-shadow-1: 0 1px 2px rgba(15,23,42,.04), 0 1px 1px rgba(15,23,42,.02);
   --rule-shadow-2: 0 8px 24px -8px rgba(15,23,42,.12);
   --rule-shadow-3: 0 24px 60px -20px rgba(15,23,42,.20);
@@ -515,16 +530,14 @@ onLoad(() => {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ============================================================
-   Shell Layout
-   ============================================================ */
+/* 整体布局 */
 .app-shell {
   display: flex;
   min-height: 100vh;
   background: var(--rule-background);
 }
 
-/* ===== Sidebar ===== */
+/* 侧边导航栏 */
 .app-sidebar {
   position: fixed; left: 0; top: 0; height: 100vh; width: 240px;
   display: flex; flex-direction: column;
@@ -541,18 +554,14 @@ onLoad(() => {
 }
 
 .app-sidebar-logo-icon {
-  width: 36px; height: 36px; border-radius: 8px;
-  background: var(--rule-primary);
+  width: 36px; height: 36px;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
-  overflow: hidden;
 }
 
-.ls-svg-glyph {
-  width: 20px; height: 20px;
-  background: #fff;
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
+.ls-svg-img {
+  width: 32px;
+  height: 32px;
 }
 
 .app-sidebar-logo-text {
@@ -585,7 +594,7 @@ onLoad(() => {
 }
 .app-nav-item.is-active:hover { background: var(--rule-primary-hover); color: #fff; }
 
-/* Nav icons (mask-based SVGs) */
+/* 导航图标（基于遮罩的 SVG） */
 .navi-icon {
   width: 20px; height: 20px; flex-shrink: 0;
   background: currentColor;
@@ -593,10 +602,6 @@ onLoad(() => {
 }
 .app-nav-item.is-active .navi-icon { background: #fff; }
 
-.navi-icon-home {
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M3 10.5 12 3l9 7.5'/><path d='M5 9.5V21h14V9.5'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M3 10.5 12 3l9 7.5'/><path d='M5 9.5V21h14V9.5'/></svg>") center/contain no-repeat;
-}
 .navi-icon-survey {
   -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><rect width='8' height='4' x='8' y='2' rx='1'/><path d='M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'/><path d='M12 11h4'/><path d='M12 16h4'/><circle cx='9' cy='11' r='1.2'/><circle cx='9' cy='16' r='1.2'/></svg>") center/contain no-repeat;
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><rect width='8' height='4' x='8' y='2' rx='1'/><path d='M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'/><path d='M12 11h4'/><path d='M12 16h4'/><circle cx='9' cy='11' r='1.2'/><circle cx='9' cy='16' r='1.2'/></svg>") center/contain no-repeat;
@@ -618,7 +623,7 @@ onLoad(() => {
           mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z'/%3E%3Cpath d='M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z'/%3E%3C/svg%3E") center/contain no-repeat;
 }
 
-/* ===== Sidebar User ===== */
+/* 侧边栏用户信息 */
 .app-sidebar-user {
   padding: 16px 12px;
   border-top: 1px solid var(--rule-border);
@@ -670,7 +675,7 @@ onLoad(() => {
   font-weight: 500;
 }
 
-/* ===== Main ===== */
+/* 主内容区 */
 .app-main {
   flex: 1; margin-left: 240px;
   display: flex; flex-direction: column;
@@ -698,30 +703,28 @@ onLoad(() => {
   padding: 32px;
 }
 
-/* ============================================================
-   Law Library Page Styles (from 法律库.html)
-   ============================================================ */
+/* 法律库页面样式（来自法律库页面） */
 .ll-wrap {
-  display: flex; flex-direction: column; gap: 20px;
+  display: flex; flex-direction: column; gap: 14px;
   max-width: 1120px;
 }
 
-/* ---- Search Bar ---- */
-.search-bar {
-  display: flex; align-items: center; gap: 12px;
+/* 搜索栏 */
+.ldb-search-bar {
+  display: flex; align-items: center; gap: 10px;
 }
 .search-input-wrap {
   position: relative; flex: 1; min-width: 0;
 }
 .search-icon-svg {
-  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
-  width: 18px; height: 18px; pointer-events: none;
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  width: 16px; height: 16px; pointer-events: none;
   background: var(--rule-muted-foreground);
   -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='8'/><path d='m21 21-4.3-4.3'/></svg>") center/contain no-repeat;
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='8'/><path d='m21 21-4.3-4.3'/></svg>") center/contain no-repeat;
 }
 .search-input {
-  width: 100%; height: 48px; padding: 0 16px 0 44px;
+  width: 100%; height: 40px; padding: 0 12px 0 38px;
   border-radius: 8px; border: 1px solid var(--rule-border);
   background: var(--rule-card); color: var(--rule-foreground);
   font-size: 14px; font-family: inherit;
@@ -734,14 +737,14 @@ onLoad(() => {
   box-shadow: 0 0 0 3px var(--rule-primary-tint-1);
 }
 
-/* ---- Buttons ---- */
+/* 按钮 */
 .btn {
-  display: inline-flex; align-items: center; gap: 6px; height: 48px;
+  display: inline-flex; align-items: center; gap: 6px; height: 40px;
   font-weight: 500; white-space: nowrap; cursor: pointer;
   transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.15s;
 }
 .btn-secondary {
-  padding: 0 16px; border-radius: 8px;
+  padding: 0 14px; border-radius: 8px;
   border: 1px solid var(--rule-border);
   background: var(--rule-card); color: var(--rule-foreground);
   font-size: 14px;
@@ -750,7 +753,7 @@ onLoad(() => {
 .btn-secondary:active { opacity: 0.85; }
 
 .btn-primary {
-  padding: 0 22px; border-radius: 8px;
+  padding: 0 18px; border-radius: 8px;
   border: 1px solid var(--rule-primary);
   background: var(--rule-primary); color: var(--rule-primary-foreground);
   font-size: 14px; font-weight: 600;
@@ -765,27 +768,27 @@ onLoad(() => {
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='21' x2='14' y1='4' y2='4'/><line x1='10' x2='3' y1='4' y2='4'/><line x1='21' x2='12' y1='12' y2='12'/><line x1='8' x2='3' y1='12' y2='12'/><line x1='21' x2='16' y1='20' y2='20'/><line x1='12' x2='3' y1='20' y2='20'/><line x1='14' x2='14' y1='2' y2='6'/><line x1='8' x2='8' y1='10' y2='14'/><line x1='16' x2='16' y1='18' y2='22'/></svg>") center/contain no-repeat;
 }
 
-/* ---- Filter Panel (expandable) ---- */
+/* 可展开的筛选面板 */
 .filter-panel {
   background: var(--rule-card);
   border: 1px solid var(--rule-border);
   border-radius: var(--rule-radius-large);
-  padding: 20px 24px;
-  display: flex; flex-direction: column; gap: 16px;
+  padding: 12px 16px;
+  display: flex; flex-direction: column; gap: 10px;
 }
 .filter-row {
-  display: flex; align-items: flex-start; gap: 12px;
+  display: flex; align-items: flex-start; gap: 10px;
 }
 .filter-label {
   font-size: 13px; font-weight: 600; color: var(--rule-muted-foreground);
-  min-width: 64px; flex-shrink: 0; margin-top: 4px;
+  min-width: 60px; flex-shrink: 0; margin-top: 3px;
 }
 .filter-chips {
   display: flex; flex-wrap: wrap; gap: 6px; flex: 1;
 }
 .filter-chip {
   display: inline-flex; align-items: center;
-  padding: 5px 12px; border-radius: var(--rule-radius-full);
+  padding: 4px 10px; border-radius: var(--rule-radius-full);
   font-size: 13px; background: var(--rule-muted); color: var(--rule-ink-2);
   border: 1px solid transparent;
   cursor: pointer; white-space: nowrap;
@@ -799,7 +802,7 @@ onLoad(() => {
   font-weight: 500;
 }
 .filter-actions {
-  display: flex; justify-content: flex-end; padding-top: 4px;
+  display: flex; justify-content: flex-end; padding-top: 2px;
 }
 .btn-filter-reset {
   font-size: 13px; color: var(--rule-muted-foreground); cursor: pointer;
@@ -808,13 +811,13 @@ onLoad(() => {
 .btn-filter-reset:hover { color: var(--rule-primary); }
 .btn-filter-reset:active { opacity: 0.8; }
 
-/* ---- Category Filter Tags ---- */
+/* 分类筛选标签 */
 .tag-row {
   display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
 }
 .tag-pill {
   display: inline-flex; align-items: center;
-  padding: 6px 14px; border-radius: 9999px;
+  padding: 5px 12px; border-radius: 9999px;
   font-size: 13px; font-weight: 500;
   border: 1px solid transparent;
   background: var(--rule-muted); color: var(--rule-ink-2);
@@ -828,7 +831,7 @@ onLoad(() => {
 }
 .tag-pill.active:hover { background: var(--rule-primary-hover); border-color: var(--rule-primary-hover); }
 
-/* ---- Document Section Header ---- */
+/* 文档区块标题 */
 .doc-section-header {
   display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
 }
@@ -851,7 +854,7 @@ onLoad(() => {
   border-radius: 12px;
 }
 
-/* ---- Document Grid ---- */
+/* 文档列表网格 */
 .doc-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -927,7 +930,7 @@ onLoad(() => {
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m9 18 6-6-6-6'/></svg>") center/contain no-repeat;
 }
 
-/* ---- Pagination ---- */
+/* 分页 */
 .pagination {
   display: flex; align-items: center; justify-content: center; gap: 8px;
 }
@@ -963,13 +966,12 @@ onLoad(() => {
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m9 18 6-6-6-6'/></svg>") center/contain no-repeat;
 }
 
-/* ---- Responsive ---- */
 @media (max-width: 768px) {
   .app-sidebar { transform: translateX(-100%); transition: transform 0.3s; }
   .app-main { margin-left: 0; }
   .app-content { padding: 16px; }
   .doc-grid { grid-template-columns: 1fr; }
-  .search-bar { flex-wrap: wrap; }
+  .ldb-search-bar { flex-wrap: wrap; }
   .btn { height: 44px; font-size: 13px; }
   .btn-primary { padding: 0 16px; }
   .btn-secondary { padding: 0 12px; }

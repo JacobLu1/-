@@ -50,6 +50,13 @@
 			}
 		},
 		{
+			"path": "pages/survey/survey-detail",
+			"style": {
+				"navigationBarTitleText": "测评记录详情",
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "pages/ai-assistant/ai-assistant",
 			"style": {
 				"navigationBarTitleText": "AI助手",
@@ -130,6 +137,13 @@
 			"path": "pages/learning-center/reading-detail",
 			"style": {
 				"navigationBarTitleText": "文本阅读",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/learning-center/case-study",
+			"style": {
+				"navigationBarTitleText": "文书案例研究",
 				"navigationStyle": "custom"
 			}
 		},

@@ -1,10 +1,10 @@
 <template>
   <view class="app-shell">
-    <!-- ===== Left Sidebar ===== -->
+    <!-- 左侧导航栏 -->
     <aside class="app-sidebar">
       <view class="app-sidebar-logo">
         <view class="app-sidebar-logo-icon">
-          <view class="ls-svg-glyph" aria-hidden="true"></view>
+          <image class="ls-svg-img" src="/static/logo.png" mode="aspectFit"></image>
         </view>
         <view class="app-sidebar-logo-text">
           <text>涉外法治人才培养平台</text>
@@ -51,7 +51,7 @@
       </view>
     </aside>
 
-    <!-- ===== Main Content Area ===== -->
+    <!-- 主内容区 -->
     <view class="app-main">
       <header class="app-topbar">
         <view class="app-topbar-titles">
@@ -62,7 +62,7 @@
       </header>
       <main class="app-content">
 
-        <!-- ===== Section 1: 题库概览统计 ===== -->
+        <!-- 题库概览统计 -->
         <section class="dc-section" :class="{ 'is-visible': visibleSections[0] }" aria-label="题库概览统计">
           <view class="qb-kpi-grid">
             <view class="qb-kpi-card">
@@ -112,7 +112,7 @@
           </view>
         </section>
 
-        <!-- ===== Section 2: 筛选与搜索工具栏 ===== -->
+        <!-- 筛选与搜索工具栏 -->
         <section class="dc-section" :class="{ 'is-visible': visibleSections[1] }" aria-label="筛选与搜索工具栏">
           <view v-if="formVisible" class="qb-form-card">
             <view class="qb-section-header">
@@ -171,6 +171,12 @@
                 <input class="qb-input" v-model="formAnswer" :placeholder="formType === 'multi' ? '如 A,B,C' : (formType === 'judge' ? '对 或 错' : '参考答案')" />
               </view>
             </view>
+            <view class="qb-form-row">
+              <view class="qb-form-field qb-form-grow">
+                <text class="qb-form-label">答案解析（提交后展示给学习者）</text>
+                <textarea class="qb-textarea qb-textarea-sm" v-model="formAnalysis" placeholder="填写本题解析，可留空"></textarea>
+              </view>
+            </view>
             <view v-if="formType === 'subjective'" class="qb-form-row">
               <view class="qb-form-field">
                 <text class="qb-form-label">主观题型</text>
@@ -195,6 +201,44 @@
               <view class="qb-create-btn" @tap="saveQuestion">保存题目</view>
             </view>
           </view>
+
+          <!-- 批量导入面板 -->
+          <view v-if="importVisible" class="qb-form-card">
+            <view class="qb-section-header">
+              <view class="qb-section-title-wrap">
+                <view class="qb-section-bar"></view>
+                <view>
+                  <text class="qb-section-title">批量导入题库</text>
+                  <text class="qb-section-subtitle">上传或粘贴题库 JSON（数组），按题干自动去重，可导入已上线 / 审核中题目</text>
+                </view>
+              </view>
+            </view>
+            <view class="qb-import-file-row">
+              <view class="qb-file-btn" @tap="pickImportFile">
+                <text>＋</text>
+                <text>选择 JSON 文件</text>
+              </view>
+              <text class="qb-import-file-hint">可将转换好的题库文件直接上传：涉外题库-批量导入.json、涉外题库2-批量导入.json</text>
+            </view>
+            <view class="qb-form-row">
+              <view class="qb-form-field qb-form-grow">
+                <text class="qb-form-label">题库 JSON</text>
+                <textarea class="qb-textarea qb-import-area" v-model="importText" :placeholder="importPlaceholder"></textarea>
+                <text class="qb-import-tip">每道题：type（single/multi/judge/subjective）+ title + answer + analysis；单选/多选须带 options: [{key:'A', text:'...'}]；judge 的 answer 为 true/false；subjective 可用 caseText/placeholder。可选：dimension（板块/维度）、difficulty（easy/mid/hard）、status（已上线/审核中，默认审核中）。注意：只有“已上线”的题会出现在测评页，导入前请确认 status 或导入后点“一键全部上线”。</text>
+              </view>
+            </view>
+            <view v-if="importPreview" class="qb-import-preview">
+              <text class="qb-import-preview-title">解析结果：</text>
+              <text class="qb-import-preview-text">{{ importPreview }}</text>
+            </view>
+            <view class="qb-form-actions">
+              <view class="qb-action-btn qb-action-edit" @tap="publishAllQuestions">一键全部上线</view>
+              <view class="qb-action-btn qb-action-del" @tap="closeImport">关闭</view>
+              <view class="qb-action-btn qb-action-edit" @tap="parseImport">解析预览</view>
+              <view class="qb-create-btn" @tap="doImport">开始导入</view>
+            </view>
+          </view>
+
           <view class="qb-toolbar">
             <view class="qb-toolbar-row">
               <view class="qb-search">
@@ -223,11 +267,15 @@
                 <view class="navi-icon navi-icon-plus" style="width:16px;height:16px;background:var(--rule-primary-foreground)"></view>
                 <text>新建题目</text>
               </view>
+              <view class="qb-action-btn qb-action-edit qb-import-top-btn" @tap="handleImport">
+                <view class="navi-icon navi-icon-file-text" style="width:16px;height:16px;background:#2563EB"></view>
+                <text>批量导入</text>
+              </view>
             </view>
           </view>
         </section>
 
-        <!-- ===== Section 3: 题目列表表格 ===== -->
+        <!-- 题目列表表格 -->
         <section class="dc-section" :class="{ 'is-visible': visibleSections[2] }" aria-label="题目列表">
           <view class="qb-section-header">
             <view class="qb-section-title-wrap">
@@ -279,7 +327,7 @@
           </view>
         </section>
 
-        <!-- ===== Section 4: 分页 ===== -->
+        <!-- 分页 -->
         <section class="dc-section" :class="{ 'is-visible': visibleSections[3] }" aria-label="分页">
           <view class="qb-pagination">
             <view class="qb-page-btn" :class="{ disabled: currentPage === 1 }" @tap="prevPage">
@@ -352,7 +400,7 @@ const todayDateText = computed(() => {
   return `${y}年${m}月${d}日`
 })
 
-/* ===== 题目表单 ===== */
+/* 题目表单 */
 const formVisible = ref(false)
 const editingId = ref('')
 const formType = ref('single')
@@ -365,6 +413,42 @@ const formDifficulty = ref('mid')
 const formStatus = ref('审核中')
 const formCaseText = ref('')
 const formPlaceholder = ref('')
+const formAnalysis = ref('')
+
+/* 批量导入 */
+const importVisible = ref(false)
+const importText = ref('')
+const importPreview = ref('')
+const importParsed = ref([])
+const importPlaceholder = '[{\n  "type": "single",\n  "title": "题干...",\n  "options": [{"key":"A","text":"..."},{"key":"B","text":"..."}],\n  "answer": "B",\n  "analysis": "解析...",\n  "dimension": "国际公法",\n  "difficulty": "mid",\n  "status": "已上线"\n}]'
+
+/* 选择本地题库 JSON 文件（H5 动态创建原生 file input，避免组件 ref 无法 click 的问题） */
+const pickImportFile = () => {
+  try {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = '.json,.txt,application/json'
+    input.onchange = () => {
+      const file = input.files && input.files[0]
+      // 清理临时节点，允许下次选择同一文件
+      if (input.parentNode) input.parentNode.removeChild(input)
+      if (!file) return
+      const reader = new FileReader()
+      reader.onload = () => {
+        importText.value = String(reader.result || '')
+        uni.showToast({ title: `已读取「${file.name}」，点击“解析预览”校验`, icon: 'none' })
+      }
+      reader.onerror = () => {
+        uni.showToast({ title: '文件读取失败，请重试', icon: 'none' })
+      }
+      reader.readAsText(file)
+    }
+    document.body.appendChild(input)
+    input.click()
+  } catch (err) {
+    uni.showToast({ title: '当前环境不支持选择文件', icon: 'none' })
+  }
+}
 
 function getAdminToken() {
   return uni.getStorageSync('adminToken')
@@ -407,7 +491,8 @@ function toRow(doc) {
     options: Array.isArray(doc.options) ? doc.options : [],
     subType: doc.subType || '',
     caseText: doc.caseText || '',
-    placeholder: doc.placeholder || ''
+    placeholder: doc.placeholder || '',
+    analysis: doc.analysis || ''
   }
 }
 
@@ -477,6 +562,7 @@ function resetForm() {
   formStatus.value = '审核中'
   formCaseText.value = ''
   formPlaceholder.value = ''
+  formAnalysis.value = ''
 }
 
 const handleCreateQuestion = () => {
@@ -496,6 +582,7 @@ const handleEdit = (q) => {
   formStatus.value = q.status || '审核中'
   formCaseText.value = q.caseText || ''
   formPlaceholder.value = q.placeholder || ''
+  formAnalysis.value = q.analysis || ''
   formVisible.value = true
 }
 
@@ -530,6 +617,7 @@ const saveQuestion = async () => {
     difficulty: formDifficulty.value,
     caseText: formCaseText.value,
     placeholder: formPlaceholder.value,
+    analysis: formAnalysis.value,
     status: formStatus.value
   }
   try {
@@ -548,6 +636,119 @@ const saveQuestion = async () => {
   } catch (e) {
     uni.showToast({ title: (e && e.errMsg) || '保存失败', icon: 'none' })
   }
+}
+
+/* 批量导入相关 */
+const handleImport = () => {
+  formVisible.value = false
+  importVisible.value = true
+  importText.value = ''
+  importPreview.value = ''
+  importParsed.value = []
+}
+
+const closeImport = () => {
+  importVisible.value = false
+  importText.value = ''
+  importPreview.value = ''
+  importParsed.value = []
+}
+
+const VALID_TYPES = ['single', 'multi', 'judge', 'subjective']
+
+function normJudgeAnswer(q) {
+  if (q.type !== 'judge') return q.answer
+  return q.answer === true || q.answer === 'true' || q.answer === '对'
+}
+
+const parseImport = () => {
+  importPreview.value = ''
+  importParsed.value = []
+  let arr = []
+  try {
+    arr = JSON.parse(importText.value || '[]')
+  } catch (e) {
+    uni.showToast({ title: 'JSON 解析失败，请检查格式', icon: 'none' })
+    return
+  }
+  if (!Array.isArray(arr)) {
+    uni.showToast({ title: '题库必须是 JSON 数组', icon: 'none' })
+    return
+  }
+  const ok = []
+  const bad = []
+  for (const raw of arr) {
+    const q = raw || {}
+    if (!VALID_TYPES.includes(q.type) || !(q.title && String(q.title).trim())) {
+      bad.push(raw)
+      continue
+    }
+    ok.push({
+      type: q.type,
+      subType: q.type === 'subjective' ? (q.subType || 'case') : (q.subType || ''),
+      title: String(q.title).trim(),
+      options: Array.isArray(q.options) ? q.options.map(o => ({ key: String(o.key || '').toUpperCase(), text: String(o.text || '') })) : [],
+      answer: normJudgeAnswer(q),
+      analysis: q.analysis || '',
+      dimension: q.dimension || '综合',
+      difficulty: ['easy', 'mid', 'hard'].includes(q.difficulty) ? q.difficulty : 'mid',
+      caseText: q.caseText || '',
+      placeholder: q.placeholder || '',
+      status: q.status === '已上线' ? '已上线' : '审核中'
+    })
+  }
+  importParsed.value = ok
+  if (!ok.length) {
+    importPreview.value = '没有可导入的有效题目'
+    return
+  }
+  const stat = (t) => ok.filter(x => x.type === t).length
+  importPreview.value = `共 ${ok.length} 道有效题目（单选 ${stat('single')} / 多选 ${stat('multi')} / 判断 ${stat('judge')} / 主观 ${stat('subjective')}），${bad.length} 条无效已忽略。`
+}
+
+const doImport = async () => {
+  if (!importParsed.value.length) {
+    uni.showToast({ title: '请先点击“解析预览”', icon: 'none' })
+    return
+  }
+  try {
+    const questionsObj = uniCloud.importObject('questions', { customUI: true })
+    const r = (await questionsObj.batchAdd({ adminToken: getAdminToken(), questions: importParsed.value })) || {}
+    if (r.errCode === 0) {
+      uni.showToast({ title: `导入完成：新增 ${r.added}，重复跳过 ${r.skipped}，失败 ${r.failed}`, icon: 'none' })
+      closeImport()
+      await loadQuestions()
+      await loadStats()
+    } else {
+      uni.showToast({ title: r.errMsg || '导入失败', icon: 'none' })
+    }
+  } catch (e) {
+    uni.showToast({ title: (e && e.errMsg) || '导入失败', icon: 'none' })
+  }
+}
+
+/* 一键发布：把“审核中”题目全部置为“已上线”，使其出现在测评页 */
+const publishAllQuestions = async () => {
+  uni.showModal({
+    title: '一键全部上线',
+    content: '将把所有“审核中”题目置为“已上线”（测评页可作答）。确认？',
+    success: async (res) => {
+      if (!res.confirm) return
+      try {
+        const questionsObj = uniCloud.importObject('questions', { customUI: true })
+        const r = (await questionsObj.publishAll({ adminToken: getAdminToken() })) || {}
+        if (r.errCode === 0) {
+          uni.showToast({ title: `已上线 ${r.updated || 0} 道题`, icon: 'none' })
+          await loadQuestions()
+          await loadStats()
+        } else {
+          uni.showToast({ title: r.errMsg || '操作失败', icon: 'none' })
+        }
+      } catch (e) {
+        uni.showToast({ title: (e && e.errMsg) || '操作失败', icon: 'none' })
+      }
+    }
+  })
 }
 
 const handleDelete = (q) => {
@@ -598,9 +799,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* ============================================
-   Brand CSS Variables
-   ============================================ */
+/* 品牌主题色变量 */
 .app-shell {
   --rule-primary: #2563EB;
   --rule-primary-hover: #1D4ED8;
@@ -653,7 +852,7 @@ onMounted(() => {
 
 :root { --qb-ease: cubic-bezier(.2,.8,.2,1); }
 
-/* ===== Sidebar ===== */
+/* 侧边导航栏 */
 .app-sidebar {
   position: fixed; left: 0; top: 0; height: 100vh; width: 240px;
   display: flex; flex-direction: column;
@@ -666,16 +865,13 @@ onMounted(() => {
   color: inherit;
 }
 .app-sidebar-logo-icon {
-  width: 36px; height: 36px; border-radius: 8px;
-  background: linear-gradient(135deg, var(--rule-primary), var(--rule-primary-active));
+  width: 36px; height: 36px;
   display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0; overflow: hidden;
-  box-shadow: 0 4px 10px -2px color-mix(in srgb, var(--rule-primary) 40%, transparent);
+  flex-shrink: 0;
 }
-.ls-svg-glyph {
-  width: 20px; height: 20px; background: #fff;
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
+.ls-svg-img {
+  width: 32px;
+  height: 32px;
 }
 .app-sidebar-logo-text {
   display: flex; flex-direction: column; line-height: 1.4;
@@ -717,10 +913,6 @@ onMounted(() => {
 .navi-icon-users {
   -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/><circle cx='9' cy='7' r='4'/><path d='M22 21v-2a4 4 0 0 0-3-3.87'/><path d='M16 3.13a4 4 0 0 1 0 7.75'/></svg>") center/contain no-repeat;
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/><circle cx='9' cy='7' r='4'/><path d='M22 21v-2a4 4 0 0 0-3-3.87'/><path d='M16 3.13a4 4 0 0 1 0 7.75'/></svg>") center/contain no-repeat;
-}
-.navi-icon-clipboard-check {
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><rect width='8' height='4' x='8' y='2' rx='1'/><path d='M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'/><path d='m9 14 2 2 4-4'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><rect width='8' height='4' x='8' y='2' rx='1'/><path d='M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'/><path d='m9 14 2 2 4-4'/></svg>") center/contain no-repeat;
 }
 .navi-icon-logout {
   -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'/><polyline points='16 17 21 12 16 7'/><line x1='21' y1='12' x2='9' y2='12'/></svg>") center/contain no-repeat;
@@ -784,7 +976,7 @@ onMounted(() => {
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='9 18 15 12 9 6'/></svg>") center/contain no-repeat;
 }
 
-/* ===== Sidebar User ===== */
+/* 侧边栏用户信息 */
 .app-sidebar-user { padding: 16px 12px; border-top: 1px solid var(--rule-border); }
 .app-sidebar-user-inner {
   display: flex; align-items: center; gap: 12px;
@@ -802,7 +994,7 @@ onMounted(() => {
 .app-sidebar-user-name { display: block; font-size: 13px; font-weight: 500; color: var(--rule-foreground); }
 .app-sidebar-user-role { display: block; font-size: 12px; color: var(--rule-muted-foreground); }
 
-/* ===== Main ===== */
+/* 主内容区 */
 .app-main { flex: 1; margin-left: 240px; display: flex; flex-direction: column; min-height: 100vh; min-width: 0; }
 .app-topbar {
   height: 64px; border-bottom: 1px solid var(--rule-border);
@@ -816,7 +1008,7 @@ onMounted(() => {
 .app-topbar-meta { font-size: 13px; color: var(--rule-muted-foreground);font-variant-numeric:tabular-nums; }
 .app-content { flex: 1; padding: 28px 32px; max-width: 1400px; margin: 0 auto; width: 100%; box-sizing: border-box; }
 
-/* ===== Scroll Reveal ===== */
+/* 滚动显现动画 */
 .dc-section {
   margin-bottom: 28px; opacity: 0; transform: translateY(24px);
   transition: opacity 0.7s var(--qb-ease), transform 0.7s var(--qb-ease);
@@ -824,7 +1016,7 @@ onMounted(() => {
 .dc-section:last-child { margin-bottom: 0; }
 .dc-section.is-visible { opacity: 1; transform: translateY(0); }
 
-/* ===== Section Header ===== */
+/* 区块标题栏 */
 .qb-section-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
 .qb-section-title-wrap { display: flex; align-items: center; gap: 14px; }
 .qb-section-bar {
@@ -834,7 +1026,7 @@ onMounted(() => {
 .qb-section-title { font-size: 17px; font-weight: 700; color: var(--rule-foreground); letter-spacing: -0.01em; line-height: 1.3; }
 .qb-section-subtitle { font-size: 13px; color: var(--rule-muted-foreground); display: block; margin-top: 2px; }
 
-/* ===== KPI Cards ===== */
+/* 指标卡片 */
 .qb-kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
 .qb-kpi-card {
   position: relative; overflow: hidden;
@@ -881,7 +1073,6 @@ onMounted(() => {
 .qb-kpi-card-value { font-size: 32px; font-weight: 700; line-height: 1.1; color: var(--rule-foreground); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; position: relative; z-index: 1; }
 .qb-kpi-card-foot { font-size: 12px; color: var(--rule-muted-foreground); position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 6px; }
 
-/* ===== Toolbar ===== */
 .qb-toolbar {
   background: linear-gradient(135deg, var(--rule-card), var(--rule-primary-tint-3));
   border: 1px solid color-mix(in srgb, var(--rule-border) 55%, transparent);
@@ -931,7 +1122,7 @@ onMounted(() => {
 }
 .qb-create-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 28px -4px color-mix(in srgb, var(--rule-primary) 56%, transparent); }
 
-/* ===== Question Form ===== */
+/* 表单卡片 */
 .qb-form-card {
   margin-bottom: 18px;
   background: linear-gradient(135deg, var(--rule-card), var(--rule-primary-tint-3));
@@ -964,8 +1155,20 @@ onMounted(() => {
 .qb-textarea-sm { min-height: 72px; }
 .qb-form-hint { font-size: 13px; color: var(--rule-muted-foreground); padding: 12px 4px; }
 .qb-form-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 18px; }
+.qb-import-area { min-height: 220px; font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; font-size: 12px; }
+.qb-import-file-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.qb-file-btn { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 16px; border-radius: 9px; font-size: 13px; font-weight: 600; color: #fff; background: linear-gradient(135deg, #2563EB, #1D4ED8); cursor: pointer; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.28); transition: transform .15s, box-shadow .15s; }
+.qb-file-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(37, 99, 235, 0.34); }
+.qb-file-btn:active { transform: scale(0.97); }
+.qb-import-file-hint { font-size: 12px; line-height: 1.6; color: var(--rule-muted-foreground); }
+.qb-import-tip { font-size: 12px; line-height: 1.7; color: var(--rule-muted-foreground); margin-top: 8px; display: block; }
+.qb-import-preview { margin-top: 14px; padding: 12px 16px; border-radius: 10px; background: color-mix(in srgb, var(--state-success) 10%, transparent); border: 1px solid color-mix(in srgb, var(--state-success) 30%, transparent); font-size: 13px; display: flex; gap: 6px; flex-wrap: wrap; }
+.qb-import-preview-title { font-weight: 600; color: var(--state-success); }
+.qb-import-preview-text { color: var(--rule-ink-2); }
+.qb-import-top-btn { height: 40px; padding: 0 16px; border-radius: 10px; font-size: 13px; }
+.qb-import-top-btn .navi-icon { width: 16px; height: 16px; }
 
-/* ===== Table Card ===== */
+/* 表格卡片 */
 .qb-table-card {
   background: linear-gradient(135deg, var(--rule-card), var(--rule-primary-tint-3));
   border: 1px solid color-mix(in srgb, var(--rule-border) 55%, transparent);
@@ -993,19 +1196,19 @@ onMounted(() => {
 .qb-dim { color: var(--rule-ink-2); white-space: nowrap; }
 .qb-date { color: var(--rule-muted-foreground); font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 13px; }
 
-/* type tags */
+/* 类型标签 */
 .qb-type-tag { display: inline-flex; align-items: center; font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: var(--rule-radius-full); white-space: nowrap; }
 .qb-type-single { background: var(--rule-primary-tint-1); color: var(--rule-primary); }
 .qb-type-multi { background: var(--state-success-tint); color: var(--state-success); }
 .qb-type-case { background: var(--state-warning-tint); color: var(--state-warning); }
 
-/* difficulty tags */
+/* 难度标签 */
 .qb-diff-tag { display: inline-flex; align-items: center; font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: var(--rule-radius-full); white-space: nowrap; }
 .qb-diff-easy { background: var(--state-success-tint); color: var(--state-success); }
 .qb-diff-mid { background: var(--state-warning-tint); color: var(--state-warning); }
 .qb-diff-hard { background: var(--state-error-tint); color: var(--state-error); }
 
-/* action buttons */
+/* 操作按钮 */
 .qb-actions { display: inline-flex; gap: 8px; white-space: nowrap; }
 .qb-action-btn {
   display: inline-flex; align-items: center; gap: 4px;
@@ -1020,7 +1223,7 @@ onMounted(() => {
 .qb-action-del { color: var(--state-error); }
 .qb-action-del:hover { background: var(--state-error-tint); }
 
-/* ===== Pagination ===== */
+/* 分页 */
 .qb-pagination { display: flex; justify-content: flex-end; align-items: center; gap: 6px; }
 .qb-page-btn {
   min-width: 36px; height: 36px; padding: 0 12px;
@@ -1041,13 +1244,11 @@ onMounted(() => {
 .qb-page-btn .navi-icon { width: 16px; height: 16px; }
 .qb-page-ellipsis { padding: 0 4px; color: var(--rule-muted-foreground); font-size: 13px; }
 
-/* ===== Responsive ===== */
 @media (max-width: 1024px) {
   .qb-kpi-grid { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 768px) {
   .app-sidebar { transform: translateX(-100%); transition: transform 0.3s ease; }
-  .app-sidebar.open { transform: translateX(0); }
   .app-main { margin-left: 0; }
   .app-content { padding: 20px; }
   .qb-toolbar-row { flex-direction: column; align-items: stretch; }

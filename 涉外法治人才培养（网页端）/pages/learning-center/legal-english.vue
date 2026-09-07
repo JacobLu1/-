@@ -1,15 +1,15 @@
 <template>
   <view class="legal-shell">
-    <!-- ===== Brand CSS Variables ===== -->
+    <!-- 品牌主题色变量 -->
     <view class="css-vars" aria-hidden="true"></view>
 
-    <!-- ===== App Shell (Sidebar + Main) ===== -->
+    <!-- 应用外壳（侧边栏 + 主内容区） -->
     <view class="app-shell">
-      <!-- ===== Left Sidebar ===== -->
+      <!-- 左侧导航栏 -->
       <aside class="app-sidebar">
         <view class="app-sidebar-logo">
           <view class="app-sidebar-logo-icon">
-            <view class="ls-svg-glyph" aria-hidden="true"></view>
+            <image class="ls-svg-img" src="/static/logo.png" mode="aspectFit"></image>
           </view>
           <text class="app-sidebar-logo-text">涉外法治人才培养</text>
         </view>
@@ -52,7 +52,7 @@
         </view>
       </aside>
 
-      <!-- ===== Main Content Area ===== -->
+      <!-- 主内容区 -->
       <view class="app-main">
         <header class="app-topbar">
           <view class="app-topbar-left">
@@ -67,20 +67,22 @@
 
         <main class="app-content">
           <view class="le-wrap">
-            <!-- ===== Overview Card ===== -->
-            <view class="overview-card">
-              <view class="overview-main">
-                <view class="overview-head">
-                  <view class="overview-icon">
-                    <view class="overview-earth-icon"></view>
-                  </view>
-                  <view class="overview-info">
-                    <text class="overview-title">法律英语</text>
-                    <text class="overview-subtitle">涉外法律人才核心语言能力</text>
-                  </view>
-                  <view class="overview-level">{{ overallLevel }}</view>
+            <!-- 概览卡片 -->
+            <view class="le-overview-card">
+              <view class="overview-left">
+                <view class="overview-icon">
+                  <view class="overview-earth-icon"></view>
                 </view>
-                <view class="overview-progress-row">
+                <view class="overview-info">
+                  <view class="overview-title-row">
+                    <text class="overview-title">法律英语</text>
+                    <view class="overview-level">{{ overallLevel }}</view>
+                  </view>
+                  <text class="overview-subtitle">涉外法律人才核心语言能力</text>
+                </view>
+              </view>
+              <view class="overview-right">
+                <view class="overview-progress-wrap">
                   <text class="overview-progress-label">掌握度</text>
                   <text class="overview-progress-value">{{ overallPercent }}%</text>
                 </view>
@@ -99,7 +101,7 @@
               </view>
             </view>
 
-            <!-- ===== Learning Modules ===== -->
+            <!-- 学习模块 -->
             <view class="doc-section-header">
               <text class="doc-section-title">学习模块</text>
               <text class="doc-section-meta">共 {{ visibleModules.length }} 个模块</text>
@@ -129,7 +131,7 @@
             </view>
             <view v-if="!modules.length" class="le-empty">暂无学习模块</view>
 
-            <!-- ===== Today's Vocabulary ===== -->
+            <!-- 今日词汇 -->
             <view class="doc-section-header">
               <text class="doc-section-title">今日词汇</text>
               <view class="doc-section-meta">
@@ -160,7 +162,7 @@
             <view v-if="!words.length" class="le-empty">今日词汇暂未安排，请先维护“词汇积累”资源</view>
             <view v-else-if="!displayWords.length" class="le-empty">{{ vocabTab === 'new' ? '今日新词已全部掌握' : '当前没有待复习词汇' }}</view>
 
-            <!-- ===== Bottom Tip ===== -->
+            <!-- 底部提示 -->
             <view class="le-tip">
               <view class="le-tip-icon"></view>
               <text>坚持每日学习，法律英语稳步提升</text>
@@ -178,23 +180,16 @@ import { onLoad } from '@dcloudio/uni-app'
 import { requireLogin, getDisplayName, getLevelText, getStoredUserInfo } from '@/utils/auth.js'
 import { normalizeLang } from '@/utils/vocab.js'
 
-/* ============================================================
-   Daily Vocabulary Config
-   ============================================================ */
+/* 每日词汇配置 */
 const DAILY_WORD_COUNT = 12
 const REVIEW_INTERVALS = [1, 2, 4, 7, 15, 30]
 const DAILY_ROTATION_SEED = 'legal-vocab-daily-rotation'
 
-/* ============================================================
-   User Data
-   ============================================================ */
+/* 用户数据 */
 const userName = ref(getDisplayName())
 const userRole = ref(getLevelText())
 const userInitial = computed(() => (userName.value || '用').slice(0, 1))
 
-/* ============================================================
-   Page Data
-   ============================================================ */
 const overallPercent = ref(0)
 const overallLevel = ref('暂无')
 const stats = ref([])
@@ -207,9 +202,6 @@ const vocabPool = ref([])
 const progressMap = ref({})
 const vocabTab = ref('new')
 
-/* ============================================================
-   Computed
-   ============================================================ */
 const todayDateText = computed(() => {
   const now = new Date()
   const y = now.getFullYear()
@@ -228,9 +220,6 @@ const reviewWords = computed(() => words.value.filter(w => {
 }))
 const displayWords = computed(() => vocabTab.value === 'new' ? newWords.value : reviewWords.value)
 
-/* ============================================================
-   Event Handlers
-   ============================================================ */
 function navigateTo(url) {
   uni.navigateTo({ url })
 }
@@ -569,9 +558,6 @@ function handleLogout() {
   })
 }
 
-/* ============================================================
-   Lifecycle
-   ============================================================ */
 onLoad(() => {
   // 登录鉴权：未登录跳转登录页
   if (!requireLogin()) return
@@ -587,9 +573,7 @@ onLoad(() => {
 </script>
 
 <style scoped>
-/* =========================================================
-   Brand Design Tokens (aligned with legal-db)
-   ========================================================= */
+/* 品牌设计变量（与法律库保持一致） */
 .legal-shell {
   --rule-primary: #2563EB;
   --rule-primary-hover: #1D4ED8;
@@ -630,16 +614,14 @@ onLoad(() => {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* =========================================================
-   Shell Layout
-   ========================================================= */
+/* 整体布局 */
 .app-shell {
   display: flex;
   min-height: 100vh;
   background: var(--rule-background);
 }
 
-/* ===== Sidebar ===== */
+/* 侧边导航栏 */
 .app-sidebar {
   position: fixed; left: 0; top: 0; height: 100vh; width: 240px;
   display: flex; flex-direction: column;
@@ -655,18 +637,14 @@ onLoad(() => {
 }
 
 .app-sidebar-logo-icon {
-  width: 36px; height: 36px; border-radius: 8px;
-  background: var(--rule-primary);
+  width: 36px; height: 36px;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
-  overflow: hidden;
 }
 
-.ls-svg-glyph {
-  width: 20px; height: 20px;
-  background: #fff;
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
-  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
+.ls-svg-img {
+  width: 32px;
+  height: 32px;
 }
 
 .app-sidebar-logo-text {
@@ -699,7 +677,7 @@ onLoad(() => {
 }
 .app-nav-item.is-active:hover { background: var(--rule-primary-hover); color: #fff; }
 
-/* Nav icons */
+/* 导航图标 */
 .navi-icon {
   width: 20px; height: 20px; flex-shrink: 0;
   background: currentColor;
@@ -728,7 +706,7 @@ onLoad(() => {
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z'/%3E%3Cpath d='M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z'/%3E%3C/svg%3E") center/contain no-repeat;
 }
 
-/* ===== Sidebar User ===== */
+/* 侧边栏用户信息 */
 .app-sidebar-user {
   padding: 16px 12px;
   border-top: 1px solid var(--rule-border);
@@ -780,7 +758,7 @@ onLoad(() => {
   font-weight: 500;
 }
 
-/* ===== Main ===== */
+/* 主内容区 */
 .app-main {
   flex: 1; margin-left: 240px;
   display: flex; flex-direction: column;
@@ -834,29 +812,26 @@ onLoad(() => {
   padding: 32px;
 }
 
-/* =========================================================
-   Page Styles (minimal, aligned with legal-db)
-   ========================================================= */
+/* 页面样式（精简，与法律库保持一致） */
 .le-wrap {
   display: flex; flex-direction: column; gap: 20px;
   max-width: 1120px;
 }
 
-/* ---- Overview Card ---- */
+/* 概览卡片 */
 .overview-card {
   background: var(--rule-card);
   border: 1px solid var(--rule-border);
   border-radius: 16px;
-  padding: 24px;
+  padding: 24px 28px;
   display: flex;
+  align-items: center;
   gap: 32px;
   box-shadow: var(--rule-shadow-1);
 }
-.overview-main {
-  flex: 1; min-width: 0;
-}
-.overview-head {
+.overview-left {
   display: flex; align-items: center; gap: 14px;
+  flex-shrink: 0;
 }
 .overview-icon {
   width: 44px; height: 44px;
@@ -872,12 +847,23 @@ onLoad(() => {
   mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><path d='M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20'/><path d='M2 12h20'/></svg>") center/contain no-repeat;
 }
 .overview-info {
-  flex: 1; min-width: 0;
+  min-width: 0;
+}
+.overview-title-row {
+  display: flex; align-items: center; gap: 10px;
 }
 .overview-title {
-  display: block;
   font-size: 20px; font-weight: 700;
   color: var(--rule-foreground);
+}
+.overview-level {
+  height: 24px; padding: 0 10px;
+  border-radius: 9999px;
+  background: var(--rule-primary-tint-1);
+  color: var(--rule-primary);
+  font-size: 12px; font-weight: 600;
+  display: flex; align-items: center;
+  flex-shrink: 0;
 }
 .overview-subtitle {
   display: block;
@@ -885,17 +871,11 @@ onLoad(() => {
   font-size: 13px;
   color: var(--rule-muted-foreground);
 }
-.overview-level {
-  height: 28px; padding: 0 12px;
-  border-radius: 9999px;
-  background: var(--rule-primary-tint-1);
-  color: var(--rule-primary);
-  font-size: 13px; font-weight: 600;
-  display: flex; align-items: center;
-  flex-shrink: 0;
+.overview-right {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column; gap: 6px;
 }
-.overview-progress-row {
-  margin-top: 20px;
+.overview-progress-wrap {
   display: flex; align-items: baseline; justify-content: space-between;
 }
 .overview-progress-label {
@@ -903,11 +883,11 @@ onLoad(() => {
   color: var(--rule-muted-foreground);
 }
 .overview-progress-value {
-  font-size: 24px; font-weight: 700;
+  font-size: 22px; font-weight: 700;
   color: var(--rule-primary);
+  font-variant-numeric: tabular-nums;
 }
 .overview-progress {
-  margin-top: 8px;
   height: 8px;
   border-radius: 9999px;
   background: var(--rule-muted);
@@ -920,9 +900,10 @@ onLoad(() => {
   transition: width 1s cubic-bezier(.2,.8,.2,1);
 }
 .overview-stats {
-  display: flex; align-items: center; gap: 40px;
+  display: flex; align-items: center; gap: 32px;
   padding-left: 32px;
   border-left: 1px solid var(--rule-border);
+  flex-shrink: 0;
 }
 .overview-stat {
   display: flex; align-items: center; gap: 10px;
@@ -932,17 +913,9 @@ onLoad(() => {
   background: var(--rule-muted-foreground);
   flex-shrink: 0;
 }
-.stat-medal-icon {
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M7.21 15 2.66 7.14a2 2 0 0 1 .13-2.2L4.4 2.8A2 2 0 0 1 6 2h12a2 2 0 0 1 1.6.8l1.6 2.14a2 2 0 0 1 .14 2.2L16.79 15'/><path d='M11 12 5.12 2.2'/><path d='m13 12 5.88-9.8'/><path d='M8 7h8'/><circle cx='12' cy='17' r='5'/><path d='M12 18v-2h-.5'/></svg>") center/contain no-repeat;
-  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M7.21 15 2.66 7.14a2 2 0 0 1 .13-2.2L4.4 2.8A2 2 0 0 1 6 2h12a2 2 0 0 1 1.6.8l1.6 2.14a2 2 0 0 1 .14 2.2L16.79 15'/><path d='M11 12 5.12 2.2'/><path d='m13 12 5.88-9.8'/><path d='M8 7h8'/><circle cx='12' cy='17' r='5'/><path d='M12 18v-2h-.5'/></svg>") center/contain no-repeat;
-}
 .stat-bookmark-icon {
   -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z'/></svg>") center/contain no-repeat;
   mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z'/></svg>") center/contain no-repeat;
-}
-.stat-time-icon {
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><polyline points='12 6 12 12 16 14'/></svg>") center/contain no-repeat;
-  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><polyline points='12 6 12 12 16 14'/></svg>") center/contain no-repeat;
 }
 .stat-file-icon {
   -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z'/><polyline points='14 2 14 8 20 8'/></svg>") center/contain no-repeat;
@@ -965,7 +938,7 @@ onLoad(() => {
   color: var(--rule-muted-foreground);
 }
 
-/* ---- Section Header (aligned with legal-db) ---- */
+/* 区块标题（与法律库保持一致） */
 .doc-section-header {
   display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
   margin-top: 8px;
@@ -986,7 +959,7 @@ onLoad(() => {
 }
 .vocab-more:hover { color: var(--rule-primary-hover); }
 
-/* ---- Learning Modules ---- */
+/* 学习模块 */
 .mod-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -1029,10 +1002,6 @@ onLoad(() => {
 .mod-mic-icon {
   -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z'/><path d='M19 10v2a7 7 0 0 1-14 0v-2'/><line x1='12' x2='12' y1='19' y2='22'/></svg>") center/contain no-repeat;
   mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z'/><path d='M19 10v2a7 7 0 0 1-14 0v-2'/><line x1='12' x2='12' y1='19' y2='22'/></svg>") center/contain no-repeat;
-}
-.mod-chat-icon {
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M7.9 20A9 9 0 1 0 4 16.1L2 22Z'/><path d='M8 12h.01'/><path d='M12 12h.01'/><path d='M16 12h.01'/></svg>") center/contain no-repeat;
-  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M7.9 20A9 9 0 1 0 4 16.1L2 22Z'/><path d='M8 12h.01'/><path d='M12 12h.01'/><path d='M16 12h.01'/></svg>") center/contain no-repeat;
 }
 .mod-level {
   height: 26px; padding: 0 10px;
@@ -1082,7 +1051,7 @@ onLoad(() => {
   text-align: center;
 }
 
-/* ---- Vocabulary ---- */
+/* 今日词汇 */
 .vocab-tabs {
   display: flex;
   gap: 8px;
@@ -1169,26 +1138,8 @@ onLoad(() => {
   background: #FEE2E2;
   border: 1px solid #FECACA;
 }
-.vocab-star {
-  width: 22px; height: 22px;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer;
-  transition: transform 0.15s ease;
-}
-.vocab-star:hover { transform: scale(1.15); }
-.star-icon {
-  width: 18px; height: 18px;
-  background: var(--rule-ink-3);
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polygon points='12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2'/></svg>") center/contain no-repeat;
-  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polygon points='12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2'/></svg>") center/contain no-repeat;
-}
-.vocab-star.is-starred .star-icon {
-  background: var(--state-warning);
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polygon points='12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2'/></svg>") center/contain no-repeat;
-  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polygon points='12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2'/></svg>") center/contain no-repeat;
-}
 
-/* ---- Bottom Tip ---- */
+/* 底部提示 */
 .le-tip {
   display: flex; align-items: center; justify-content: center; gap: 8px;
   padding: 16px 0 8px;
@@ -1202,13 +1153,10 @@ onLoad(() => {
   mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3v18'/><path d='m8 8 4-4 4 4'/><path d='m20 17-4-4 4-4'/><path d='M4 17l4-4-4-4'/></svg>") center/contain no-repeat;
 }
 
-/* =========================================================
-   Responsive
-   ========================================================= */
 @media (max-width: 1024px) {
   .mod-grid { grid-template-columns: repeat(2, 1fr); }
-  .overview-card { flex-direction: column; gap: 24px; }
-  .overview-stats { padding-left: 0; border-left: none; gap: 24px; }
+  .overview-card { flex-wrap: wrap; gap: 20px; }
+  .overview-stats { padding-left: 0; border-left: none; width: 100%; gap: 24px; }
 }
 
 @media (max-width: 768px) {
@@ -1217,6 +1165,8 @@ onLoad(() => {
   .app-content { padding: 16px; }
   .mod-grid { grid-template-columns: 1fr; }
   .vocab-phonetic { width: 120px; }
+  .overview-card { flex-direction: column; align-items: stretch; gap: 16px; }
+  .overview-right { width: 100%; }
 }
 
 @media (max-width: 480px) {
@@ -1228,6 +1178,5 @@ onLoad(() => {
 
 @media (prefers-reduced-motion: reduce) {
   .mod-card:hover { transform: none; }
-  .vocab-star:hover { transform: none; }
 }
 </style>

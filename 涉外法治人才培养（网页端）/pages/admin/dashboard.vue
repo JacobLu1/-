@@ -1,10 +1,10 @@
 <template>
   <view class="app-shell">
-    <!-- ===== Left Sidebar ===== -->
+    <!-- 左侧导航栏 -->
     <aside class="app-sidebar">
       <view class="app-sidebar-logo">
         <view class="app-sidebar-logo-icon">
-          <view class="ls-svg-glyph" aria-hidden="true"></view>
+          <image class="ls-svg-img" src="/static/logo.png" mode="aspectFit"></image>
         </view>
         <view class="app-sidebar-logo-text">
           <text>涉外法治人才培养平台</text>
@@ -51,7 +51,7 @@
       </view>
     </aside>
 
-    <!-- ===== Main Content Area ===== -->
+    <!-- 主内容区 -->
     <view class="app-main">
       <header class="app-topbar">
         <view class="app-topbar-titles">
@@ -62,7 +62,7 @@
       </header>
       <main class="app-content">
 
-        <!-- ===== Section 1: Core KPI Cards ===== -->
+        <!-- 核心数据指标卡片 -->
         <section class="dc-section" :class="{ 'is-visible': visibleSections[0] }" aria-label="核心数据指标">
           <view class="kpi-grid">
             <view class="kpi-card">
@@ -112,10 +112,10 @@
           </view>
         </section>
 
-        <!-- ===== Section 2: Trend & Distribution Charts ===== -->
+        <!-- 测评趋势与分布图表 -->
         <section class="dc-section" :class="{ 'is-visible': visibleSections[1] }" aria-label="测评趋势与分布">
           <view class="charts-row">
-            <!-- Left: Bar chart -->
+            <!-- 左侧：柱状图 -->
             <view class="chart-card">
               <view class="chart-card-header">
                 <view>
@@ -136,7 +136,7 @@
                     </view>
                   </view>
             </view>
-            <!-- Right: User Type Distribution -->
+            <!-- 右侧：用户类型分布 -->
             <view class="chart-card">
               <view class="chart-card-header">
                 <view>
@@ -164,7 +164,7 @@
           </view>
         </section>
 
-        <!-- ===== Section 3: Recent Assessment Records Table ===== -->
+        <!-- 近期测评记录表格 -->
         <section class="dc-section" :class="{ 'is-visible': visibleSections[2] }" aria-label="近期测评记录">
           <view class="table-card">
             <view class="chart-card-header">
@@ -206,7 +206,7 @@
           </view>
         </section>
 
-        <!-- ===== Section 4: Ability Gap Distribution ===== -->
+        <!-- 能力缺口分布 -->
         <section class="dc-section" :class="{ 'is-visible': visibleSections[3] }" aria-label="能力缺口分布">
           <view class="chart-card">
             <view class="chart-card-header">
@@ -423,9 +423,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* ============================================
-   Brand CSS Variables
-   ============================================ */
+/* 品牌主题色变量 */
 .app-shell {
   --rule-primary: #2563EB;
   --rule-primary-hover: #1D4ED8;
@@ -478,7 +476,7 @@ onMounted(() => {
 
 :root { --ad-ease: cubic-bezier(.2,.8,.2,1); }
 
-/* ===== Sidebar ===== */
+/* 侧边导航栏 */
 .app-sidebar {
   position: fixed; left: 0; top: 0; height: 100vh; width: 240px;
   display: flex; flex-direction: column;
@@ -491,16 +489,13 @@ onMounted(() => {
   color: inherit;
 }
 .app-sidebar-logo-icon {
-  width: 36px; height: 36px; border-radius: 8px;
-  background: linear-gradient(135deg, var(--rule-primary), var(--rule-primary-active));
+  width: 36px; height: 36px;
   display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0; overflow: hidden;
-  box-shadow: 0 6px 14px -4px color-mix(in srgb, var(--rule-primary) 48%, transparent);
+  flex-shrink: 0;
 }
-.ls-svg-glyph {
-  width: 20px; height: 20px; background: #fff;
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
+.ls-svg-img {
+  width: 32px;
+  height: 32px;
 }
 .app-sidebar-logo-text {
   display: flex; flex-direction: column; line-height: 1.4;
@@ -543,10 +538,6 @@ onMounted(() => {
   -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/><circle cx='9' cy='7' r='4'/><path d='M22 21v-2a4 4 0 0 0-3-3.87'/><path d='M16 3.13a4 4 0 0 1 0 7.75'/></svg>") center/contain no-repeat;
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/><circle cx='9' cy='7' r='4'/><path d='M22 21v-2a4 4 0 0 0-3-3.87'/><path d='M16 3.13a4 4 0 0 1 0 7.75'/></svg>") center/contain no-repeat;
 }
-.navi-icon-clipboard-check {
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><rect width='8' height='4' x='8' y='2' rx='1'/><path d='M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'/><path d='m9 14 2 2 4-4'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><rect width='8' height='4' x='8' y='2' rx='1'/><path d='M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'/><path d='m9 14 2 2 4-4'/></svg>") center/contain no-repeat;
-}
 .navi-icon-logout {
   -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'/><polyline points='16 17 21 12 16 7'/><line x1='21' y1='12' x2='9' y2='12'/></svg>") center/contain no-repeat;
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'/><polyline points='16 17 21 12 16 7'/><line x1='21' y1='12' x2='9' y2='12'/></svg>") center/contain no-repeat;
@@ -573,7 +564,7 @@ onMounted(() => {
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z'/><polyline points='14 2 14 8 20 8'/><line x1='16' y1='13' x2='8' y2='13'/><line x1='16' y1='17' x2='8' y2='17'/><line x1='10' y1='9' x2='8' y2='9'/></svg>") center/contain no-repeat;
 }
 
-/* ===== Sidebar User ===== */
+/* 侧边栏用户信息 */
 .app-sidebar-user { padding: 16px 12px; border-top: 1px solid var(--rule-border); }
 .app-sidebar-user-inner {
   display: flex; align-items: center; gap: 12px;
@@ -591,7 +582,7 @@ onMounted(() => {
 .app-sidebar-user-name { display: block; font-size: 13px; font-weight: 500; color: var(--rule-foreground); }
 .app-sidebar-user-role { display: block; font-size: 12px; color: var(--rule-muted-foreground); }
 
-/* ===== Main ===== */
+/* 主内容区 */
 .app-main { flex: 1; margin-left: 240px; display: flex; flex-direction: column; min-height: 100vh; min-width: 0; }
 .app-topbar {
   height: 64px; border-bottom: 1px solid var(--rule-border);
@@ -605,7 +596,7 @@ onMounted(() => {
 .app-topbar-meta { font-size: 13px; color: var(--rule-muted-foreground); }
 .app-content { flex: 1; padding: 28px 32px; max-width: 1400px; margin: 0 auto; width: 100%; box-sizing: border-box; }
 
-/* ===== Scroll Reveal ===== */
+/* 滚动显现动画 */
 .dc-section {
   margin-bottom: 28px; opacity: 0; transform: translateY(24px) scale(0.99);
   transition: opacity 0.7s var(--ad-ease), transform 0.7s var(--ad-ease);
@@ -628,7 +619,7 @@ onMounted(() => {
   padding: 28px 16px;
 }
 
-/* ===== KPI Cards ===== */
+/* 指标卡片 */
 .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
 .kpi-card {
   position: relative; overflow: hidden;
@@ -664,7 +655,7 @@ onMounted(() => {
 .kpi-card-trend { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--state-success); font-weight: 600; }
 .kpi-card-trend.is-primary { color: var(--rule-primary); }
 
-/* ===== Chart Cards ===== */
+/* 图表卡片 */
 .charts-row { display: grid; grid-template-columns: 3fr 2fr; gap: 20px; }
 .chart-card {
   background: linear-gradient(135deg, var(--rule-card), var(--rule-primary-tint-3));
@@ -683,7 +674,7 @@ onMounted(() => {
 .chart-card-subtitle { font-size: 13px; color: var(--rule-muted-foreground); display: block; margin-top: 4px; }
 .chart-card-link { font-size: 13px; font-weight: 500; color: var(--rule-primary); cursor: pointer; white-space: nowrap; }
 
-/* ===== Bar Chart ===== */
+/* 柱状图 */
 .ad-bar-chart { display: flex; flex-direction: column; gap: 12px; }
 .ad-bar-area { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; height: 220px; border-bottom: 1px solid var(--rule-border); padding-bottom: 4px; }
 .ad-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 6px; min-width: 0; }
@@ -693,14 +684,12 @@ onMounted(() => {
 .ad-bar-labels { display: flex; justify-content: space-between; gap: 14px; }
 .ad-bar-label { flex: 1; text-align: center; font-size: 12px; color: var(--rule-muted-foreground); }
 
-/* ===== Donut Chart ===== */
+/* 环形图 */
 .ad-donut-wrap { display: flex; align-items: center; gap: 24px; flex: 1; }
 .ad-donut { width: 180px; height: 180px; flex-shrink: 0; position: relative; }
 .ad-donut svg { width: 100%; height: 100%; }
 .ad-seg-1 { stroke: var(--rule-primary); }
 .ad-seg-2 { stroke: var(--state-success); }
-.ad-seg-3 { stroke: var(--state-warning); }
-.ad-seg-4 { stroke: var(--rule-ink-3); }
 .ad-donut-label { fill: var(--rule-muted-foreground); }
 .ad-donut-total { fill: var(--rule-foreground); }
 .ad-legend { display: flex; flex-direction: column; gap: 14px; flex: 1; min-width: 0; }
@@ -708,12 +697,10 @@ onMounted(() => {
 .ad-legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
 .ad-dot-1 { background: var(--rule-primary); }
 .ad-dot-2 { background: var(--state-success); }
-.ad-dot-3 { background: var(--state-warning); }
-.ad-dot-4 { background: var(--rule-ink-3); }
 .ad-legend-label { color: var(--rule-ink-2); flex: 1; }
 .ad-legend-value { font-weight: 700; color: var(--rule-foreground); font-variant-numeric: tabular-nums; }
 
-/* ===== Ability Gap Distribution (Full Width) ===== */
+/* 能力缺口分布（通栏） */
 .ad-gap-wrap-full {
   display: flex;
   flex-direction: column;
@@ -813,7 +800,7 @@ onMounted(() => {
   color: var(--state-warning);
 }
 
-/* ===== Table Card ===== */
+/* 表格卡片 */
 .table-card {
   background: linear-gradient(135deg, var(--rule-card), var(--rule-primary-tint-3));
   border: 1px solid color-mix(in srgb, var(--rule-border) 55%, transparent);
@@ -835,9 +822,8 @@ onMounted(() => {
 .score-low { color: var(--state-warning); }
 .status-tag { display: inline-flex; align-items: center; font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: var(--rule-radius-full); white-space: nowrap; }
 .status-done { background: var(--state-success-tint); color: var(--state-success); }
-.status-active { background: var(--rule-primary-tint-1); color: var(--rule-primary); }
 
-/* ===== Gap Cell Styles ===== */
+/* 缺口单元格样式 */
 .gap-cell {
   font-size: 13px;
   font-weight: 600;
@@ -845,19 +831,6 @@ onMounted(() => {
   font-variant-numeric: tabular-nums;
 }
 
-.gap-cell.gap-excellent {
-  color: var(--state-success);
-}
-
-.gap-cell.gap-warning {
-  color: var(--state-warning);
-}
-
-.gap-cell.gap-critical {
-  color: var(--state-error);
-}
-
-/* ===== Responsive ===== */
 @media (max-width: 1024px) {
   .kpi-grid { grid-template-columns: repeat(2, 1fr); }
   .charts-row { grid-template-columns: 1fr; }
@@ -866,7 +839,6 @@ onMounted(() => {
 }
 @media (max-width: 768px) {
   .app-sidebar { transform: translateX(-100%); transition: transform 0.3s ease; }
-  .app-sidebar.open { transform: translateX(0); }
   .app-main { margin-left: 0; }
   .app-topbar { padding: 0 20px; }
   .app-content { padding: 20px; }

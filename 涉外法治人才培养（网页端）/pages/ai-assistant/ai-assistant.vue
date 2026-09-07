@@ -1,15 +1,15 @@
 <template>
   <view class="ai-shell">
-    <!-- ===== Brand CSS Variables (from AI助手.html) ===== -->
+    <!-- 品牌主题色变量（来自 AI 助手页面） -->
     <view class="css-vars" aria-hidden="true"></view>
 
-    <!-- ===== App Shell (Sidebar + Main) ===== -->
+    <!-- 应用外壳（侧边栏 + 主内容区） -->
     <view class="app-shell">
-      <!-- ===== Left Sidebar ===== -->
+      <!-- 左侧导航栏 -->
       <aside class="app-sidebar">
         <view class="app-sidebar-logo">
           <view class="app-sidebar-logo-icon">
-            <view class="ls-svg-glyph" aria-hidden="true"></view>
+            <image class="ls-svg-img" src="/static/logo.png" mode="aspectFit"></image>
           </view>
           <text class="app-sidebar-logo-text">涉外法治人才培养</text>
         </view>
@@ -52,7 +52,7 @@
         </view>
       </aside>
 
-      <!-- ===== Main Content Area ===== -->
+      <!-- 主内容区 -->
       <view class="app-main">
         <header class="app-topbar">
           <text class="app-topbar-title">AI助手</text>
@@ -61,7 +61,7 @@
 
         <main class="app-content">
           <section class="chat-container" aria-label="法治AI助手对话">
-            <!-- Chat Header -->
+            <!-- 对话标题栏 -->
             <view class="chat-header">
               <view class="chat-header-left">
                 <view class="chat-avatar-lg" aria-hidden="true">
@@ -81,7 +81,7 @@
               </view>
             </view>
 
-            <!-- Messages Area -->
+            <!-- 消息区域 -->
             <scroll-view
               scroll-y
               class="messages-area"
@@ -91,7 +91,7 @@
               :scroll-into-view="scrollIntoView"
               :scroll-with-animation="true"
             >
-              <!-- Welcome / empty state -->
+              <!-- 欢迎语 / 空状态 -->
               <view v-if="messages.length === 0" id="msg-welcome" class="welcome-empty">
                 <view class="msg msg-ai">
                   <view class="msg-avatar msg-avatar-ai" aria-hidden="true">
@@ -103,9 +103,9 @@
                 </view>
               </view>
 
-              <!-- Dynamic Messages -->
+              <!-- 动态消息列表 -->
               <template v-for="(msg, idx) in messages" :key="'msg-' + idx">
-                <!-- User Message -->
+                <!-- 用户消息 -->
                 <view v-if="msg.role === 'user'" :id="'msg-' + idx" class="msg msg-user">
                   <view class="msg-avatar msg-avatar-user" aria-hidden="true">{{ userInitial }}</view>
                   <view class="bubble bubble-user">
@@ -113,14 +113,14 @@
                   </view>
                 </view>
 
-                <!-- AI Response -->
+                <!-- 智能助手回答 -->
                 <view v-else-if="msg.role === 'ai'" :id="'msg-' + idx" class="msg msg-ai">
                   <view class="msg-avatar msg-avatar-ai" aria-hidden="true">
                     <view class="avatar-small-icon"></view>
                   </view>
                   <view class="bubble bubble-ai">
                     <text v-if="msg.title" class="bubble-title">{{ msg.title }}</text>
-                    <!-- AI 真实回答：Markdown 渲染（标题加粗、要点列表、提示块） -->
+                    <!-- 智能助手真实回答：Markdown 渲染（标题加粗、要点列表、提示块） -->
                     <rich-text v-if="msg.html" class="bubble-md" :nodes="msg.html"></rich-text>
                     <text v-else class="bubble-text">{{ msg.content }}</text>
                     <view v-if="msg.points && msg.points.length" class="bubble-points">
@@ -141,7 +141,7 @@
                   </view>
                 </view>
 
-                <!-- Loading / 思考中 -->
+                <!-- 加载中 / 思考中 -->
                 <view v-else-if="msg.role === 'loading'" :id="'msg-' + idx" class="msg msg-ai">
                   <view class="msg-avatar msg-avatar-ai" aria-hidden="true">
                     <view class="avatar-small-icon"></view>
@@ -153,7 +153,7 @@
               </template>
             </scroll-view>
 
-            <!-- Chat Footer: Suggested Questions + Input -->
+            <!-- 对话底部：推荐问题 + 输入框 -->
             <view class="chat-footer">
               <view class="suggested-questions" role="group" aria-label="推荐问题">
                 <text
@@ -195,9 +195,7 @@ import { ref, computed, nextTick, onMounted } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { requireLogin, getDisplayName, getLevelText } from '@/utils/auth.js'
 
-/* ============================================================
-   AI Response Data
-   ============================================================ */
+/* 智能助手回答数据 */
 const AI_RESPONSES = [
   {
     title: '涉外仲裁协议效力分析',
@@ -231,12 +229,7 @@ const AI_RESPONSES = [
   }
 ]
 
-/* ============================================================
-   Markdown → HTML（AI 回答排版）
-   支持：标题(#)、加粗(**)、斜体(*)、行内代码(`)、
-        无序列表(-)、有序列表(1.)、引用(>)、代码块(```)、换行
-   生成的 HTML 带内联样式，与虚拟数据的 title/points/tip 视觉一致
-   ============================================================ */
+/* 将 Markdown 转为 HTML 排版智能助手回答：支持标题、加粗、斜体、行内代码、无序列表、有序列表、引用、代码块、换行，生成的 HTML 带内联样式，与虚拟数据的标题/要点/提示视觉一致 */
 function escapeHtml(str) {
   return String(str)
     .replace(/&/g, '&amp;')
@@ -344,9 +337,7 @@ function inlineMd(text) {
     .replace(/`([^`]+)`/g, '<code style="background:rgba(0,0,0,.06);border-radius:4px;padding:1px 5px;font-size:13px;">$1</code>')
 }
 
-/* ============================================================
-   Reactive State
-   ============================================================ */
+/* 响应式状态 */
 const inputText = ref('')
 const currentChat = ref(0)
 const scrollIntoView = ref('')
@@ -391,14 +382,12 @@ const chatHistory = ref([
   { title: '国际贸易争端解决', messages: [] }
 ])
 
-// User info (hardcoded demo)
+// 用户信息
 const userInitial = computed(() => (userName.value || '用').slice(0, 1))
 const userName = ref(getDisplayName())
 const userRole = ref(getLevelText())
 
-/* ============================================================
-   Computed
-   ============================================================ */
+/* 计算属性 */
 const canSend = computed(() => inputText.value.trim().length > 0 && !isLoading.value)
 const isLoading = computed(() => {
   return messages.value.length > 0 && messages.value[messages.value.length - 1].role === 'loading'
@@ -412,9 +401,7 @@ const todayDateText = computed(() => {
   return `${y}年${m}月${d}日`
 })
 
-/* ============================================================
-   Methods
-   ============================================================ */
+/* 方法 */
 function navigateTo(url) {
   uni.navigateTo({ url })
 }
@@ -500,11 +487,11 @@ async function simulateAIResponse(userText) {
     }))
 
   try {
-    // customUI: true 关闭 uniCloud 调用云对象时自动弹出的 loading 弹窗（灰色遮罩转圈）
+    // 关闭 uniCloud 调用云对象时自动弹出的加载弹窗（灰色遮罩转圈）
     const aiChat = uniCloud.importObject('aiChat', { customUI: true })
     const res = await aiChat.chat({ messages: history })
 
-    messages.value.pop() // remove loading
+    messages.value.pop() // 移除加载占位消息
     const now = new Date()
 
     if (res && res.errCode === 0) {
@@ -525,7 +512,7 @@ async function simulateAIResponse(userText) {
     }
   } catch (e) {
     console.error('aiChat error:', e)
-    messages.value.pop() // remove loading
+    messages.value.pop() // 移除加载占位消息
 
     // 降级：云函数调用失败时回退到本地内置回复
     const response = AI_RESPONSES[responseIndex.value % AI_RESPONSES.length]
@@ -610,11 +597,9 @@ function formatTime(date) {
   return `${h}:${m}`
 }
 
-/* ============================================================
-   Lifecycle
-   ============================================================ */
+/* 生命周期 */
 onMounted(() => {
-  // Initialize with welcome state
+  // 初始化为欢迎状态
   scrollIntoView.value = 'msg-welcome'
   // 每次进入页面随机换一批建议问题
   shuffleSuggestions()
@@ -627,11 +612,9 @@ onLoad(() => {
 </script>
 
 <style scoped>
-/* ============================================================
-   Brand Design Tokens (from AI助手.html)
-   ============================================================ */
+/* 品牌设计变量（来自 AI 助手页面） */
 .ai-shell {
-  /* === Brand Primary === */
+  /* 品牌主色 */
   --rule-primary: #2563EB;
   --rule-primary-hover: #1D4ED8;
   --rule-primary-active: #1E40AF;
@@ -640,7 +623,7 @@ onLoad(() => {
   --rule-primary-tint-2: #BFDBFE;
   --rule-primary-tint-3: #EFF6FF;
 
-  /* === Semantic === */
+  /* 语义色 */
   --rule-background: #F8FAFC;
   --rule-foreground: #0F172A;
   --rule-card: #FFFFFF;
@@ -653,13 +636,13 @@ onLoad(() => {
   --rule-input: #E2E8F0;
   --rule-ring: #2563EB;
 
-  /* === Radius === */
+  /* 圆角 */
   --rule-radius-small: 4px;
   --rule-radius-medium: 8px;
   --rule-radius-large: 16px;
   --rule-radius-full: 9999px;
 
-  /* === State Colors === */
+  /* 状态色 */
   --state-success: #16A34A;
   --state-success-tint: #DCFCE7;
   --state-warning: #D97706;
@@ -669,7 +652,7 @@ onLoad(() => {
   --state-info: #2563EB;
   --state-info-tint: #DBEAFE;
 
-  /* === Neutrals === */
+  /* 中性色 */
   --rule-ink: #0F172A;
   --rule-ink-2: #475569;
   --rule-ink-3: #94A3B8;
@@ -677,7 +660,7 @@ onLoad(() => {
   --rule-surface: #FFFFFF;
   --rule-surface-2: #F8FAFC;
 
-  /* === Shadows === */
+  /* 阴影 */
   --rule-shadow-1: 0 1px 2px rgba(15,23,42,.04), 0 1px 1px rgba(15,23,42,.02);
   --rule-shadow-2: 0 8px 24px -8px rgba(15,23,42,.12);
   --rule-shadow-3: 0 24px 60px -20px rgba(15,23,42,.20);
@@ -690,16 +673,14 @@ onLoad(() => {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ============================================================
-   Shell Layout
-   ============================================================ */
+/* 整体布局 */
 .app-shell {
   display: flex;
   min-height: 100vh;
   background: var(--rule-background);
 }
 
-/* ===== Sidebar ===== */
+/* 侧边导航栏 */
 .app-sidebar {
   position: fixed; left: 0; top: 0; height: 100vh; width: 240px;
   display: flex; flex-direction: column;
@@ -716,18 +697,14 @@ onLoad(() => {
 }
 
 .app-sidebar-logo-icon {
-  width: 36px; height: 36px; border-radius: 8px;
-  background: var(--rule-primary);
+  width: 36px; height: 36px;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
-  overflow: hidden;
 }
 
-.ls-svg-glyph {
-  width: 20px; height: 20px;
-  background: #fff;
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
+.ls-svg-img {
+  width: 32px;
+  height: 32px;
 }
 
 .app-sidebar-logo-text {
@@ -760,7 +737,7 @@ onLoad(() => {
 }
 .app-nav-item.is-active:hover { background: var(--rule-primary-hover); color: #fff; }
 
-/* Nav icons (mask-based SVGs) */
+/* 导航图标（基于遮罩的 SVG） */
 .navi-icon {
   width: 20px; height: 20px; flex-shrink: 0;
   background: currentColor;
@@ -768,10 +745,6 @@ onLoad(() => {
 }
 .app-nav-item.is-active .navi-icon { background: #fff; }
 
-.navi-icon-home {
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M3 10.5 12 3l9 7.5'/><path d='M5 9.5V21h14V9.5'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M3 10.5 12 3l9 7.5'/><path d='M5 9.5V21h14V9.5'/></svg>") center/contain no-repeat;
-}
 .navi-icon-survey {
   -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><rect width='8' height='4' x='8' y='2' rx='1'/><path d='M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'/><path d='M12 11h4'/><path d='M12 16h4'/><circle cx='9' cy='11' r='1.2'/><circle cx='9' cy='16' r='1.2'/></svg>") center/contain no-repeat;
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><rect width='8' height='4' x='8' y='2' rx='1'/><path d='M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'/><path d='M12 11h4'/><path d='M12 16h4'/><circle cx='9' cy='11' r='1.2'/><circle cx='9' cy='16' r='1.2'/></svg>") center/contain no-repeat;
@@ -793,7 +766,7 @@ onLoad(() => {
           mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z'/%3E%3Cpath d='M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z'/%3E%3C/svg%3E") center/contain no-repeat;
 }
 
-/* ===== Sidebar User ===== */
+/* 侧边栏用户信息 */
 .app-sidebar-user {
   padding: 16px 12px;
   border-top: 1px solid var(--rule-border);
@@ -845,7 +818,7 @@ onLoad(() => {
   font-weight: 500;
 }
 
-/* ===== Main ===== */
+/* 主内容区 */
 .app-main {
   flex: 1; margin-left: 240px;
   display: flex; flex-direction: column;
@@ -873,9 +846,7 @@ onLoad(() => {
   padding: 32px;
 }
 
-/* ============================================================
-   Chat Container (from AI助手.html)
-   ============================================================ */
+/* 对话容器（来自 AI 助手页面） */
 .chat-container {
   display: flex;
   flex-direction: column;
@@ -888,7 +859,7 @@ onLoad(() => {
   box-shadow: 0 12px 40px -12px rgba(15, 23, 42, 0.12);
 }
 
-/* ---- Chat Header ---- */
+/* 对话标题栏 */
 .chat-header {
   display: flex;
   align-items: center;
@@ -935,7 +906,7 @@ onLoad(() => {
   animation: presence-pulse 2.4s ease-in-out infinite;
 }
 
-/* Clear button */
+/* 清空对话按钮 */
 .clear-btn {
   display: inline-flex; align-items: center; gap: 6px;
   font-size: 13px; font-weight: 500; color: var(--rule-muted-foreground);
@@ -954,7 +925,7 @@ onLoad(() => {
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M3 6h18'/><path d='M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6'/><path d='M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2'/><line x1='10' x2='10' y1='11' y2='17'/><line x1='14' x2='14' y1='11' y2='17'/></svg>") center/contain no-repeat;
 }
 
-/* ---- Messages Area ---- */
+/* 消息区域 */
 .messages-area {
   flex: 1;
   overflow-y: auto;
@@ -970,7 +941,7 @@ onLoad(() => {
   gap: 48px;
 }
 
-/* Message row */
+/* 单条消息 */
 .msg {
   display: flex;
   gap: 12px;
@@ -986,7 +957,7 @@ onLoad(() => {
   flex-direction: row-reverse;
 }
 
-/* Message avatar */
+/* 消息头像 */
 .msg-avatar {
   width: 34px;
   height: 34px;
@@ -1017,7 +988,7 @@ onLoad(() => {
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M12 8V4H8'/><rect width='16' height='12' x='4' y='8' rx='2'/><path d='M2 14h2'/><path d='M20 14h2'/><path d='M15 13v2'/><path d='M9 13v2'/></svg>") center/contain no-repeat;
 }
 
-/* Bubbles */
+/* 气泡 */
 .bubble {
   padding: 10px 16px;
   max-width: 68%;
@@ -1042,7 +1013,7 @@ onLoad(() => {
   box-shadow: 0 4px 14px -4px color-mix(in srgb, var(--rule-primary) 50%, transparent);
 }
 
-/* Bubble inner content */
+/* 气泡内部内容 */
 .bubble-title {
   font-size: 14px; font-weight: 700;
   color: var(--rule-foreground);
@@ -1091,7 +1062,7 @@ onLoad(() => {
 .ba-like.liked { color: var(--state-error); }
 .ba-like:active, .ba-copy:active { opacity: 0.7; }
 
-/* ---- Loading 气泡 ---- */
+/* 加载中的气泡 */
 .bubble-loading {
   display: flex;
   align-items: center;
@@ -1102,7 +1073,7 @@ onLoad(() => {
   white-space: nowrap;
 }
 
-/* ---- Chat Footer ---- */
+/* 对话底部 */
 .chat-footer {
   flex-shrink: 0;
   background: var(--rule-card);
@@ -1207,24 +1178,24 @@ onLoad(() => {
   clip: rect(0,0,0,0); white-space: nowrap; border: 0;
 }
 
-/* ---- Keyframes ---- */
+/* 关键帧动画 */
 @keyframes presence-pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.5; transform: scale(0.8); }
 }
-/* ---- Reduced motion ---- */
+/* 减弱动效适配 */
 @media (prefers-reduced-motion: reduce) {
   .chat-status-dot { animation: none; }
   .send-btn, .chip, .clear-btn { transition: none; }
   .send-btn:hover { transform: none; }
 }
 
-/* ---- Touch devices ---- */
+/* 触屏设备适配 */
 @media (hover: none) {
   .send-btn:not(.disabled):hover { transform: none; background: var(--rule-primary); }
 }
 
-/* ---- Responsive ---- */
+/* 响应式适配 */
 @media (max-width: 768px) {
   .app-sidebar { transform: translateX(-100%); transition: transform 0.3s; }
   .app-main { margin-left: 0; }

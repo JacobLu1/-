@@ -1,7 +1,7 @@
 {
-  "name": "涉外法治人才培养测评网站",
+  "name": "涉外法治人才培养平台网页端",
   "version": "1.0.0",
-  "description": "涉外法治人才自主能力测评平台",
+  "description": "涉外法治人才培养平台",
   "scripts": {},
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.2",

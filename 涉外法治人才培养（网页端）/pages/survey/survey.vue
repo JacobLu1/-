@@ -1,15 +1,15 @@
 <template>
   <view class="survey-shell">
-    <!-- ===== Brand CSS Variables (from 问卷测评.html) ===== -->
+    <!-- 品牌主题色变量（来自问卷测评页面） -->
     <view class="css-vars" aria-hidden="true"></view>
 
-    <!-- ===== App Shell (Sidebar + Main) ===== -->
+    <!-- 应用外壳（侧边栏 + 主内容区） -->
     <view class="app-shell">
-      <!-- ===== Left Sidebar ===== -->
+      <!-- 左侧导航栏 -->
       <aside class="app-sidebar">
         <view class="app-sidebar-logo">
           <view class="app-sidebar-logo-icon">
-            <view class="ls-svg-glyph" aria-hidden="true"></view>
+            <image class="ls-svg-img" src="/static/logo.png" mode="aspectFit"></image>
           </view>
           <text class="app-sidebar-logo-text">涉外法治人才培养</text>
         </view>
@@ -52,7 +52,7 @@
         </view>
       </aside>
 
-      <!-- ===== Main Content Area ===== -->
+      <!-- 主内容区 -->
       <view class="app-main">
         <header class="app-topbar">
           <text class="app-topbar-title">{{ currentTopbarTitle }}</text>
@@ -60,9 +60,9 @@
         </header>
 
         <main class="app-content">
-          <!-- ============================================= -->
-          <!-- STEP 1: 测评开始页 -->
-          <!-- ============================================= -->
+
+          <!-- 第一步：测评开始页 -->
+
           <view v-if="currentStep === 'start'" class="survey-main start-main">
             <view class="start-hero">
               <view class="start-badge">涉外法治人才能力测评平台</view>
@@ -117,9 +117,9 @@
             </section>
           </view>
 
-          <!-- ============================================= -->
-          <!-- STEP 2: 客观题 -->
-          <!-- ============================================= -->
+
+          <!-- 第二步：客观题 -->
+
           <view v-else-if="currentStep.startsWith('objective')" class="survey-main">
             <view class="survey-header">
               <view class="sh-left">
@@ -217,9 +217,9 @@
             </section>
           </view>
 
-          <!-- ============================================= -->
-          <!-- STEP 3: 主观题 -->
-          <!-- ============================================= -->
+
+          <!-- 第三步：主观题 -->
+
           <view v-else-if="currentStep === 'subjective'" class="survey-main">
             <view class="survey-header">
               <view class="sh-left">
@@ -282,7 +282,7 @@
       </view>
     </view>
 
-    <!-- ===== Question Number Grid (fixed bottom-right) ===== -->
+    <!-- 题号网格（固定在右下角） -->
     <aside v-if="isObjectiveStep" class="question-grid-card" aria-label="答题进度">
       <view class="qg-toggle-btn" :class="{ 'is-open': qgOpen }" @tap="qgOpen = !qgOpen" aria-label="展开或收起答题卡">
         <view class="chev-up"></view>
@@ -321,7 +321,7 @@ import { ref, computed, reactive, onMounted, onUnmounted, watch } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import { getDisplayName, getLevelText } from '@/utils/auth.js'
 
-/* =========== 题目数据（由 question 数据库加载） =========== */
+/* 题目数据（由 question 数据库加载） */
 const TYPE_LABELS = { single: '单选题', multi: '多选题', judge: '判断题', subjective: '主观题' }
 const objectiveQuestions = ref([])
 const subjectiveQuestions = ref([])
@@ -336,7 +336,6 @@ const DIMENSION_ADVICE = {
 }
 const DEFAULT_ADVICE = '结合测评结果制定个性化学习计划，持续跟踪涉外法治领域最新立法与典型案例，做到学以致用。'
 
-/* =========== 响应式状态 =========== */
 const currentStep = ref('start')
 const currentQIndex = ref(0)
 const specialMode = ref(false)
@@ -346,7 +345,7 @@ const formData = reactive({
   objectiveAnswers: {},
   subjectiveAnswers: []
 })
-const remainingTime = ref(45 * 60 + 12)
+const remainingTime = ref(20 * 60)
 let timer = null
 const visitedSet = reactive(new Set())
 const qgOpen = ref(true)
@@ -376,7 +375,6 @@ const questionCategoryLabel = computed(() => {
   return q.typeLabel
 })
 
-/* =========== 计算属性 =========== */
 const allObjectiveQuestions = computed(() => {
   return objectiveQuestions.value.map((q, i) => ({
     ...q,
@@ -405,7 +403,6 @@ const timerDisplay = computed(() => {
   return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0')
 })
 
-/* =========== 工具方法 =========== */
 function navigateTo(url) { uni.navigateTo({ url }) }
 
 function handleLogout() {
@@ -434,7 +431,34 @@ function handleLogout() {
   })
 }
 
-/* =========== 开始页 / 退出 =========== */
+/* 开始页 / 退出 */
+/* 全量已上线题库池（进入测评时从池中随机抽题组卷） */
+const poolAll = ref([])
+
+function shuffle(arr) {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    const t = a[i]
+    a[i] = a[j]
+    a[j] = t
+  }
+  return a
+}
+function pickRandom(arr, n) {
+  return shuffle(arr).slice(0, Math.max(0, n))
+}
+
+/* 随机组卷：15 单选 + 5 判断 + 1 主观，共 21 题，每次进入轮换；某类型不足时取尽该类型 */
+function samplePaper() {
+  const pool = poolAll.value || []
+  const singles = pool.filter(q => q.type === 'single')
+  const judges = pool.filter(q => q.type === 'judge')
+  const subs = pool.filter(q => q.type === 'subjective')
+  objectiveQuestions.value = shuffle([...pickRandom(singles, 15), ...pickRandom(judges, 5)])
+  subjectiveQuestions.value = pickRandom(subs, 1)
+}
+
 async function loadQuestions() {
   try {
     const questionsObj = uniCloud.importObject('questions', { customUI: true })
@@ -444,9 +468,8 @@ async function loadQuestions() {
       questionsReady.value = true
       return
     }
-    const list = r.list || []
-    objectiveQuestions.value = list.filter(q => q.type !== 'subjective')
-    subjectiveQuestions.value = list.filter(q => q.type === 'subjective')
+    poolAll.value = r.list || []
+    samplePaper()
     questionsReady.value = true
   } catch (e) {
     uni.showToast({ title: (e && e.errMsg) || '题目加载失败', icon: 'none' })
@@ -460,9 +483,15 @@ async function ensureQuestionsLoaded() {
 
 async function startComprehensive() {
   await ensureQuestionsLoaded()
-  if (isSpecialMode.value) resetForm()
+  samplePaper() // 每次进入都重新随机组卷（15 单选 + 5 判断 + 1 主观）
+  if (isSpecialMode.value) {
+    resetForm()
+  } else {
+    formData.objectiveAnswers = {}
+    formData.subjectiveAnswers = new Array(subjectiveQuestions.value.length).fill('')
+    visitedSet.clear()
+  }
   currentQIndex.value = 0
-  visitedSet.clear()
   currentStep.value = 'objective_0'
   saveLocalData()
   if (!timer) startTimer()
@@ -481,7 +510,7 @@ function confirmExit() {
     success: (r) => {
       if (r.confirm) {
         if (timer) { clearInterval(timer); timer = null }
-        remainingTime.value = 45 * 60 + 12
+        remainingTime.value = 20 * 60
         specialMode.value = false
         specialCategory.value = ''
         resetForm()
@@ -536,7 +565,6 @@ function isAnswered(num) {
   const v = formData.objectiveAnswers[q.globalKey]
   return v !== undefined && v !== null && v !== '' && (Array.isArray(v) ? v.length > 0 : true)
 }
-function isVisited(num) { return visitedSet.has(num - 1) }
 
 function goNextFromObjective() {
   const left = totalObjectiveQuestions.value - answeredObjectiveCount.value
@@ -610,7 +638,67 @@ function doSubmit() {
   })
 }
 
-/* =========== 结果计算（保存供结果页读取） =========== */
+/* 结果计算（保存供结果页读取） */
+function objIsCorrect(q, ans) {
+  if (Array.isArray(q.answer)) {
+    const a = Array.isArray(ans) ? [...ans].sort().join(',') : ''
+    return a !== '' && a === [...q.answer].sort().join(',')
+  }
+  return ans === q.answer
+}
+
+function judgeText(v) {
+  return v === true || v === '对' ? '对' : v === false || v === '错' ? '错' : ''
+}
+
+/* 逐题快照：供“测评记录详情页”还原题目、我的答案与答案解析 */
+function buildItems() {
+  const list = []
+  allObjectiveQuestions.value.forEach((q) => {
+    const key = q.globalKey
+    const ans = formData.objectiveAnswers[key]
+    const isCorrect = (ans === undefined || ans === null || ans === '' ||
+      (Array.isArray(ans) && !ans.length)) ? false : objIsCorrect(q, ans)
+    const userAnswer = q.type === 'judge'
+      ? judgeText(ans)
+      : (Array.isArray(ans) ? ans : (ans === undefined || ans === null ? '' : String(ans)))
+    const correctAnswer = q.type === 'judge'
+      ? judgeText(q.answer)
+      : (Array.isArray(q.answer) ? q.answer : String(q.answer == null ? '' : q.answer))
+    list.push({
+      questionId: q._id || '',
+      type: q.type,
+      subType: q.subType || '',
+      title: q.title || '',
+      options: Array.isArray(q.options) ? q.options : [],
+      answer: correctAnswer,
+      analysis: q.analysis || '',
+      caseText: '',
+      placeholder: '',
+      userAnswer,
+      isCorrect
+    })
+  })
+  subjectiveQuestions.value.forEach((sq) => {
+    const idx = subjectiveQuestions.value.indexOf(sq)
+    const userAnswer = (formData.subjectiveAnswers && formData.subjectiveAnswers[idx]) || ''
+    list.push({
+      questionId: sq._id || '',
+      type: 'subjective',
+      subType: sq.subType || (sq.caseText ? 'case' : 'essay'),
+      title: sq.title || '',
+      options: [],
+      answer: sq.answer || '',
+      analysis: sq.analysis || '',
+      caseText: sq.caseText || '',
+      placeholder: sq.placeholder || '',
+      userAnswer,
+      isCorrect: null
+    })
+  })
+  return list
+}
+
 function computeResult() {
   const dimCorrect = {}
   const dimTotal = {}
@@ -652,6 +740,7 @@ function computeResult() {
     recommendations,
     mode: isSpecialMode.value ? 'special' : 'comprehensive',
     specialCategory: specialCategory.value,
+    items: buildItems(),
     rawAnswers: {
       objective: formData.objectiveAnswers,
       subjective: formData.subjectiveAnswers
@@ -701,7 +790,6 @@ function resetForm() {
   visitedSet.clear()
 }
 
-/* =========== 生命周期 =========== */
 watch(currentStep, (nv) => {
   if (typeof nv === 'string' && nv.startsWith('objective')) {
     const m = nv.match(/objective_(\d+)/)
@@ -723,7 +811,7 @@ onMounted(() => {
 onUnmounted(() => { if (timer) clearInterval(timer) })
 
 onLoad(async (options) => {
-  // ===== 登录鉴权：无 token 则强制跳转登录页 =====
+  // 登录鉴权：无 token 则强制跳转登录页
   const token = uni.getStorageSync('token')
   if (!token) {
     uni.showToast({ title: '请先登录', icon: 'none' })
@@ -766,12 +854,9 @@ onShow(() => {
 </script>
 
 <style scoped>
-/* =========================================================
-   Brand Design Tokens (from 问卷测评.html)
-   涉外法治人才培养测评 — Blue-White Professional
-   ========================================================= */
+/* 品牌设计变量（来自问卷测评页面）：涉外法治人才培养测评 — 蓝白专业风格 */
 .survey-shell {
-  /* === Brand Primary === */
+  /* 品牌主色 */
   --rule-primary: #2563EB;
   --rule-primary-hover: #1D4ED8;
   --rule-primary-active: #1E40AF;
@@ -780,7 +865,7 @@ onShow(() => {
   --rule-primary-tint-2: #BFDBFE;
   --rule-primary-tint-3: #EFF6FF;
 
-  /* === Semantic === */
+  /* 语义色 */
   --rule-background: #F8FAFC;
   --rule-foreground: #0F172A;
   --rule-card: #FFFFFF;
@@ -793,13 +878,12 @@ onShow(() => {
   --rule-input: #E2E8F0;
   --rule-ring: #2563EB;
 
-  /* === Radius Scale === */
+  /* 圆角 */
   --rule-radius-small: 4px;
   --rule-radius-medium: 8px;
   --rule-radius-large: 16px;
   --rule-radius-full: 9999px;
 
-  /* === State Colors === */
   --state-success: #16A34A;
   --state-success-tint: #DCFCE7;
   --state-warning: #D97706;
@@ -809,7 +893,7 @@ onShow(() => {
   --state-info: #2563EB;
   --state-info-tint: #DBEAFE;
 
-  /* === Neutrals === */
+  /* 中性色 */
   --rule-ink: #0F172A;
   --rule-ink-2: #475569;
   --rule-ink-3: #94A3B8;
@@ -817,7 +901,7 @@ onShow(() => {
   --rule-surface: #FFFFFF;
   --rule-surface-2: #F8FAFC;
 
-  /* === Shadows === */
+  /* 阴影 */
   --rule-shadow-1: 0 1px 2px rgba(15,23,42,.04), 0 1px 1px rgba(15,23,42,.02);
   --rule-shadow-2: 0 8px 24px -8px rgba(15,23,42,.12);
   --rule-shadow-3: 0 24px 60px -20px rgba(15,23,42,.20);
@@ -830,16 +914,14 @@ onShow(() => {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* =========================================================
-   Shell Layout
-   ========================================================= */
+/* 整体布局 */
 .app-shell {
   display: flex;
   min-height: 100vh;
   background: var(--rule-background);
 }
 
-/* ===== Sidebar ===== */
+/* 侧边导航栏 */
 .app-sidebar {
   position: fixed; left: 0; top: 0; height: 100vh; width: 240px;
   display: flex; flex-direction: column;
@@ -855,17 +937,13 @@ onShow(() => {
 }
 
 .app-sidebar-logo-icon {
-  width: 36px; height: 36px; border-radius: 8px;
-  background: var(--rule-primary);
+  width: 36px; height: 36px;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
-  overflow: hidden;
 }
-.ls-svg-glyph {
-  width: 20px; height: 20px;
-  background: #fff;
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/><path d='M7 21h10'/><path d='M12 3v18'/><path d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/></svg>") center/contain no-repeat;
+.ls-svg-img {
+  width: 32px;
+  height: 32px;
 }
 .app-sidebar-logo-text {
   font-size: 15px; font-weight: 600;
@@ -901,10 +979,6 @@ onShow(() => {
   display: inline-block;
 }
 .app-nav-item.is-active .navi-icon { background: #fff; }
-.navi-icon-home {
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M3 10.5 12 3l9 7.5'/><path d='M5 9.5V21h14V9.5'/></svg>") center/contain no-repeat;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M3 10.5 12 3l9 7.5'/><path d='M5 9.5V21h14V9.5'/></svg>") center/contain no-repeat;
-}
 .navi-icon-survey {
   -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><rect width='8' height='4' x='8' y='2' rx='1'/><path d='M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'/><path d='M12 11h4'/><path d='M12 16h4'/><circle cx='9' cy='11' r='1.2'/><circle cx='9' cy='16' r='1.2'/></svg>") center/contain no-repeat;
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><rect width='8' height='4' x='8' y='2' rx='1'/><path d='M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'/><path d='M12 11h4'/><path d='M12 16h4'/><circle cx='9' cy='11' r='1.2'/><circle cx='9' cy='16' r='1.2'/></svg>") center/contain no-repeat;
@@ -957,7 +1031,7 @@ onShow(() => {
   color: var(--rule-muted-foreground);
 }
 
-/* ===== Sidebar Logout Button ===== */
+/* 侧边栏退出按钮 */
 .app-sidebar-logout {
   display: flex; align-items: center; gap: 8px;
   margin: 8px 12px 0; padding: 10px 12px;
@@ -979,7 +1053,7 @@ onShow(() => {
   font-size: 13px; font-weight: 500;
 }
 
-/* ===== Main ===== */
+/* 主内容区 */
 .app-main {
   flex: 1;
   margin-left: 240px;
@@ -1009,7 +1083,7 @@ onShow(() => {
   padding: 32px;
 }
 
-/* ===== Survey Main Width Reserved for Fixed Grid ===== */
+/* 问卷主内容区宽度（为固定题号网格预留） */
 .survey-main {
   width: 100%;
 }
@@ -1017,9 +1091,7 @@ onShow(() => {
   .survey-main { padding-right: 284px; }
 }
 
-/* =========================================================
-   Survey Header + Countdown
-   ========================================================= */
+/* 问卷头部与倒计时 */
 .survey-header {
   display: flex; align-items: center; justify-content: space-between;
   gap: 16px; margin: 0 auto 24px;
@@ -1054,9 +1126,7 @@ onShow(() => {
   letter-spacing: 0.02em;
 }
 
-/* =========================================================
-   Question Card
-   ========================================================= */
+/* 题目卡片 */
 .survey-card {
   max-width: 800px;
   margin: 0 auto 24px;
@@ -1099,7 +1169,7 @@ onShow(() => {
 .step-lbl.is-done { color: var(--rule-primary); font-weight: 500; }
 .step-lbl.is-active { color: var(--rule-foreground); font-weight: 600; }
 
-/* ===== 主观题输入框聚焦样式 ===== */
+/* 主观题输入框聚焦样式 */
 .subj-textarea:focus {
   outline: none;
   border-color: var(--rule-primary);
@@ -1107,7 +1177,7 @@ onShow(() => {
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-/* ===== 测评开始页 ===== */
+/* 测评开始页 */
 .start-main { padding-right: 0 !important; }
 .start-hero { text-align: center; max-width: 800px; margin: 0 auto 24px; }
 .start-badge {
@@ -1180,7 +1250,7 @@ onShow(() => {
   margin-top: 20px;
 }
 
-/* ===== 退出测评按钮 ===== */
+/* 退出测评按钮 */
 .sh-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .exit-btn {
   display: inline-flex; align-items: center;
@@ -1198,7 +1268,7 @@ onShow(() => {
   background: var(--state-error-tint);
 }
 
-/* ===== Question Meta ===== */
+/* 题目信息 */
 .q-meta {
   display: flex; align-items: center; gap: 12px;
   margin-bottom: 16px;
@@ -1228,7 +1298,7 @@ onShow(() => {
   overflow-wrap: break-word;
 }
 
-/* ===== Options ===== */
+/* 选项 */
 .q-options {
   display: flex; flex-direction: column;
   gap: 12px;
@@ -1274,7 +1344,7 @@ onShow(() => {
   line-height: 1.5;
 }
 
-/* ===== Nav Buttons ===== */
+/* 底部导航按钮 */
 .q-nav {
   display: flex; align-items: center; justify-content: space-between;
   gap: 12px; margin-top: 32px;
@@ -1339,9 +1409,7 @@ onShow(() => {
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z'/><path d='m21.854 2.147-10.94 10.939'/></svg>") center/contain no-repeat;
 }
 
-/* =========================================================
-   Subjective Card
-   ========================================================= */
+/* 主观题卡片 */
 .case-box {
   background: var(--rule-primary-tint-3);
   border-left: 3px solid var(--rule-primary);
@@ -1399,9 +1467,7 @@ onShow(() => {
   border-color: transparent;
 }
 
-/* =========================================================
-   Question Number Grid (Fixed)
-   ========================================================= */
+/* 题号网格（固定在右下角） */
 .question-grid-card {
   position: fixed;
   bottom: 24px; right: 24px;
@@ -1519,9 +1585,6 @@ onShow(() => {
 }
 .qg-submit > text { color: #fff; }
 
-/* =========================================================
-   Responsive
-   ========================================================= */
 @media (max-width: 1199px) {
   .qg-toggle-btn { display: inline-flex; }
 }
@@ -1544,7 +1607,6 @@ onShow(() => {
   }
   .survey-header-title { font-size: 16px; }
   .survey-header { margin-bottom: 16px; }
-  .subj-card { padding: 24px; }
   .step-indicator-card { padding: 16px 20px; }
   .start-title { font-size: 26px; }
   .start-card { padding: 24px; }

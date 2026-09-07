@@ -64,7 +64,7 @@
       <view style="height: 80rpx;"></view>
     </scroll-view>
 
-    <!-- Toast -->
+    <!-- 轻提示浮层 -->
     <view v-if="toastVisible" class="toast-mask">
       <view class="toast-box">
         <view class="toast-icon">
@@ -240,7 +240,7 @@ page { min-height: 100vh; }
   height: calc(100vh - 44px);
 }
 
-/* ============ 品牌区域 ============ */
+/* 品牌区域 */
 .brand-section {
   display: flex;
   flex-direction: column;
@@ -278,7 +278,7 @@ page { min-height: 100vh; }
   color: rgba(255, 255, 255, 0.8);
 }
 
-/* ============ 玻璃卡片 ============ */
+/* 玻璃卡片 */
 .glass-card {
   width: 86%;
   max-width: 620rpx;
@@ -389,7 +389,7 @@ page { min-height: 100vh; }
   font-weight: 500;
 }
 
-/* ============ Toast ============ */
+/* 轻提示浮层 */
 .toast-mask {
   position: fixed;
   left: 0;

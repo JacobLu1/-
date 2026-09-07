@@ -200,7 +200,8 @@ export default {
           
           const centerX = 150
           const centerY = 150
-          const maxRadius = 100
+          // 半径留小，四周给标签文字留白，避免六维名称（左右/上下）被画布边缘裁掉
+          const maxRadius = 84
           const sides = dimensions.length
           const angleStep = (Math.PI * 2) / sides
 
@@ -276,9 +277,10 @@ export default {
           // 绘制标签
           ctx.font = '11px sans-serif'
           ctx.fillStyle = '#355580'
+          ctx.textBaseline = 'middle'
           ctx.textAlign = 'center'
           for (let i = 0; i < sides; i++) {
-            const angle = angleStep * i - Math.PI / 2
+            const angle = angleStep * i - Ma18.PI / 2
             const labelRadius = maxRadius + 20
             const x = centerX + labelRadius * Math.cos(angle)
             const y = centerY + labelRadius * Math.sin(angle)
@@ -338,7 +340,7 @@ page {
   --r-pill: 999rpx;
 }
 
-/* ---------- Page wrap ---------- */
+/* 页面容器（整页竖向 Flex 布局） */
 .page-wrap {
   min-height: 100vh;
   background: linear-gradient(160deg, #EAF3FF 0%, #F4F9FF 45%, #E6F1FE 100%);
@@ -368,14 +370,14 @@ page { min-height: 100vh; }
   bottom: 60rpx; right: -180rpx;
 }
 
-/* ---------- Status bar ---------- */
+/* 状态栏安全区占位 */
 .status-bar {
   width: 100%;
   flex-shrink: 0;
   background: transparent;
 }
 
-/* ---------- Screen ---------- */
+/* 可滚动内容区 */
 .screen {
   position: relative;
   z-index: 5;
@@ -384,7 +386,7 @@ page { min-height: 100vh; }
   padding: 16rpx 36rpx 220rpx;
 }
 
-/* ---------- Score card ---------- */
+/* 成绩概览卡片 */
 .score-card {
   position: relative;
   padding: 60rpx 44rpx 52rpx;
@@ -508,7 +510,7 @@ page { min-height: 100vh; }
   background: rgba(91,157,249,0.22);
 }
 
-/* ---------- Radar card ---------- */
+/* 能力维度雷达卡片 */
 .radar-card {
   position: relative;
   padding: 36rpx;
@@ -617,7 +619,7 @@ page { min-height: 100vh; }
   font-weight: 600;
 }
 
-/* ---------- Advice card ---------- */
+/* 学习建议卡片 */
 .advice-card {
   position: relative;
   padding: 36rpx;
@@ -677,7 +679,7 @@ page { min-height: 100vh; }
   line-height: 1.5;
 }
 
-/* ---------- Footer ---------- */
+/* 底部按钮区 */
 .footer {
   flex-shrink: 0;
   padding: 30rpx 36rpx 50rpx;
@@ -705,7 +707,7 @@ page { min-height: 100vh; }
   letter-spacing: .5rpx;
 }
 
-/* ---------- Animations ---------- */
+/* 入场动画 */
 @keyframes fadeUp { from { opacity: 0; transform: translateY(36rpx); } to { opacity: 1; transform: translateY(0); } }
 
 .reveal { opacity: 0; animation: fadeUp .6s cubic-bezier(.22,1,.36,1) forwards; }

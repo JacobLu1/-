@@ -1,18 +1,20 @@
 <template>
   <view class="page-wrap">
-    <!-- 状态栏安全区占位（iOS刘海屏 / 安卓挖孔屏适配，高度动态取自系统） -->
-    <view class="status-bar" :style="{ height: statusBarHeight + 'px' }"></view>
-    <!-- 顶部搜索栏 -->
-    <view class="topbar">
-      <view class="search">
-        <text class="search-ico ri-search-line"></text>
-        <input class="search-input" type="text" placeholder="搜索课程、法规、案例" placeholder-class="search-placeholder" />
+    <view class="sticky-top">
+      <!-- 状态栏安全区占位（iOS刘海屏 / 安卓挖孔屏适配，高度动态取自系统） -->
+      <view class="status-bar" :style="{ height: statusBarHeight + 'px' }"></view>
+      <!-- 顶部搜索栏 -->
+      <view class="topbar">
+        <view class="search">
+          <text class="search-ico ri-search-line"></text>
+          <input class="search-input" type="text" placeholder="搜索课程、法规、案例" placeholder-class="search-placeholder" />
+        </view>
+        <view class="avatar-btn" hover-class="avatar-hover" @click="navTo('/pages/profile/profile')">{{ avatarText }}</view>
       </view>
-      <view class="avatar-btn" hover-class="avatar-hover" @click="navTo('/pages/profile/profile')">{{ avatarText }}</view>
     </view>
 
     <!-- 外部滚动区：整个页面随内容一起滚动（与 data.vue 保持一致） -->
-    <scroll-view scroll-y class="screen" scroll-with-animation>
+    <view class="screen">
       
       <!-- 1) 英雄问候卡片 -->
       <view class="card hero reveal d1">
@@ -51,7 +53,6 @@
       </view>
 
 
-
       <!-- 3) 视频学习 -->
       <view class="reveal d3" id="videos-section">
         <view class="sec-head">
@@ -64,9 +65,11 @@
             <text class="more-arrow ri-arrow-right-s-line"></text>
           </view>
         </view>
-        <scroll-view scroll-x class="vid-scroll" show-scrollbar="false" :enable-flex="true">
+        <scroll-view scroll-x class="vid-scroll" show-scrollbar="false">
           <view class="vcard" v-for="(video, idx) in videoList" :key="idx" hover-class="vcard-hover" @click="openVideo(video)">
-            <view class="vthumb" :class="'vthumb-' + (idx + 1)">
+            <view class="vthumb" :class="video.cover && !video.coverFail ? 'has-cover' : 'vthumb-' + (idx + 1)">
+              <image v-if="video.cover && !video.coverFail" class="vthumb-img" :src="video.cover" mode="aspectFill" @error="onCoverError(video)"></image>
+              <view v-if="video.cover && !video.coverFail" class="vthumb-mask"></view>
               <view class="vplay">
                 <text class="vplay-ico ri-play-circle-line"></text>
               </view>
@@ -84,48 +87,29 @@
         <view v-if="!videoList.length" class="vcard-empty">暂无视频资源</view>
       </view>
 
-      <!-- 4) 能力技能提升 -->
+      <!-- 4) 学习模块 -->
       <view class="reveal d4">
         <view class="sec-head">
           <view class="t">
             <view class="bar"></view>
-            <text>能力技能提升</text>
-          </view>
-          <view class="more">
-            <text>全部</text>
-            <text class="more-arrow">›</text>
+            <text>学习模块</text>
           </view>
         </view>
-        <view class="skill-grid">
-          <view class="scard" v-for="(skill, idx) in skillList" :key="idx" hover-class="scard-hover" @click="openSkill(skill)">
-            <view class="sinfo">
-              <view class="stop">
-                <view class="sico" :class="'sico-' + (idx + 1)">
-                  <text class="sico-text" :class="skill.icon"></text>
-                </view>
-                <view class="lvl">{{ skill.level }}</view>
-              </view>
-              <view class="sname">{{ skill.name }}</view>
-              <view class="spct">掌握度 {{ skill.percent }}%</view>
+        <view class="mod-grid">
+          <view
+            class="mod-card"
+            v-for="(mod, idx) in modules"
+            :key="idx"
+            hover-class="mod-hover"
+            @click="openModule(mod)"
+          >
+            <view class="mod-ico" :class="'mod-ico-' + (mod.tone || idx + 1)">
+              <text :class="mod.icon"></text>
             </view>
-            <view class="ring">
-              <view class="ring-wrap">
-                <view class="ring-bg"></view>
-                <view class="ring-progress" 
-                      :class="'ring-progress-' + (idx + 1)"
-                      :style="{ 
-                        background: getRingGradient(idx + 1),
-                        '--pct': skill.percent + '%' 
-                      }">
-                </view>
-                <view class="ring-inner">
-                  <text class="rtxt">{{ skill.percent }}%</text>
-                </view>
-              </view>
-            </view>
+            <view class="mod-name">{{ mod.name }}</view>
+            <view class="mod-desc">{{ mod.desc }}</view>
           </view>
         </view>
-        <view v-if="!skillList.length" class="index-empty">暂无能力数据</view>
       </view>
 
       <!-- 5) 为你推荐 -->
@@ -135,16 +119,13 @@
             <view class="bar"></view>
             <text>为你推荐</text>
           </view>
-          <view class="more">
-            <text>更多</text>
-            <text class="more-arrow">›</text>
+          <view class="more" hover-class="more-hover" @click="refreshRecommendations">
+            <text class="refresh-ico">↻</text>
+            <text>刷新</text>
           </view>
         </view>
         <view class="rec-list">
           <view class="rcard" v-for="(rec, idx) in recList" :key="idx" hover-class="rcard-hover" @click="openRec(rec)">
-            <view class="rthumb" :class="'rthumb-' + (idx + 1)">
-              <text class="rthumb-ico" :class="rec.icon"></text>
-            </view>
             <view class="rinfo">
               <view class="rt">{{ rec.title }}</view>
               <view class="rm">
@@ -158,7 +139,7 @@
         </view>
         <view v-if="!recList.length" class="index-empty">暂无推荐资源</view>
       </view>
-    </scroll-view>
+    </view>
 
     <!-- AI助手悬浮按钮（可拖动） -->
     <view
@@ -203,8 +184,14 @@ export default {
       fabOnLeft: false,
       resourceLoading: false,
       videoList: [],
-      skillList: [],
-      recList: []
+      modules: [
+        { name: '法律英语综合训练', icon: 'ri-question-answer-line', desc: '词汇、听力与实务训练，点击进入综合训练', url: '/pages/legal-english/legal-english', tone: 1 },
+        { name: '法律文本阅读', icon: 'ri-file-list-3-line', desc: '涉外法律经典文献原文阅读，支持书签与注释', url: '/pages/legal-english/reading-list', tone: 2 },
+        { name: '文书案例研究', icon: 'ri-scales-3-line', desc: '精选涉外法律文书与典型案例，拆解法律适用与裁判思路', url: '/pages/legal-english/case-study', tone: 3 },
+        { name: '法律库', icon: 'ri-government-line', desc: '法规检索查询', url: '/pages/legal-db/legal-db', tone: 4 }
+      ],
+      recList: [],
+      recPool: []
     }
   },
   onReady() {
@@ -259,6 +246,8 @@ export default {
           title: d.title || '未命名视频',
           duration: d.meta || '--:--',
           progress: 0,
+          cover: d.cover || '',
+          coverFail: false,
           fileUrl: d.fileUrl || '',
           description: d.description || ''
         }))
@@ -276,7 +265,7 @@ export default {
           uni.showToast({ title: r.errMsg || '推荐资源加载失败', icon: 'none' })
           return
         }
-        this.recList = (r.list || []).slice(0, 3).map((d, index) => ({
+        this.recPool = (r.list || []).map((d, index) => ({
           id: d._id,
           type: d.type,
           title: d.title || '未命名资源',
@@ -288,6 +277,8 @@ export default {
           fileUrl: d.fileUrl || '',
           description: d.description || ''
         }))
+        // 首次进入随机推荐一批（与网页端"换一批"行为一致）
+        this.refreshRecommendations()
       } catch (e) {
         uni.showToast({ title: (e && e.errMsg) || '推荐资源加载失败', icon: 'none' })
       }
@@ -312,6 +303,31 @@ export default {
         }
       })
     },
+    // 刷新推荐：从推荐池随机抽取 3 条（排除当前展示项，避免与上次重复；池不足时补足）
+    refreshRecommendations() {
+      const pool = this.recPool
+      if (!pool.length) return
+      const currentIds = new Set(this.recList.map((item) => item.id))
+      const otherItems = this.shuffleArr(pool.filter((item) => !currentIds.has(item.id)))
+      let picked = otherItems.slice(0, 3)
+      if (picked.length < 3) {
+        const pickedIds = new Set(picked.map((item) => item.id))
+        const fillItems = this.shuffleArr(pool.filter((item) => !pickedIds.has(item.id)))
+        picked = picked.concat(fillItems.slice(0, 3 - picked.length))
+      }
+      this.recList = picked
+    },
+    // Fisher-Yates 洗牌（网页端同款，保证每次刷新内容都不同）
+    shuffleArr(list) {
+      const result = list.slice()
+      for (let i = result.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1))
+        const tmp = result[i]
+        result[i] = result[j]
+        result[j] = tmp
+      }
+      return result
+    },
     openRec(rec) {
       if (rec.type === 'video' && rec.id) {
         uni.navigateTo({
@@ -331,12 +347,12 @@ export default {
       })
     },
     // 点击技能卡片 -> 有对应学习页则进入（带防连点，避免路由竞争）
-    openSkill(skill) {
-      if (!skill.url) return
+    openModule(mod) {
+      if (!mod.url) return
       if (this._navLocking) return
       this._navLocking = true
       setTimeout(() => { this._navLocking = false }, 600)
-      uni.navigateTo({ url: skill.url })
+      uni.navigateTo({ url: mod.url })
     },
     // 点击"全部" -> 进入全部视频横向浏览页
     showAllVideos() {
@@ -345,7 +361,12 @@ export default {
       setTimeout(() => { this._navLocking = false }, 600)
       uni.navigateTo({ url: '/pages/video-list/video-list' })
     },
-    // ---------- AI 悬浮按钮拖动 ----------
+    // 封面图加载失败（域名未配置/地址失效）-> 标记后回退主题渐变，保证卡片完整美观
+    onCoverError(video) {
+      if (!video) return
+      video.coverFail = true
+    },
+    // AI 悬浮按钮拖动
     fabTouchStart(e) {
       const t = e.touches[0]
       this.fabStartX = t.clientX
@@ -380,26 +401,15 @@ export default {
     onFabClick() {
       if (this.fabMoved) return
       this.navTo('/pages/ai-assistant/ai-assistant')
-    },
-    getRingGradient(idx) {
-      const gradients = {
-        1: 'conic-gradient(#5B9DF9 0%, #2E7BE0 var(--pct), rgba(120,160,210,0.18) var(--pct))',
-        2: 'conic-gradient(#8B5CF6 0%, #6D28D9 var(--pct), rgba(120,160,210,0.18) var(--pct))',
-        3: 'conic-gradient(#06B6D4 0%, #0891B2 var(--pct), rgba(120,160,210,0.18) var(--pct))',
-        4: 'conic-gradient(#F59E0B 0%, #D97706 var(--pct), rgba(120,160,210,0.18) var(--pct))',
-        5: 'conic-gradient(#FB7185 0%, #E11D48 var(--pct), rgba(120,160,210,0.18) var(--pct))',
-        6: 'conic-gradient(#22C55E 0%, #16A34A var(--pct), rgba(120,160,210,0.18) var(--pct))'
-      }
-      return gradients[idx] || gradients[1]
     }
   }
 }
 </script>
 
 <style>
-/* ============ Design Tokens ============ */
+/* 设计变量 */
 page {
-  /* Brand blues */
+  /* 品牌蓝色系 */
   --brand: #5B9DF9;
   --brand-deep: #2E7BE0;
   --brand-soft: #8FB8F5;
@@ -412,14 +422,14 @@ page {
   --blue-600: #2563EB;
   --blue-700: #1D4ED8;
 
-  /* Ink / text */
+  /* 墨色文字 */
   --ink: #16314F;
   --ink-2: #355580;
   --muted: #7A92B0;
   --muted-2: #9AAFC6;
   --line: rgba(120, 160, 210, 0.16);
 
-  /* Glass surfaces */
+  /* 毛玻璃表面 */
   --glass: rgba(255, 255, 255, 0.55);
   --glass-2: rgba(255, 255, 255, 0.68);
   --glass-3: rgba(255, 255, 255, 0.82);
@@ -428,7 +438,6 @@ page {
   --glass-shadow: 0 20rpx 68rpx rgba(46, 123, 224, 0.14);
   --glass-shadow-sm: 0 12rpx 36rpx rgba(46, 123, 224, 0.10);
 
-  /* Status */
   --green: #22C55E;
   --green-soft: rgba(34, 197, 94, 0.14);
   --amber: #F59E0B;
@@ -439,7 +448,7 @@ page {
   --violet-soft: rgba(139, 92, 246, 0.14);
   --cyan: #06B6D4;
 
-  /* Radius */
+  /* 圆角 */
   --r-xs: 20rpx;
   --r-sm: 28rpx;
   --r-md: 36rpx;
@@ -448,14 +457,19 @@ page {
   --r-pill: 999rpx;
 }
 
-/* ============ Page Base ============ */
 .page-wrap {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   background: linear-gradient(160deg, #EAF3FF 0%, #F4F9FF 45%, #E6F1FE 100%);
   position: relative;
-  overflow: hidden;
+}
+
+/* 顶部固定区：状态栏 + 搜索栏，随页滚动时吸附在顶部 */
+.sticky-top {
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .page-wrap::before,
@@ -482,14 +496,14 @@ page {
   left: -180rpx;
 }
 
-/* ============ Status bar safe-area ============ */
+/* 状态栏安全区占位 */
 .status-bar {
   width: 100%;
   flex-shrink: 0;
   background: transparent;
 }
 
-/* ============ Top search bar ============ */
+/* 顶部搜索栏 */
 .topbar {
   position: relative;
   z-index: 45;
@@ -545,16 +559,15 @@ page {
   flex-shrink: 0;
 }
 
-/* ============ Scrollable screen body ============ */
+/* 可滚动内容区 */
 .screen {
   position: relative;
   z-index: 5;
-  flex: 1;
   box-sizing: border-box;
   padding: 16rpx 36rpx 220rpx;
 }
 
-/* ============ Glass card ============ */
+/* 毛玻璃卡片 */
 .card {
   position: relative;
   background: var(--glass);
@@ -565,7 +578,7 @@ page {
 .card.solid { background: var(--glass-3); }
 .card.pad { padding: 36rpx; }
 
-/* ============ Hero greeting card ============ */
+/* 英雄问候卡片 */
 .hero {
   position: relative;
   overflow: hidden;
@@ -639,7 +652,7 @@ page {
   pointer-events: none;
 }
 
-/* today progress */
+/* 今日学习进度 */
 .today {
   margin-top: 32rpx;
   display: flex;
@@ -696,7 +709,7 @@ page {
 }
 .hero .btn-primary { height: 88rpx; line-height: 88rpx; }
 
-/* ============ Buttons ============ */
+/* 按钮 */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -721,7 +734,7 @@ page {
   font-size: 24rpx;
 }
 
-/* ============ Section header ============ */
+/* 区块标题 */
 .sec-head {
   display: flex;
   align-items: center;
@@ -753,28 +766,36 @@ page {
   font-size: 28rpx;
   line-height: 1;
 }
+.sec-head .more-hover { opacity: 0.6; }
+.sec-head .refresh-ico {
+  font-size: 30rpx;
+  line-height: 1;
+  display: inline-block;
+  animation: spinRefresh 1.1s linear infinite;
+}
+@keyframes spinRefresh {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
 
-/* ============ Video scroll ============ */
+/* 视频横向滚动区 */
 .vid-scroll {
-  display: flex;
-  gap: 24rpx;
-  overflow-x: auto;
   white-space: nowrap;
+  overflow-x: auto;
   padding: 8rpx 4rpx 16rpx;
   margin: 0 -4rpx;
 }
 .vcard {
   display: inline-block;
-  flex-shrink: 0; /* 开启 enable-flex 后防止卡片被压缩变小 */
-  vertical-align: top;
+  vertical-align: top; /* 顶部对齐，防止行内块与基线对齐导致卡片整体下沉 */
   width: 312rpx;
+  margin-right: 24rpx; /* 横向卡片间距（原 flex gap 在无 enable-flex 时需手动补充） */
   border-radius: var(--r-md);
   background: var(--glass-2);
   border: 2rpx solid var(--glass-border-soft);
   box-shadow: var(--glass-shadow-sm);
   overflow: hidden;
   transition: transform .25s cubic-bezier(.34,1.56,.64,1), box-shadow .25s;
-  margin-right: 0;
 }
 .vcard-hover {
   transform: scale(0.97);
@@ -798,6 +819,23 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+}
+.vthumb.has-cover { background: #1E2A3B; }
+.vthumb-img {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+.vthumb-mask {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(14,26,43,0.18);
 }
 .vthumb-1 { background: linear-gradient(135deg, #5B9DF9, #2E7BE0); }
 .vthumb-2 { background: linear-gradient(135deg, #8B5CF6, #6D28D9); }
@@ -870,11 +908,52 @@ page {
   font-weight: 600;
 }
 
-/* ============ Skill grid ============ */
-.skill-grid {
+/* 能力技能网格 */
+.mod-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 24rpx;
+}
+.mod-card {
+  background: var(--glass);
+  border: 2rpx solid var(--glass-border-soft);
+  border-radius: var(--r-md);
+  box-shadow: var(--glass-shadow-sm);
+  padding: 28rpx 24rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14rpx;
+  transition: transform .2s cubic-bezier(.34,1.56,.64,1), box-shadow .25s;
+}
+.mod-hover {
+  transform: scale(0.96);
+}
+.mod-ico {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mod-ico text {
+  font-size: 34rpx;
+  color: #ffffff;
+  line-height: 1;
+}
+.mod-ico-1 { background: linear-gradient(135deg, #5B9DF9, #2E7BE0); }
+.mod-ico-2 { background: linear-gradient(135deg, #8B5CF6, #6D28D9); }
+.mod-ico-3 { background: linear-gradient(135deg, #06B6D4, #0891B2); }
+.mod-ico-4 { background: linear-gradient(135deg, #F59E0B, #D97706); }
+.mod-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--ink);
+}
+.mod-desc {
+  font-size: 22rpx;
+  color: var(--muted);
 }
 .index-empty {
   padding: 32rpx 8rpx;
@@ -882,117 +961,8 @@ page {
   font-size: 24rpx;
   color: var(--muted);
 }
-.scard {
-  position: relative;
-  padding: 28rpx 24rpx;
-  border-radius: var(--r-md);
-  background: var(--glass);
-  border: 2rpx solid var(--glass-border-soft);
-  box-shadow: var(--glass-shadow-sm);
-  display: flex;
-  align-items: center;
-  gap: 22rpx;
-  transition: transform .2s cubic-bezier(.34,1.56,.64,1), box-shadow .25s;
-}
-.scard-hover {
-  transform: scale(0.96);
-}
-.scard .sinfo {
-  flex: 1;
-  min-width: 0;
-}
-.scard .stop {
-  display: flex;
-  align-items: center;
-  gap: 12rpx;
-}
-.scard .sico {
-  width: 60rpx;
-  height: 60rpx;
-  border-radius: 18rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.sico-1 { background: linear-gradient(135deg, #5B9DF9, #2E7BE0); }
-.sico-2 { background: linear-gradient(135deg, #8B5CF6, #6D28D9); }
-.sico-3 { background: linear-gradient(135deg, #06B6D4, #0891B2); }
-.sico-4 { background: linear-gradient(135deg, #F59E0B, #D97706); }
-.sico-5 { background: linear-gradient(135deg, #FB7185, #E11D48); }
-.sico-6 { background: linear-gradient(135deg, #22C55E, #16A34A); }
-.sico-text {
-  font-size: 28rpx;
-  line-height: 1;
-}
-.scard .lvl {
-  font-size: 19rpx;
-  font-weight: 700;
-  padding: 2rpx 12rpx;
-  border-radius: var(--r-pill);
-  background: var(--blue-50);
-  color: var(--brand-deep);
-}
-.scard .sname {
-  margin-top: 10rpx;
-  font-size: 25rpx;
-  font-weight: 600;
-  color: var(--ink);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.scard .spct {
-  margin-top: 4rpx;
-  font-size: 20rpx;
-  color: var(--muted);
-  font-weight: 600;
-}
 
-/* circular progress ring */
-.ring {
-  width: 92rpx;
-  height: 92rpx;
-  flex-shrink: 0;
-  position: relative;
-}
-.ring-wrap {
-  width: 92rpx;
-  height: 92rpx;
-  position: relative;
-  border-radius: 50%;
-}
-.ring-bg {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background: rgba(120,160,210,0.18);
-}
-.ring-progress {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  transition: background 1.4s cubic-bezier(.22,1,.36,1);
-}
-.ring-inner {
-  position: absolute;
-  top: 8rpx;
-  left: 8rpx;
-  right: 8rpx;
-  bottom: 8rpx;
-  border-radius: 50%;
-  background: var(--glass-3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.ring .rtxt {
-  font-size: 22rpx;
-  font-weight: 700;
-  color: var(--ink);
-}
-
-/* ============ Recommend list ============ */
+/* 推荐列表 */
 .rec-list {
   display: flex;
   flex-direction: column;
@@ -1071,7 +1041,7 @@ page {
   line-height: 1;
 }
 
-/* ============ AI floating button ============ */
+/* AI 助手悬浮按钮 */
 .ai-fab {
   position: fixed;
   left: 0;
@@ -1149,7 +1119,7 @@ page {
   left: -8rpx;
 }
 
-/* ============ Animations ============ */
+/* 动画 */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(36rpx); }
   to { opacity: 1; transform: translateY(0); }
