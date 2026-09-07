@@ -139,7 +139,7 @@
                 <view class="lc-section-bar"></view>
                 <view>
                   <text class="lc-section-title">专业技能提升</text>
-                  <text class="lc-section-subtitle">法律英语综合训练，覆盖词汇、听力与实务能力</text>
+                  <text class="lc-section-subtitle">覆盖法律英语综合训练、法律文本阅读和文书案例研究</text>
                 </view>
               </view>
             </view>
