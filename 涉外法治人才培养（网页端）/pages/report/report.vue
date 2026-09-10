@@ -268,6 +268,7 @@ export default {
       loading: false,
       results: [],
       assessmentTotal: 0,
+      DIMENSION_NAMES: ['涉外法律英语 + 跨文化法治沟通', '国际公法理论与实务', '国际私法实务', '国际经济法与涉外商事', '跨境合规与涉外法治实务应用', '涉外综合案例研判'],
       // 基础原始数据
       rawComparison: [],
       trendData: [],
@@ -510,14 +511,17 @@ export default {
           this.assessmentTotal = r.total || list.length
 
           const sorted = [...this.results].sort((a, b) => (a.createDate || 0) - (b.createDate || 0))
-          this.trendData = sorted.slice(-6).map(item => item.score)
-          this.trendLabels = sorted.slice(-6).map(item => this.formatShortDate(item.createDate))
+          const recent = sorted.slice(-6)
+          const total = sorted.length
+          this.trendData = recent.map(item => item.score)
+          this.trendLabels = recent.map((_, i) => `第${total - recent.length + i + 1}次`)
 
           const latest = this.results[0] || sorted[sorted.length - 1] || null
-          const dims = (latest && latest.dimensions) || []
-          this.rawComparison = dims.map(d => ({
-            label: d.name || '综合',
-            personal: Number(d.score) || 0,
+          const latestDims = (latest && latest.dimensions) || []
+          const dimMap = new Map(latestDims.map(d => [d.name, Number(d.score) || 0]))
+          this.rawComparison = this.DIMENSION_NAMES.map(name => ({
+            label: name,
+            personal: dimMap.has(name) ? dimMap.get(name) : 0,
             avg: 0,
             target: 100
           }))
@@ -605,7 +609,7 @@ export default {
 
         ctx.setFontSize(fontSize)
         ctx.setFillStyle(mutedColor)
-        const minVal = 60
+        const minVal = 0
         const maxVal = 100
         for (let i = 0; i <= gridRows; i++) {
           const y = padTop + (plotH / gridRows) * i

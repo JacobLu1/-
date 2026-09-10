@@ -303,8 +303,11 @@ const donutSegments = computed(() => {
 const userPercent = computed(() => stats.userTotal ? Math.round(stats.userCount / stats.userTotal * 100) : 0)
 const adminPercent = computed(() => stats.userTotal ? Math.round(stats.adminCount / stats.userTotal * 100) : 0)
 
+const DIMENSION_NAMES = ['涉外法律英语 + 跨文化法治沟通', '国际公法理论与实务', '国际私法实务', '国际经济法与涉外商事', '跨境合规与涉外法治实务应用', '涉外综合案例研判']
+
 const abilityGaps = computed(() => {
   const map = {}
+  DIMENSION_NAMES.forEach(name => { map[name] = { name, sum: 0, count: 0 } })
   recentRecords.value.forEach(r => {
     (r.dimensions || []).forEach(d => {
       const name = d.name || '综合'
@@ -313,7 +316,8 @@ const abilityGaps = computed(() => {
       map[name].count++
     })
   })
-  return Object.values(map).map(item => {
+  return DIMENSION_NAMES.map(name => {
+    const item = map[name] || { name, sum: 0, count: 0 }
     const actualScore = item.count ? item.sum / item.count : 0
     const targetScore = 100
     const gapPct = Math.max(0, ((targetScore - actualScore) / targetScore) * 100)

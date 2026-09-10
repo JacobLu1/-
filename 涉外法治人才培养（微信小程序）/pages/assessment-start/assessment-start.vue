@@ -27,7 +27,7 @@
 
           <view class="quiz-desc">
             <view class="desc-title">题型说明</view>
-            <view class="desc-content">含单选、判断、主观题</view>
+            <view class="desc-content">含单选、多选、判断、主观题（随机组卷 21 题）</view>
           </view>
         </view>
       </view>

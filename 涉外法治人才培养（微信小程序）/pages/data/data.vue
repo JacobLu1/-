@@ -427,7 +427,7 @@ export default {
         },
         yAxis: {
           type: 'value',
-          min: 60,
+          min: 0,
           max: 100,
           interval: 10,
           splitLine: { lineStyle: { color: 'rgba(120,160,210,0.20)', type: 'dashed' } },

@@ -109,8 +109,12 @@
           <view>
             <text class="result-score">{{ result.score }}</text><text class="result-score-max">/100</text>
           </view>
-          <text class="result-score-label">综合评分</text>
+          <text class="result-score-label">综合评分（客观70% + 主观30%）</text>
           <view class="result-badge">{{ result.level }}</view>
+          <view v-if="subjective && subjective.avg !== undefined && subjective.avg !== null" class="result-sub-score">
+            <text class="result-sub-score-label">主观题得分</text>
+            <text class="result-sub-score-value">{{ subjective.avg }}分</text>
+          </view>
         </view>
 
         <view class="result-section">
@@ -128,7 +132,14 @@
 
         <view class="result-section">
           <text class="result-section-title">提升建议</text>
-          <view class="result-recommendations">
+          <view v-if="aiLoading" class="ai-loading">
+            <view class="ai-loading-spinner"></view>
+            <text>AI 正在根据您的成绩生成个性化建议...</text>
+          </view>
+          <view v-else-if="aiRecommendations.length" class="result-recommendations">
+            <view class="rec-item" v-for="(r, rIdx) in aiRecommendations" :key="rIdx">{{ r }}</view>
+          </view>
+          <view v-else class="result-recommendations">
             <view class="rec-item" v-for="(r, rIdx) in result.recommendations" :key="rIdx">{{ r }}</view>
           </view>
         </view>
@@ -157,6 +168,7 @@ const DEFAULT_RESULT = {
 }
 
 const result = ref(DEFAULT_RESULT)
+const subjective = ref(null)
 const userName = ref(getDisplayName())
 const userRole = ref(getLevelText())
 const userInitial = computed(() => (userName.value || '用').slice(0, 1))
@@ -214,6 +226,11 @@ function handleLogout() {
   })
 }
 
+const aiLoading = ref(false)
+const aiRecommendations = ref([])
+
+const DIMENSION_NAMES = ['涉外法律英语 + 跨文化法治沟通', '国际公法理论与实务', '国际私法实务', '国际经济法与涉外商事', '跨境合规与涉外法治实务应用', '涉外综合案例研判']
+
 onLoad(() => {
   // 登录鉴权：未登录跳转登录页
   if (!requireLogin()) return
@@ -226,24 +243,56 @@ onLoad(() => {
     if (saved) {
       const p = JSON.parse(saved)
       if (p && typeof p.score === 'number') {
+        // 确保四个维度都有值，缺失的补 0
+        let dims = Array.isArray(p.dimensions) && p.dimensions.length ? p.dimensions : []
+        if (dims.length < DIMENSION_NAMES.length) {
+          const existing = new Map(dims.map(d => [d.name, d.score]))
+          dims = DIMENSION_NAMES.map(name => ({ name, score: existing.has(name) ? existing.get(name) : 0 }))
+        }
         result.value = {
           score: p.score,
           level: p.level || '良好',
-          dimensions: Array.isArray(p.dimensions) && p.dimensions.length
-            ? p.dimensions
-            : [],
-          recommendations: Array.isArray(p.recommendations) && p.recommendations.length
-            ? p.recommendations
-            : [],
+          dimensions: dims,
+          recommendations: [],
           mode: p.mode || 'comprehensive',
           specialCategory: p.specialCategory || ''
         }
+        subjective.value = (p && p.subjective) ? p.subjective : null
+        // 用 AI 生成个性化提升建议
+        fetchAiRecommendations(dims, p.score)
       }
     }
   } catch (e) {
     console.error('[result] 读取结果失败:', e)
   }
 })
+
+async function fetchAiRecommendations(dims, score) {
+  aiLoading.value = true
+  try {
+    const aiObj = uniCloud.importObject('aiChat', { customUI: true })
+    const dimSummary = dims.map(d => `${d.name}：${d.score}分`).join('、')
+    const r = await aiObj.chat({
+      messages: [{
+        role: 'user',
+        content: `我刚刚完成了一次涉外法治人才综合测评，综合得分${score}分。各能力维度成绩如下：${dimSummary}。请根据我的成绩，给出3条具体、可操作的提升建议。每条建议用一句话概括，要针对得分较低的维度给出学习方向和方法。直接输出3条建议，每条一行，不要编号，不要多余说明，不要使用markdown加粗符号（**）。`
+      }]
+    })
+    if (r && r.errCode === 0 && r.content) {
+      const raw = r.content
+        .replace(/\*\*/g, '')
+        .replace(/^[\d\.\)\-、\s]+/g, '')
+      aiRecommendations.value = raw.split('\n').map(s => s.trim()).filter(s => s.length > 5 && !s.startsWith('#')).slice(0, 3)
+      if (aiRecommendations.value.length < 3) {
+        aiRecommendations.value = raw.split(/[。；;\n]/).map(s => s.trim()).filter(s => s.length > 8).slice(0, 3)
+      }
+    }
+  } catch (e) {
+    console.error('[result] AI建议生成失败:', e)
+  } finally {
+    aiLoading.value = false
+  }
+}
 </script>
 
 <style scoped>
@@ -588,6 +637,14 @@ onLoad(() => {
   font-size: 13px; font-weight: 600;
   margin-top: 8px;
 }
+.result-sub-score {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  margin-top: 8px; padding: 6px 12px;
+  background: var(--rule-primary-tint-1, rgba(91, 157, 249, 0.08));
+  border-radius: 8px;
+}
+.result-sub-score-label { font-size: 13px; color: var(--rule-secondary, #666); }
+.result-sub-score-value { font-size: 15px; font-weight: 600; color: var(--rule-primary, #2E7BE0); }
 .result-section { margin-bottom: 24px; }
 .result-section:last-child { margin-bottom: 0; }
 .result-section-title {
@@ -636,6 +693,17 @@ onLoad(() => {
   font-weight: 700;
   margin-right: 8px;
 }
+.ai-loading {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 0; color: var(--rule-muted-foreground); font-size: 13px;
+}
+.ai-loading-spinner {
+  width: 16px; height: 16px; border-radius: 50%;
+  border: 2px solid var(--rule-border);
+  border-top-color: var(--rule-primary);
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 .result-actions {
   display: flex; gap: 12px;
   margin-top: 8px;

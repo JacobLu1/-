@@ -205,5 +205,77 @@ module.exports = {
       console.error('[aiChat] generateVideoIntro request error:', e)
       return { errCode: 500, errMsg: 'AI 服务连接失败，请稍后重试', intro: '' }
     }
+  },
+
+  /* 案例分析题 AI 评分：根据案例与参考答案意思给考生作答打分，0-100 */
+  async gradeSubjective({
+    question = '',
+    reference = '',
+    caseText = '',
+    userAnswer = ''
+  } = {}) {
+    const ZHIPU_API_KEY = getApiKey()
+    if (!ZHIPU_API_KEY) {
+      return { errCode: 1001, errMsg: '未配置智谱 API Key', score: null, comment: '' }
+    }
+
+    const messages = [
+      {
+        role: 'system',
+        content: `你是涉外法治人才培养平台的资深案例分析题阅卷官。请根据题干、案例材料和参考答案，对考生的作答进行公正评分。
+评分要求：
+- 满分100分，从内容准确性、逻辑条理、要点完整性、表达专业性四个维度综合评判
+- 重点看考生是否抓住参考答案的核心意思与关键要点，表达意思相近即可得分，不必与参考答案逐字一致
+- 结合案例材料事实进行评判，考生引用关键事实、正确适用法律规则的应给高分
+- 必须拉开分数档次，根据作答实际质量给分，严禁一律给类似高分：
+  - 作答扎实、要点齐全、引用案例事实正确、适用法律规则得当给85-100分
+  - 基本完整但个别要点缺失或表达一般给70-84分
+  - 内容明显偏少、只答到部分或逻辑混乱给40-69分
+  - 严重跑题、几乎无关或作答过少给0-39分
+- 只有作答与参考答案核心意思基本一致且要点完整时，才可给85分以上
+- 只输出 JSON，不要输出多余文字或 markdown 代码块标记`
+      },
+      {
+        role: 'user',
+        content: `题干：${question || '（无题干）'}\n参考答案：${reference || '（无参考答案）'}\n${caseText ? '案例材料：' + caseText + '\n' : ''}考生作答：${userAnswer || '（未作答）'}\n\n请按以下格式输出 JSON：\n{"score": 0-100的整数, "comment": "1-2句简短评语"}`
+      }
+    ]
+
+    try {
+      const res = await requestWithRetry(messages)
+
+      if (res.status !== 200) {
+        const detail = extractZhipuError(res.data)
+        console.error('[aiChat] gradeSubjective zhipu http error:', res.status, detail.raw || JSON.stringify(res.data || {}))
+        return { errCode: 500, errMsg: `AI 评分服务异常（${res.status}）`, score: null, comment: '' }
+      }
+
+      const data = res.data || {}
+      const content = data.choices && data.choices[0] && data.choices[0].message
+        ? data.choices[0].message.content
+        : ''
+      const cleaned = String(content || '').replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim()
+      let parsed = {}
+      try {
+        parsed = JSON.parse(cleaned)
+      } catch (e) {
+        const match = cleaned.match(/\{[\s\S]*\}/)
+        if (match) {
+          try { parsed = JSON.parse(match[0]) } catch (e2) { parsed = {} }
+        }
+      }
+      let score = Number(parsed.score)
+      const comment = String(parsed.comment || '')
+      if (!Number.isFinite(score)) {
+        const m = String(cleaned).match(/["']?score["']?\s*[:：]\s*["']?(\d{1,3})/)
+        score = m ? Number(m[1]) : 0
+      }
+      if (!Number.isFinite(score)) score = 0
+      score = Math.max(0, Math.min(100, Math.round(score)))
+      return { errCode: 0, errMsg: '', score, comment }
+    } catch (e) {
+      console.error('[aiChat] gradeSubjective request error:', e)
+      return { errCode: 500, errMsg: 'AI 评分服务连接失败', score: null, comment: '' }
+    }
   }
 }

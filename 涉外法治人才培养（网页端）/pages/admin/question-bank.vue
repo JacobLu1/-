@@ -164,11 +164,13 @@
               </view>
               <view class="qb-form-field">
                 <text class="qb-form-label">能力维度</text>
-                <input class="qb-input" v-model="formDimension" placeholder="如 国际私法" />
+                <select class="qb-select" v-model="formDimension">
+                  <option v-for="d in DIMENSION_NAMES" :key="d" :value="d">{{ d }}</option>
+                </select>
               </view>
               <view class="qb-form-field">
                 <text class="qb-form-label">答案</text>
-                <input class="qb-input" v-model="formAnswer" :placeholder="formType === 'multi' ? '如 A,B,C' : (formType === 'judge' ? '对 或 错' : '参考答案')" />
+                <textarea class="qb-textarea qb-textarea-sm" v-model="formAnswer" :placeholder="formType === 'multi' ? '如 A,B,C' : (formType === 'judge' ? '对 或 错' : '参考答案')" rows="1"></textarea>
               </view>
             </view>
             <view class="qb-form-row">
@@ -333,14 +335,15 @@
             <view class="qb-page-btn" :class="{ disabled: currentPage === 1 }" @tap="prevPage">
               <view class="navi-icon navi-icon-chevron-left"></view>
             </view>
-            <view
-              v-for="page in pages"
-              :key="page"
-              class="qb-page-btn"
-              :class="{ 'is-active': currentPage === page }"
-              @tap="goToPage(page)"
-            >{{ page }}</view>
-            <text v-if="totalPages > 5" class="qb-page-ellipsis">...</text>
+            <template v-for="item in pages" :key="item">
+              <view
+                v-if="typeof item === 'number'"
+                class="qb-page-btn"
+                :class="{ 'is-active': currentPage === item }"
+                @tap="goToPage(item)"
+              >{{ item }}</view>
+              <text v-else class="qb-page-ellipsis">...</text>
+            </template>
             <view class="qb-page-btn" :class="{ disabled: currentPage === totalPages }" @tap="nextPage">
               <view class="navi-icon navi-icon-chevron-right"></view>
             </view>
@@ -369,6 +372,7 @@ const TYPE_LABELS = { single: '单选题', multi: '多选题', judge: '判断题
 const TYPE_CLASS = { single: 'qb-type-single', multi: 'qb-type-multi', judge: 'qb-type-case', subjective: 'qb-type-case' }
 const DIFF_LABELS = { easy: '初级', mid: '中级', hard: '高级' }
 const DIFF_CLASS = { easy: 'qb-diff-easy', mid: 'qb-diff-mid', hard: 'qb-diff-hard' }
+const DIMENSION_NAMES = ['涉外法律英语 + 跨文化法治沟通', '国际公法理论与实务', '国际私法实务', '国际经济法与涉外商事', '跨境合规与涉外法治实务应用', '涉外综合案例研判']
 
 const kpiTotal = computed(() => statsData.total)
 const kpiSingle = computed(() => statsData.single)
@@ -408,7 +412,7 @@ const formSubType = ref('essay')
 const formTitle = ref('')
 const formOptions = ref('')
 const formAnswer = ref('')
-const formDimension = ref('国际私法')
+const formDimension = ref('国际私法实务')
 const formDifficulty = ref('mid')
 const formStatus = ref('审核中')
 const formCaseText = ref('')
@@ -527,10 +531,19 @@ async function loadStats() {
 }
 
 const pages = computed(() => {
-  const result = []
-  const max = Math.min(totalPages.value, 5)
-  for (let i = 1; i <= max; i++) result.push(i)
-  return result
+  const total = totalPages.value
+  // 页数少时直接显示全部页码
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+  // 页数多时固定首末页，中间窗口跟随当前页滚动，窗口外以省略号代替
+  const cur = currentPage.value
+  const items = [1]
+  const start = Math.max(2, cur - 1)
+  const end = Math.min(total - 1, cur + 1)
+  if (start > 2) items.push('prev-ellipsis')
+  for (let p = start; p <= end; p++) items.push(p)
+  if (end < total - 1) items.push('next-ellipsis')
+  items.push(total)
+  return items
 })
 
 const navigateTo = (url) => {
@@ -557,7 +570,7 @@ function resetForm() {
   formTitle.value = ''
   formOptions.value = ''
   formAnswer.value = ''
-  formDimension.value = '国际私法'
+  formDimension.value = '国际私法实务'
   formDifficulty.value = 'mid'
   formStatus.value = '审核中'
   formCaseText.value = ''
@@ -565,9 +578,19 @@ function resetForm() {
   formAnalysis.value = ''
 }
 
+const scrollToFormCard = async () => {
+  await nextTick()
+  // 表单卡片在列表上方，打开后滚动到视口内，避免点了“编辑/新建”却看不到表单
+  if (typeof document !== 'undefined') {
+    const el = document.querySelector('.qb-form-card')
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+}
+
 const handleCreateQuestion = () => {
   resetForm()
   formVisible.value = true
+  scrollToFormCard()
 }
 
 const handleEdit = (q) => {
@@ -577,7 +600,7 @@ const handleEdit = (q) => {
   formTitle.value = q.title || ''
   formOptions.value = (q.options || []).map(o => `${o.key}. ${o.text}`).join('\n')
   formAnswer.value = q.type === 'judge' ? (q.answer ? '对' : '错') : (Array.isArray(q.answer) ? q.answer.join(',') : (q.answer || ''))
-  formDimension.value = q.dimension || '国际私法'
+  formDimension.value = (DIMENSION_NAMES.includes(q.dimension) ? q.dimension : '国际私法实务')
   formDifficulty.value = q.difficulty || 'mid'
   formStatus.value = q.status || '审核中'
   formCaseText.value = q.caseText || ''
@@ -1152,6 +1175,30 @@ onMounted(() => {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--rule-primary) 18%, transparent);
 }
 .qb-textarea { min-height: 96px; resize: vertical; line-height: 1.6; }
+.qb-input-single {
+  height: 42px;
+  min-height: 42px;
+  resize: none;
+  overflow: auto;
+  line-height: 22px;
+}
+.qb-select {
+  height: 42px;
+  width: 100%;
+  border: 1px solid var(--rule-border);
+  border-radius: 10px;
+  background: var(--rule-card);
+  color: var(--rule-foreground);
+  font-size: 14px;
+  padding: 0 12px;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.qb-select:focus {
+  border-color: var(--rule-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--rule-primary) 18%, transparent);
+}
 .qb-textarea-sm { min-height: 72px; }
 .qb-form-hint { font-size: 13px; color: var(--rule-muted-foreground); padding: 12px 4px; }
 .qb-form-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 18px; }

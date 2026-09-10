@@ -327,12 +327,14 @@ const objectiveQuestions = ref([])
 const subjectiveQuestions = ref([])
 const questionsReady = ref(false)
 const QUESTION_CATEGORY = '国际私法'
-const DIMENSION_NAMES = ['国际私法', '国际经济法', '国际公法', '涉外商事法']
+const DIMENSION_NAMES = ['涉外法律英语 + 跨文化法治沟通', '国际公法理论与实务', '国际私法实务', '国际经济法与涉外商事', '跨境合规与涉外法治实务应用', '涉外综合案例研判']
 const DIMENSION_ADVICE = {
-  '国际私法': '加强涉外民事关系法律适用法与涉外民事诉讼程序的学习，结合典型案例理解公共秩序保留、最密切联系等核心制度。',
-  '国际经济法': '系统学习国际贸易法（CISG、INCOTERMS）、WTO规则及外商投资相关法律，重点突破国际贸易与投资实务案例。',
-  '国际公法': '巩固国际公法基本理论，关注《反外国制裁法》等涉外法治前沿动态，提升对国际条约的理解与运用能力。',
-  '涉外商事法': '加强涉外仲裁与涉外商事诉讼实务训练，熟悉《纽约公约》与国内仲裁司法审查规则，提升涉外纠纷解决能力。'
+  '涉外法律英语 + 跨文化法治沟通': '加强涉外法律英语听说读写与跨文化沟通能力训练，熟悉国际法律术语与英文法律文书写作，提升涉外法律职业沟通素养。',
+  '国际公法理论与实务': '巩固国际公法基本理论，关注《反外国制裁法》等涉外法治前沿动态，提升对国际条约、主权豁免等制度的理解与运用能力。',
+  '国际私法实务': '加强涉外民事关系法律适用法与涉外民事诉讼程序的学习，结合典型案例理解公共秩序保留、最密切联系等核心制度。',
+  '国际经济法与涉外商事': '系统学习国际贸易法（CISG、INCOTERMS）、WTO规则及涉外仲裁、涉外商事诉讼实务，重点突破国际贸易与投资实务案例。',
+  '跨境合规与涉外法治实务应用': '熟悉跨境数据的合规管理、出口管制、制裁合规等涉外法治实务应用，关注 GDPR、美国长臂管辖等域外合规制度，提升企业跨境合规能力。',
+  '涉外综合案例研判': '通过综合涉外典型案例进行多维度研判，训练案件分析、法条适用与涉外争端解决能力，形成系统化涉外法律思维。'
 }
 const DEFAULT_ADVICE = '结合测评结果制定个性化学习计划，持续跟踪涉外法治领域最新立法与典型案例，做到学以致用。'
 
@@ -449,13 +451,18 @@ function pickRandom(arr, n) {
   return shuffle(arr).slice(0, Math.max(0, n))
 }
 
-/* 随机组卷：15 单选 + 5 判断 + 1 主观，共 21 题，每次进入轮换；某类型不足时取尽该类型 */
+/* 随机组卷：14 单选 + 2 多选 + 4 判断 + 1 主观，共 21 题，每次进入轮换；某类型不足时取尽该类型 */
 function samplePaper() {
   const pool = poolAll.value || []
   const singles = pool.filter(q => q.type === 'single')
+  const multis = pool.filter(q => q.type === 'multi')
   const judges = pool.filter(q => q.type === 'judge')
   const subs = pool.filter(q => q.type === 'subjective')
-  objectiveQuestions.value = shuffle([...pickRandom(singles, 15), ...pickRandom(judges, 5)])
+  objectiveQuestions.value = shuffle([
+    ...pickRandom(singles, 14),
+    ...pickRandom(multis, 2),
+    ...pickRandom(judges, 4)
+  ])
   subjectiveQuestions.value = pickRandom(subs, 1)
 }
 
@@ -483,7 +490,7 @@ async function ensureQuestionsLoaded() {
 
 async function startComprehensive() {
   await ensureQuestionsLoaded()
-  samplePaper() // 每次进入都重新随机组卷（15 单选 + 5 判断 + 1 主观）
+  samplePaper() // 每次进入都重新随机组卷（14 单选 + 2 多选 + 4 判断 + 1 主观）
   if (isSpecialMode.value) {
     resetForm()
   } else {
@@ -614,28 +621,102 @@ function doSubmit() {
     uni.showToast({ title: '数据保存异常', icon: 'none' }); return
   }
   if (timer) clearInterval(timer)
-  const result = computeResult()
-  try { uni.setStorageSync('survey_result', JSON.stringify(result)) } catch (e) {}
-  // 云端保存测评结果（失败不影响本地跳转）
+  let result = computeResult()
+  const baseResult = result
   const submitToken = uni.getStorageSync('token')
-  if (submitToken) {
-    const surveyObj = uniCloud.importObject('survey', { customUI: true })
-    surveyObj.saveResult({ token: submitToken, result }).then((r) => {
-      if (r && r.errCode !== 0) console.warn('[survey] 保存测评结果失败:', r.errMsg)
-    }).catch((err) => {
-      console.warn('[survey] 保存测评结果失败:', err)
+  const finalize = (finalResult) => {
+    try { uni.setStorageSync('survey_result', JSON.stringify(finalResult)) } catch (e) {}
+    if (submitToken) {
+      const surveyObj = uniCloud.importObject('survey', { customUI: true })
+      surveyObj.saveResult({ token: submitToken, result: finalResult }).then((r) => {
+        if (r && r.errCode !== 0) console.warn('[survey] 保存测评结果失败:', r.errMsg)
+      }).catch((err) => {
+        console.warn('[survey] 保存测评结果失败:', err)
+      })
+    }
+    const savedData = JSON.stringify(formData)
+    uni.redirectTo({
+      url: '/pages/result/result',
+      success: () => { resetForm(); try { uni.removeStorageSync('survey_data') } catch (e) {} },
+      fail: (err) => {
+        console.error('[submit] redirect failed:', err)
+        uni.showToast({ title: '页面跳转失败', icon: 'none' })
+        try { uni.setStorageSync('survey_data', savedData) } catch (e) {}
+      }
     })
   }
-  const savedData = JSON.stringify(formData)
-  uni.redirectTo({
-    url: '/pages/result/result',
-    success: () => { resetForm(); try { uni.removeStorageSync('survey_data') } catch (e) {} },
-    fail: (err) => {
-      console.error('[submit] redirect failed:', err)
-      uni.showToast({ title: '页面跳转失败', icon: 'none' })
-      try { uni.setStorageSync('survey_data', savedData) } catch (e) {}
-    }
+  // 主观题 AI 评分：评分主观题并纳入 客观70%+主观30%
+  uni.showLoading({ title: 'AI 评分中...', mask: true })
+  gradeSubjectiveWithAI(baseResult, submitToken).then((finalResult) => {
+    uni.hideLoading()
+    finalize(finalResult)
+  }).catch((err) => {
+    uni.hideLoading()
+    console.error('[survey] AI 主观题评分失败，退回客观分:', err)
+    finalize(baseResult)
   })
+  }
+
+/* 主观题 AI 评分：逐题评分，并重算综合得分为 客观70%+主观30% */
+async function gradeSubjectiveWithAI(result, token) {
+  const subs = subjectiveQuestions.value || []
+  if (!subs.length) {
+    return { ...result, subjective: { scores: [], total: null, avg: null } }
+  }
+  let aiObj = null
+  try {
+    aiObj = uniCloud.importObject('aiChat', { customUI: true })
+  } catch (e) {
+    aiObj = null
+  }
+  const scores = []
+  const comments = []
+  for (let i = 0; i < subs.length; i++) {
+    const sq = subs[i]
+    const userAnswer = (formData.subjectiveAnswers && formData.subjectiveAnswers[i]) || ''
+    let grade = { score: null, comment: '' }
+    if (aiObj && userAnswer && userAnswer.trim().length >= 10) {
+      try {
+        const ansText = Array.isArray(sq.answer) ? sq.answer.join('，') : (sq.answer || '')
+        const analysis = sq.analysis || ''
+        const r = await aiObj.gradeSubjective({
+          question: sq.title || '',
+          reference: [ansText, analysis].filter(Boolean).join('\n') || '',
+          caseText: sq.caseText || '',
+          userAnswer
+        })
+        if (r && r.errCode === 0 && typeof r.score === 'number') grade = r
+      } catch (e) {
+        grade = { score: null, comment: '' }
+      }
+    }
+    const gScore = (grade && typeof grade.score === 'number') ? grade.score : null
+    scores.push(gScore)
+    comments.push(grade ? (grade.comment || '') : '')
+  }
+  const graded = scores.filter(s => s !== null)
+  const avg = graded.length ? Math.round(graded.reduce((a, b) => a + b, 0) / graded.length) : null
+  // 客观正确率
+  const objectiveScore = result.score
+  // 综合得分 = 客观70% + 主观30%（无主观分时退回客观分）
+  let score = objectiveScore
+  let level = result.level
+  if (avg !== null) {
+    score = Math.round(objectiveScore * 0.7 + avg * 0.3)
+    level = score >= 90 ? '卓越' : score >= 80 ? '优秀' : score >= 70 ? '良好' : score >= 60 ? '中等' : '待提升'
+  }
+  // 案例分析题归入"涉外综合案例研判"维度，用案例分析分作为该维度得分
+  let dimensions = Array.isArray(result.dimensions) ? result.dimensions : []
+  if (avg !== null) {
+    dimensions = dimensions.map(dm => dm.name === '涉外综合案例研判' ? { ...dm, score: avg } : dm)
+  }
+  return {
+    ...result,
+    score,
+    level,
+    dimensions,
+    subjective: { scores, comments, total: avg, avg }
+  }
 }
 
 /* 结果计算（保存供结果页读取） */
@@ -705,7 +786,7 @@ function computeResult() {
   DIMENSION_NAMES.forEach(d => { dimCorrect[d] = 0; dimTotal[d] = 0 })
   let correct = 0
   allObjectiveQuestions.value.forEach(q => {
-    const d = q.dim || '综合'
+    const d = (q.dimension || q.dim) || '综合'
     if (dimTotal[d] === undefined) { dimCorrect[d] = 0; dimTotal[d] = 0 }
     dimTotal[d]++
     const ans = formData.objectiveAnswers[q.globalKey]

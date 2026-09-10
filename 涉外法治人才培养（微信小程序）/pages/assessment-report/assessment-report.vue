@@ -34,6 +34,12 @@
               <text class="meta-value">{{ reportData.answeredCount }}/{{ reportData.totalCount }} 题</text>
             </view>
           </view>
+
+          <view v-if="subjectiveScore !== null" class="score-subject">
+            <text class="score-subject-label">案例分析得分</text>
+            <text class="score-subject-value">{{ subjectiveScore }}分</text>
+          </view>
+          <view class="score-compose-hint">综合 = 客观70% + 案例分析30%</view>
         </view>
       </view>
 
@@ -114,7 +120,8 @@ export default {
         totalCount: 0,
         dimensions: []
       },
-      adviceList: []
+      adviceList: [],
+      subjectiveScore: null
     }
   },
   onReady() {
@@ -142,6 +149,7 @@ export default {
       const data = uni.getStorageSync('lastAssessmentReport')
       if (data) {
         this.reportData = data
+        this.subjectiveScore = (data.subjective && data.subjective.avg !== undefined && data.subjective.avg !== null) ? data.subjective.avg : null
         // 根据得分生成学习建议
         this.generateAdvice()
       }
@@ -508,6 +516,33 @@ page { min-height: 100vh; }
   width: 2rpx;
   height: 72rpx;
   background: rgba(91,157,249,0.22);
+}
+
+.score-subject {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  margin-top: 20rpx;
+  padding: 14rpx 24rpx;
+  background: var(--blue-50);
+  border-radius: var(--r-md);
+  border: 2rpx solid rgba(91,157,249,0.22);
+  width: 100%;
+}
+.score-subject-label {
+  font-size: 24rpx;
+  color: var(--muted);
+}
+.score-subject-value {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: var(--brand-deep);
+}
+.score-compose-hint {
+  margin-top: 12rpx;
+  font-size: 20rpx;
+  color: var(--muted);
 }
 
 /* 能力维度雷达卡片 */

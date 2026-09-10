@@ -272,7 +272,7 @@ export default {
         if (this.special) {
           list = list.filter(q => (q.dimension || '综合') === this.special)
         } else {
-          // 综合测评随机组卷：15 单选 + 5 判断 + 1 主观，共 21 题，每次进入都轮换；类型不足则取尽
+          // 综合测评随机组卷：14 单选 + 2 多选 + 4 判断 + 1 主观，共 21 题，每次进入都轮换；类型不足则取尽
           const shuf = (a) => {
             const x = [...a]
             for (let i = x.length - 1; i > 0; i--) {
@@ -285,9 +285,10 @@ export default {
           }
           const pick = (a, n) => shuf(a).slice(0, n)
           const singles = list.filter(q => q.type === 'single')
+          const multis = list.filter(q => q.type === 'multi')
           const judges = list.filter(q => q.type === 'judge')
           const subs = list.filter(q => q.type === 'subjective')
-          list = shuf([...pick(singles, 15), ...pick(judges, 5), ...pick(subs, 1)])
+          list = shuf([...pick(singles, 14), ...pick(multis, 2), ...pick(judges, 4), ...pick(subs, 1)])
         }
         const typeMap = { single: '单选题', multi: '多选题', judge: '判断题', subjective: '主观题' }
         this.questions = list.map((q, i) => ({
@@ -440,14 +441,82 @@ export default {
 
       const reportData = this.buildReport(timeStr)
 
-      // 存储报告数据到本地
-      uni.setStorageSync('lastAssessmentReport', reportData)
-      this.saveResult(reportData).finally(() => {
-        // 跳转到报告页面
-        uni.navigateTo({
-          url: '/pages/assessment-report/assessment-report'
+      // 案例分析题 AI 评分，重算综合得分为 客观70%+主观30%
+      const proceed = (finalReport) => {
+        // 存储报告数据到本地
+        uni.setStorageSync('lastAssessmentReport', finalReport)
+        this.saveResult(finalReport).finally(() => {
+          // 跳转到报告页面
+          uni.navigateTo({
+            url: '/pages/assessment-report/assessment-report'
+          })
         })
+      }
+      uni.showLoading({ title: '案例分析评分中...', mask: true })
+      this.gradeSubjective(reportData).then((finalReport) => {
+        uni.hideLoading()
+        proceed(finalReport)
+      }).catch(() => {
+        uni.hideLoading()
+        proceed(reportData)
       })
+    },
+    // 案例分析题 AI 评分（满分100），综合得分 = 客观70% + 主观30%
+    async gradeSubjective(report) {
+      const subs = this.questions.filter(q => q.type === '主观题')
+      if (!subs.length) {
+        return { ...report, subjective: { scores: [], avg: null } }
+      }
+      let aiObj = null
+      try {
+        aiObj = uniCloud.importObject('aiChat', { customUI: true })
+      } catch (e) {
+        aiObj = null
+      }
+      const scores = []
+      const comments = []
+      for (let i = 0; i < subs.length; i++) {
+        const q = subs[i]
+        const userAnswer = this.answers[q.n] || ''
+        let grade = { score: null, comment: '' }
+        if (aiObj && userAnswer && userAnswer.trim().length >= 10) {
+          try {
+            const ansText = Array.isArray(q.answer) ? q.answer.join('，') : (q.answer || '')
+            const analysis = q.analysis || ''
+            const r = await aiObj.gradeSubjective({
+              question: q.stem || '',
+              reference: [ansText, analysis].filter(Boolean).join('\n') || '',
+              caseText: q.caseText || '',
+              userAnswer
+            })
+            if (r && r.errCode === 0 && typeof r.score === 'number') grade = r
+          } catch (e) {
+            grade = { score: null, comment: '' }
+          }
+        }
+        scores.push((grade && typeof grade.score === 'number') ? grade.score : null)
+        comments.push(grade ? (grade.comment || '') : '')
+      }
+      const graded = scores.filter(s => s !== null)
+      const avg = graded.length ? Math.round(graded.reduce((a, b) => a + b, 0) / graded.length) : null
+      const objectiveScore = report.score
+      let score = objectiveScore
+      let level = report.level
+      if (avg !== null) {
+        score = Math.round(objectiveScore * 0.7 + avg * 0.3)
+        level = score >= 90 ? '卓越' : score >= 80 ? '优秀' : score >= 70 ? '良好' : score >= 60 ? '中等' : '待提升'
+      }
+      // 案例分析题归入"涉外综合案例研判"维度，用案例分析分作为该维度得分
+      let dimensions = Array.isArray(report.dimensions) ? report.dimensions.slice() : []
+      if (avg !== null) {
+        const exist = dimensions.find(dm => dm.name === '涉外综合案例研判')
+        if (exist) {
+          exist.score = avg
+        } else {
+          dimensions.push({ name: '涉外综合案例研判', score: avg, target: 100 })
+        }
+      }
+      return { ...report, score, level, dimensions, subjective: { scores, comments, avg } }
     },
     buildReport(timeStr) {
       const dimCorrect = {}

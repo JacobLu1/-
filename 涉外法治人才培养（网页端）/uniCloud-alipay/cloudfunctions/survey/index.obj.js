@@ -149,7 +149,7 @@ module.exports = {
     return {
       errCode: 0,
       errMsg: '',
-      list: listRes.data.map(stripDetail),
+list: listRes.data.map(clipRaw),
       total: totalRes.total
     }
   },
