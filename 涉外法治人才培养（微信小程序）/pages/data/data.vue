@@ -1002,8 +1002,9 @@ page {
   font-size: 20rpx;
   color: var(--muted);
   flex-shrink: 0;
-  width: 80rpx;
+  width: 132rpx;
   text-align: right;
+  white-space: nowrap;
 }
 .record-chev {
   color: var(--muted-2);

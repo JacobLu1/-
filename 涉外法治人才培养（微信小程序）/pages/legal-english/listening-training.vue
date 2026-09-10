@@ -12,85 +12,11 @@
         <text class="lt-nav-title">听力实训</text>
         <view class="lt-nav-right"></view>
       </view>
-
-      <!-- 固定顶部区：概览卡（下滑不消失） -->
-      <view class="lt-fixed">
-        <view class="hero">
-          <view class="hero-top">
-            <view class="hero-info">
-              <view class="hero-title">每周法律英语听力实训</view>
-              <view class="hero-sub">每日一课，听读结合，巩固涉外法律英语能力</view>
-            </view>
-          </view>
-          <view class="hero-progress-row">
-            <text class="ri-checkbox-circle-fill hero-check"></text>
-            <text class="hero-progress-text">{{ heroProgressText }}</text>
-          </view>
-        </view>
-      </view>
     </view>
 
-    <!-- TODO: scroll-into-view replaced by native scroll -->
     <view class="lt-scroll">
-      <!-- 每日听力任务 -->
-      <view class="sec reveal d1">
-        <view class="sec-head">
-          <view class="t">
-            <view class="bar"></view>
-            <text>每日听力任务</text>
-          </view>
-          <text class="sec-sub">按日安排，循序渐进</text>
-        </view>
-        <view class="all-task-btn" hover-class="all-task-btn-hover" @click="showAllLessons = !showAllLessons">
-          <text>{{ showAllLessons ? '收起全部' : '全部任务' }}</text>
-          <text class="ri-arrow-down-s-line" :class="{ 'is-open': showAllLessons }"></text>
-        </view>
-        <view v-if="!weeklyTasks.length" class="lt-empty">暂无听力任务</view>
-        <view class="task-grid">
-          <view
-            class="task-card"
-            :class="[{ 'is-done': task.status === 'done', 'is-active': currentIndex === i }]"
-            v-for="(task, i) in weeklyTasks"
-            :key="i"
-            hover-class="task-hover"
-            @click="selectLesson(i, true)"
-          >
-            <view class="task-top">
-              <view class="task-badge">{{ task.dayNum }}</view>
-              <text class="task-day">{{ task.day }}</text>
-              <text class="task-diff" :class="'diff-' + task.difficulty">{{ task.difficultyText }}</text>
-            </view>
-            <text class="task-title">{{ task.title }}</text>
-            <view class="task-progress">
-              <view class="task-bar">
-                <view class="task-fill" :style="{ width: task.progress + '%' }"></view>
-              </view>
-              <text class="task-pct">{{ task.progress }}%</text>
-            </view>
-            <text class="task-status" :class="'status-' + task.status">{{ task.statusText }}</text>
-          </view>
-        </view>
-        <scroll-view v-if="showAllLessons && lessons.length" scroll-y class="all-task-scroll">
-          <view
-            class="all-task-item"
-            :class="{ 'is-active': currentLesson && currentLesson.id === lesson.id }"
-            v-for="(lesson, index) in lessons"
-            :key="lesson.id"
-            hover-class="all-task-hover"
-            @click="selectLessonById(lesson.id, true)"
-          >
-            <text class="all-task-index">{{ String(index + 1).padStart(2, '0') }}</text>
-            <view class="all-task-main">
-              <text class="all-task-title">{{ lesson.title }}</text>
-              <text class="all-task-meta">{{ lesson.difficultyText }} · {{ lesson.statusText }}</text>
-            </view>
-            <text class="ri-play-circle-line all-task-play"></text>
-          </view>
-        </scroll-view>
-      </view>
-
       <!-- 听力播放 -->
-      <view id="studio" class="sec reveal d2">
+      <view class="sec reveal d1">
         <view class="sec-head">
           <view class="t">
             <view class="bar"></view>
@@ -161,37 +87,33 @@
         </view>
       </view>
 
-      <!-- 听力记录 -->
+      <!-- 听力任务 -->
       <view class="sec reveal d3">
         <view class="sec-head">
           <view class="t">
             <view class="bar"></view>
-            <text>听力记录</text>
+            <text>听力任务</text>
           </view>
-          <text class="sec-sub">查看过往练习情况</text>
+          <text class="sec-sub">共 {{ lessons.length }} 课，点击切换</text>
         </view>
-        <view v-if="!historyRecords.length" class="lt-empty">暂无听力记录，快去完成今日任务吧</view>
-        <view class="history-list">
-          <view class="history-item" v-for="(r, i) in historyRecords" :key="i">
-            <view class="history-ico" :class="'history-ico-' + r.status">
-              <text class="ri-mic-line"></text>
+        <view v-if="!lessons.length" class="lt-empty">暂无听力任务</view>
+        <view v-else class="task-list">
+          <view
+            class="task-item"
+            :class="{ 'is-done': lesson.status === 'done', 'is-active': currentLesson && currentLesson.id === lesson.id }"
+            v-for="(lesson, index) in lessons"
+            :key="lesson.id"
+            hover-class="task-item-hover"
+            @click="selectLessonById(lesson.id, true)"
+          >
+            <text class="task-index">{{ String(index + 1).padStart(2, '0') }}</text>
+            <view class="task-main">
+              <text class="task-title">{{ lesson.title }}</text>
+              <text class="task-meta">{{ lesson.difficultyText }} · {{ lesson.statusText }}</text>
             </view>
-            <view class="history-main">
-              <text class="history-title">{{ r.title }}</text>
-              <view class="history-meta">
-                <text class="ri-calendar-line"></text>
-                <text>{{ r.date }} · 时长 {{ r.duration }}</text>
-              </view>
-            </view>
-            <text class="history-status" :class="'hstatus-' + r.status">{{ r.statusText }}</text>
+            <text class="ri-play-circle-line task-play"></text>
           </view>
         </view>
-      </view>
-
-      <!-- 底部提示 -->
-      <view class="lt-tip">
-        <text class="ri-sparkling-2-line"></text>
-        <text>坚持每日听力训练，法律英语稳步提升</text>
       </view>
     </view>
   </view>
@@ -341,14 +263,9 @@ export default {
       playerTotalTime: '--:--',
       playbackRate: '1.0x',
       currentLang: 'en',
-      weeklyTasks: [],
       lessons: [],
       currentLesson: null,
-      currentIndex: -1,
       transcripts: { en: '', zh: '' },
-      historyRecords: [],
-      scrollIntoView: '',
-      showAllLessons: false,
       isTranscriptLoading: false,
       activeTranscriptId: ''
     }
@@ -356,13 +273,6 @@ export default {
   computed: {
     currentTranscript() {
       return this.transcripts[this.currentLang]
-    },
-    weeklyDoneCount() {
-      return this.weeklyTasks.filter((task) => task.status === 'done').length
-    },
-    heroProgressText() {
-      const total = this.weeklyTasks.length || 7
-      return '本周已完成 ' + this.weeklyDoneCount + '/' + total + ' 项听力任务，坚持每日训练巩固法律英语'
     }
   },
   onLoad() {
@@ -397,31 +307,6 @@ export default {
     splitTranscriptByLang(text) {
       return splitTranscriptText(text)
     },
-    getWeekIndex(date) {
-      const current = date || new Date()
-      const day = new Date(current.getFullYear(), current.getMonth(), current.getDate())
-      const weekday = day.getDay() || 7
-      day.setDate(day.getDate() - weekday + 1)
-      day.setHours(0, 0, 0, 0)
-      const weekStart = new Date(2026, 0, 5)
-      return Math.floor((day.getTime() - weekStart.getTime()) / (7 * 24 * 60 * 60 * 1000))
-    },
-    buildWeeklyTasks() {
-      const total = this.lessons.length
-      if (!total) return []
-      const weekIndex = this.getWeekIndex(new Date())
-      const start = (((weekIndex * 7) % total) + total) % total
-      const tasks = []
-      for (let i = 0; i < Math.min(7, total); i += 1) {
-        const lesson = this.lessons[(start + i) % total]
-        tasks.push({
-          ...lesson,
-          dayNum: String(i + 1).padStart(2, '0'),
-          day: '第' + (i + 1) + '天'
-        })
-      }
-      return tasks
-    },
     async loadListeningLessons() {
       try {
         const resourcesObj = uniCloud.importObject('resources', { customUI: true })
@@ -432,10 +317,8 @@ export default {
         }
         this.lessons = (r.list || []).map((doc) => ({
           id: doc._id,
-          difficulty: 'mid',
           difficultyText: doc.meta || '中级',
           title: doc.title || '未命名听力',
-          progress: 0,
           status: 'active',
           statusText: '待学习',
           audioUrl: doc.audioUrl || doc.fileUrl || '',
@@ -443,8 +326,7 @@ export default {
           transcriptZh: '',
           contentLoaded: false
         }))
-        this.weeklyTasks = this.buildWeeklyTasks()
-        if (this.lessons.length) this.selectLesson(0)
+        if (this.lessons.length) this.selectLessonById(this.lessons[0].id)
       } catch (e) {
         uni.showToast({ title: (e && e.errMsg) || '听力资源加载失败', icon: 'none' })
       }
@@ -452,7 +334,6 @@ export default {
     applyLesson(lesson, autoPlay = false) {
       this.currentLesson = lesson || null
       if (!this.currentLesson) return
-      this.currentIndex = this.weeklyTasks.findIndex((task) => task.id === this.currentLesson.id)
       this.transcripts = {
         en: this.currentLesson.transcriptEn || '',
         zh: this.currentLesson.transcriptZh || ''
@@ -467,11 +348,8 @@ export default {
         this._audioInstance = null
       }
       if (this._scrollToStudio) {
-        this.scrollIntoView = ''
-        this.$nextTick(() => {
-          this.scrollIntoView = 'studio'
-        })
         this._scrollToStudio = false
+        uni.pageScrollTo({ scrollTop: 0, duration: 240 })
       }
       if (autoPlay) {
         if (this.currentLesson.audioUrl) {
@@ -487,10 +365,6 @@ export default {
         this.isTranscriptLoading = false
       }
     },
-    selectLesson(index, autoPlay = false) {
-      this._scrollToStudio = true
-      this.applyLesson(this.weeklyTasks[index] || null, autoPlay)
-    },
     selectLessonById(id, autoPlay = false) {
       const lesson = this.lessons.find((item) => item.id === id) || null
       this._scrollToStudio = true
@@ -501,7 +375,6 @@ export default {
       if (lessonIndex >= 0) {
         this.lessons[lessonIndex] = { ...this.lessons[lessonIndex], ...patch }
       }
-      this.weeklyTasks = this.weeklyTasks.map((task) => task.id === id ? { ...task, ...patch } : task)
       if (this.currentLesson && this.currentLesson.id === id) {
         this.currentLesson = { ...this.currentLesson, ...patch }
         this.transcripts = {
@@ -525,13 +398,18 @@ export default {
           return
         }
         const doc = r.doc || {}
-        const enSource = doc.content || doc.description || ''
-        const zhSource = doc.description || doc.content || ''
-        const enPart = this.splitTranscriptByLang(enSource)
-        const zhPart = this.splitTranscriptByLang(zhSource)
+        const enRaw = String(doc.content || '').trim()
+        const zhRaw = String(doc.description || '').trim()
+        // 与网页端保持一致：管理端已按字段分开存储（content 为英文原文、description 为中文译文），
+        // 这里直接按字段取用，不再逐词猜语言（猜分正是中英文错位的来源）。
+        // 只有老数据把中英文混在同一个 content 里时才回退到按语言拆分：
+        // 判据是英文正文里中文字符占比很高，而新导入的英文正文只在主题标题里出现个别中文。
+        const cjkCount = (enRaw.match(/[\u3400-\u9fff]/g) || []).length
+        const isMixed = !!enRaw && cjkCount / enRaw.length > 0.15
+        const mixedPart = isMixed ? this.splitTranscriptByLang(enRaw) : { en: '', zh: '' }
         const patch = {
-          transcriptEn: enPart.en || zhPart.en,
-          transcriptZh: enPart.zh || zhPart.zh,
+          transcriptEn: isMixed ? mixedPart.en : enRaw,
+          transcriptZh: isMixed ? mixedPart.zh : zhRaw,
           contentLoaded: true
         }
         if (this.activeTranscriptId === id) {
@@ -565,14 +443,12 @@ export default {
         this._audioInstance.onEnded(() => {
           this.isPlaying = false
           this.markLessonDone(this.currentLesson)
-          this.updateHistoryOnEnded(this.currentLesson)
         })
       }
       if (this.isPlaying) {
         this._audioInstance.pause()
         this.isPlaying = false
       } else {
-        this.recordListeningStart(this.currentLesson)
         this._audioInstance.play()
         this.isPlaying = true
       }
@@ -585,44 +461,10 @@ export default {
     },
     markLessonDone(lesson) {
       if (!lesson) return
-      const patch = { status: 'done', statusText: '已完成', progress: 100 }
+      const patch = { status: 'done', statusText: '已完成' }
       this.lessons = this.lessons.map((item) => item.id === lesson.id ? { ...item, ...patch } : item)
-      this.weeklyTasks = this.weeklyTasks.map((task) => task.id === lesson.id ? { ...task, ...patch } : task)
       if (this.currentLesson && this.currentLesson.id === lesson.id) {
         this.currentLesson = { ...this.currentLesson, ...patch }
-      }
-    },
-    recordListeningStart(lesson) {
-      if (!lesson) return
-      const today = new Date().toISOString().slice(0, 10)
-      if (this.historyRecords.some((r) => r.id === lesson.id && r.date === today)) return
-      this.historyRecords.unshift({
-        id: lesson.id,
-        title: lesson.title,
-        date: today,
-        duration: '--:--',
-        status: 'active',
-        statusText: '学习中'
-      })
-    },
-    updateHistoryOnEnded(lesson) {
-      if (!lesson) return
-      const total = this._audioInstance && this._audioInstance.duration ? this.formatTime(this._audioInstance.duration) : '--:--'
-      const exists = this.historyRecords.some((r) => r.id === lesson.id)
-      if (exists) {
-        this.historyRecords = this.historyRecords.map((r) => {
-          if (r.id !== lesson.id) return r
-          return { ...r, duration: total, status: 'done', statusText: '已完成' }
-        })
-      } else {
-        this.historyRecords.unshift({
-          id: lesson.id,
-          title: lesson.title,
-          date: new Date().toISOString().slice(0, 10),
-          duration: total,
-          status: 'done',
-          statusText: '已完成'
-        })
       }
     }
   }
@@ -718,85 +560,6 @@ page {
   width: 120rpx;
 }
 
-/* 固定顶部区：概览卡（下滑不消失） */
-.lt-fixed {
-  flex-shrink: 0;
-  padding: 20rpx 32rpx 8rpx;
-  background: #f2f6fd;
-  z-index: 10;
-}
-
-/* 概览卡 */
-.hero {
-  border-radius: 40rpx;
-  padding: 32rpx 32rpx 28rpx;
-  background: linear-gradient(135deg, #3B82F6, #1E40AF);
-  box-shadow: 0 20rpx 50rpx rgba(37, 99, 235, 0.30);
-  position: relative;
-  overflow: hidden;
-}
-
-.hero::after {
-  content: "";
-  position: absolute;
-  right: -60rpx;
-  top: -60rpx;
-  width: 240rpx;
-  height: 240rpx;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.hero-top {
-  display: flex;
-  align-items: center;
-  position: relative;
-  z-index: 1;
-}
-
-.hero-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.hero-title {
-  font-size: 32rpx;
-  font-weight: 700;
-  color: #ffffff;
-  line-height: 1.3;
-}
-
-.hero-sub {
-  margin-top: 6rpx;
-  font-size: 21rpx;
-  color: rgba(255, 255, 255, 0.78);
-  line-height: 1.5;
-}
-
-.hero-progress-row {
-  margin-top: 20rpx;
-  display: flex;
-  align-items: center;
-  gap: 12rpx;
-  position: relative;
-  z-index: 1;
-  padding: 16rpx 20rpx;
-  border-radius: var(--r-sm);
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.hero-check {
-  font-size: 28rpx;
-  color: #FDE68A;
-  flex-shrink: 0;
-}
-
-.hero-progress-text {
-  font-size: 23rpx;
-  color: rgba(255, 255, 255, 0.92);
-  line-height: 1.5;
-}
-
 /* 滚动区 */
 .lt-scroll {
   padding: 8rpx 32rpx 60rpx;
@@ -843,132 +606,46 @@ page {
   color: var(--muted);
 }
 
-.all-task-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6rpx;
-  margin-bottom: 20rpx;
-  padding: 10rpx 20rpx;
-  border-radius: var(--r-pill);
-  background: rgba(46, 123, 224, 0.10);
-  color: var(--brand);
-  font-size: 22rpx;
-  font-weight: 600;
-  width: fit-content;
+/* 听力任务（紧凑列表） */
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
 }
 
-.all-task-btn-hover {
-  opacity: 0.7;
-}
-
-.all-task-btn .is-open {
-  transform: rotate(180deg);
-}
-
-/* 每日任务 */
-.task-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20rpx;
-}
-
-.all-task-scroll {
-  max-height: 560rpx;
-  margin-top: 20rpx;
-}
-
-.all-task-item {
+.task-item {
   display: flex;
   align-items: center;
   gap: 16rpx;
   padding: 22rpx 20rpx;
-  margin-bottom: 16rpx;
   border-radius: 24rpx;
   background: var(--glass-2);
   border: 2rpx solid var(--glass-border-soft);
   box-shadow: var(--glass-shadow-sm);
 }
 
-.all-task-item.is-active {
+.task-item.is-done .task-index {
+  background: linear-gradient(135deg, #34D399, #16A34A);
+}
+
+.task-item.is-active {
   border-color: var(--brand);
   background: rgba(46, 123, 224, 0.08);
 }
 
-.all-task-hover {
+.task-item.is-active .task-index {
+  background: linear-gradient(135deg, #5B9DF9, #2E7BE0);
+}
+
+.task-item-hover {
   opacity: 0.88;
   transform: scale(0.99);
 }
 
-.all-task-index {
+.task-index {
   flex-shrink: 0;
   width: 48rpx;
   height: 48rpx;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #5B9DF9, #2E7BE0);
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22rpx;
-  font-weight: 700;
-}
-
-.all-task-main {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4rpx;
-}
-
-.all-task-title {
-  font-size: 26rpx;
-  font-weight: 600;
-  color: var(--ink);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.all-task-meta {
-  font-size: 20rpx;
-  color: var(--muted);
-}
-
-.all-task-play {
-  font-size: 38rpx;
-  color: var(--brand);
-  flex-shrink: 0;
-}
-
-.task-card {
-  position: relative;
-  border-radius: 28rpx;
-  background: var(--glass-2);
-  border: 2rpx solid var(--glass-border-soft);
-  box-shadow: var(--glass-shadow-sm);
-  padding: 24rpx;
-}
-
-.task-card.is-active {
-  border: 3rpx solid var(--brand);
-  box-shadow: 0 0 0 6rpx rgba(46, 123, 224, 0.10), var(--glass-shadow-sm);
-}
-
-.task-hover {
-  opacity: 0.9;
-  transform: scale(0.98);
-}
-
-.task-top {
-  display: flex;
-  align-items: center;
-  gap: 12rpx;
-}
-
-.task-badge {
-  width: 44rpx;
-  height: 44rpx;
   border-radius: 50%;
   background: linear-gradient(135deg, #B9C9DE, #7A92B0);
   color: #ffffff;
@@ -977,121 +654,34 @@ page {
   justify-content: center;
   font-size: 22rpx;
   font-weight: 700;
-  flex-shrink: 0;
 }
 
-.task-card.is-done .task-badge {
-  background: linear-gradient(135deg, #34D399, #16A34A);
-}
-
-.task-card.is-active .task-badge {
-  background: linear-gradient(135deg, #5B9DF9, #2E7BE0);
-}
-
-.task-day {
-  font-size: 26rpx;
-  font-weight: 700;
-  color: var(--ink-2);
-}
-
-.task-card.is-active .task-day {
-  color: var(--brand);
-}
-
-.task-diff {
-  margin-left: auto;
-  font-size: 20rpx;
-  font-weight: 600;
-  padding: 4rpx 14rpx;
-  border-radius: var(--r-pill);
-}
-
-.diff-beginner {
-  background: var(--green-soft);
-  color: #15803D;
-}
-
-.diff-intermediate {
-  background: var(--amber-soft);
-  color: #B45309;
-}
-
-.diff-advanced {
-  background: var(--rose-soft);
-  color: #BE123C;
+.task-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
 }
 
 .task-title {
-  display: block;
-  margin-top: 16rpx;
-  font-size: 27rpx;
+  font-size: 26rpx;
   font-weight: 600;
   color: var(--ink);
-  line-height: 1.4;
-  min-height: 76rpx;
-}
-
-.task-progress {
-  margin-top: 14rpx;
-  display: flex;
-  align-items: center;
-  gap: 14rpx;
-}
-
-.task-bar {
-  flex: 1;
-  height: 12rpx;
-  border-radius: var(--r-pill);
-  background: rgba(120, 160, 210, 0.18);
   overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.task-fill {
-  display: block;
-  height: 100%;
-  border-radius: var(--r-pill);
-  background: linear-gradient(90deg, #5B9DF9, #2563EB);
-}
-
-.task-card.is-done .task-fill {
-  background: linear-gradient(90deg, #34D399, #16A34A);
-}
-
-.task-pct {
-  font-size: 22rpx;
-  font-weight: 700;
-  color: var(--brand);
-  min-width: 64rpx;
-  text-align: right;
-}
-
-.task-card.is-done .task-pct {
-  color: #16A34A;
-}
-
-.task-status {
-  margin-top: 14rpx;
-  display: inline-flex;
-  align-items: center;
+.task-meta {
   font-size: 20rpx;
-  font-weight: 600;
-  padding: 4rpx 16rpx;
-  border-radius: var(--r-pill);
-}
-
-.status-done {
-  background: var(--green-soft);
-  color: #15803D;
-}
-
-.status-active {
-  background: rgba(46, 123, 224, 0.12);
-  color: var(--brand);
-}
-
-.status-pending {
-  background: rgba(120, 160, 210, 0.14);
   color: var(--muted);
+}
+
+.task-play {
+  font-size: 38rpx;
+  color: var(--brand);
+  flex-shrink: 0;
 }
 
 /* 播放器 */
@@ -1295,88 +885,6 @@ page {
   color: var(--muted);
 }
 
-/* 听力记录 */
-.history-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16rpx;
-}
-
-.history-item {
-  display: flex;
-  align-items: center;
-  gap: 20rpx;
-  padding: 24rpx;
-  border-radius: 28rpx;
-  background: var(--glass-2);
-  border: 2rpx solid var(--glass-border-soft);
-  box-shadow: var(--glass-shadow-sm);
-}
-
-.history-ico {
-  width: 72rpx;
-  height: 72rpx;
-  border-radius: 20rpx;
-  background: rgba(46, 123, 224, 0.10);
-  color: var(--brand);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 32rpx;
-  flex-shrink: 0;
-}
-
-.history-ico-done {
-  background: var(--green-soft);
-  color: #16A34A;
-}
-
-.history-main {
-  flex: 1;
-  min-width: 0;
-}
-
-.history-title {
-  display: block;
-  font-size: 27rpx;
-  font-weight: 600;
-  color: var(--ink);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.history-meta {
-  margin-top: 8rpx;
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-  font-size: 21rpx;
-  color: var(--muted);
-}
-
-.history-meta .ri-calendar-line {
-  font-size: 24rpx;
-}
-
-.history-status {
-  flex-shrink: 0;
-  font-size: 20rpx;
-  font-weight: 600;
-  padding: 6rpx 16rpx;
-  border-radius: var(--r-pill);
-}
-
-.hstatus-active {
-  background: rgba(46, 123, 224, 0.12);
-  color: var(--brand);
-}
-
-.hstatus-done {
-  background: var(--green-soft);
-  color: #15803D;
-}
-
 .lt-empty {
   padding: 40rpx 24rpx;
   border-radius: 28rpx;
@@ -1385,22 +893,6 @@ page {
   color: #7A92B0;
   font-size: 24rpx;
   text-align: center;
-}
-
-/* 底部提示 */
-.lt-tip {
-  margin-top: 48rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8rpx;
-  color: var(--muted);
-  font-size: 24rpx;
-}
-
-.lt-tip text:first-child {
-  font-size: 26rpx;
-  color: var(--brand);
 }
 
 /* 入场动画 */

@@ -552,13 +552,19 @@ page {
   color: #B7791F;
   border-color: rgba(232, 163, 61, 0.4);
 }
+.lvv-btn-known {
+  background: rgba(30, 158, 106, 0.08);
+  border-color: rgba(30, 158, 106, 0.32);
+  color: #1E9E6A;
+}
 .lvv-btn-known.is-on {
-  background: rgba(46, 123, 224, 0.10);
-  color: var(--brand);
-  border-color: rgba(46, 123, 224, 0.4);
+  background: #1E9E6A;
+  color: #ffffff;
 }
 .lvv-btn-again {
-  background: #F7F9FC;
+  background: rgba(217, 83, 79, 0.07);
+  border-color: rgba(217, 83, 79, 0.30);
+  color: #D9534F;
 }
 
 /* 分页 */

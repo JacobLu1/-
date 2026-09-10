@@ -780,6 +780,12 @@ function buildItems() {
   return list
 }
 
+// 测评用时 = 限时 - 剩余时间，与页面倒计时一致；格式与小程序端保存的一致
+function formatUsedTime() {
+  const used = Math.max(0, 20 * 60 - remainingTime.value)
+  return `${Math.floor(used / 60)}分${used % 60}秒`
+}
+
 function computeResult() {
   const dimCorrect = {}
   const dimTotal = {}
@@ -817,6 +823,7 @@ function computeResult() {
   return {
     score,
     level,
+    time: formatUsedTime(),
     dimensions,
     recommendations,
     mode: isSpecialMode.value ? 'special' : 'comprehensive',
