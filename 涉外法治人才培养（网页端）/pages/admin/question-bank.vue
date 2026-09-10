@@ -64,49 +64,33 @@
 
         <!-- 题库概览统计 -->
         <section class="dc-section" :class="{ 'is-visible': visibleSections[0] }" aria-label="题库概览统计">
-          <view class="qb-kpi-grid">
-            <view class="qb-kpi-card">
-              <view class="qb-kpi-card-head">
-                <text class="qb-kpi-card-label">题目总数</text>
-                <view class="qb-kpi-card-icon"><view class="navi-icon navi-icon-file-text"></view></view>
-              </view>
-              <text class="qb-kpi-card-value">{{ kpiTotal }}</text>
-              <view class="qb-kpi-card-foot">
-                <view class="navi-icon navi-icon-trending-up-sm"></view>
-                <text>question 集合实时统计</text>
+          <view class="res-kpi-strip">
+            <view class="res-kpi-item res-kpi-total">
+              <view class="res-kpi-icon"><view class="navi-icon navi-icon-file-text"></view></view>
+              <view class="res-kpi-body">
+                <text class="res-kpi-value">{{ kpiTotal }}</text>
+                <text class="res-kpi-label">题目总数</text>
               </view>
             </view>
-            <view class="qb-kpi-card">
-              <view class="qb-kpi-card-head">
-                <text class="qb-kpi-card-label">单选题</text>
-                <view class="qb-kpi-card-icon"><view class="navi-icon navi-icon-check-square"></view></view>
-              </view>
-              <text class="qb-kpi-card-value">{{ kpiSingle }}</text>
-              <view class="qb-kpi-card-foot">
-                <view class="navi-icon navi-icon-pie-chart"></view>
-                <text>type = single</text>
+            <view class="res-kpi-item res-kpi-reading">
+              <view class="res-kpi-icon"><view class="navi-icon navi-icon-check-square"></view></view>
+              <view class="res-kpi-body">
+                <text class="res-kpi-value">{{ kpiSingle }}</text>
+                <text class="res-kpi-label">单选题</text>
               </view>
             </view>
-            <view class="qb-kpi-card qb-accent-success">
-              <view class="qb-kpi-card-head">
-                <text class="qb-kpi-card-label">多选题</text>
-                <view class="qb-kpi-card-icon"><view class="navi-icon navi-icon-list-checks"></view></view>
-              </view>
-              <text class="qb-kpi-card-value">{{ kpiMulti }}</text>
-              <view class="qb-kpi-card-foot">
-                <view class="navi-icon navi-icon-pie-chart"></view>
-                <text>type = multi</text>
+            <view class="res-kpi-item res-kpi-video">
+              <view class="res-kpi-icon"><view class="navi-icon navi-icon-list-checks"></view></view>
+              <view class="res-kpi-body">
+                <text class="res-kpi-value">{{ kpiMulti }}</text>
+                <text class="res-kpi-label">多选题</text>
               </view>
             </view>
-            <view class="qb-kpi-card qb-accent-warning">
-              <view class="qb-kpi-card-head">
-                <text class="qb-kpi-card-label">主观/判断题</text>
-                <view class="qb-kpi-card-icon"><view class="navi-icon navi-icon-briefcase"></view></view>
-              </view>
-              <text class="qb-kpi-card-value">{{ kpiSubjective }}</text>
-              <view class="qb-kpi-card-foot">
-                <view class="navi-icon navi-icon-pie-chart"></view>
-                <text>judge + subjective</text>
+            <view class="res-kpi-item res-kpi-case">
+              <view class="res-kpi-icon"><view class="navi-icon navi-icon-briefcase"></view></view>
+              <view class="res-kpi-body">
+                <text class="res-kpi-value">{{ kpiSubjective }}</text>
+                <text class="res-kpi-label">主观/判断题</text>
               </view>
             </view>
           </view>
@@ -293,22 +277,22 @@
               <table class="qb-table">
                 <thead>
                   <tr>
-                    <th scope="col">题目编号</th>
-                    <th scope="col">题目内容</th>
-                    <th scope="col">题型</th>
-                    <th scope="col">难度</th>
-                    <th scope="col">所属维度</th>
-                    <th scope="col">创建时间</th>
-                    <th scope="col">操作</th>
+                    <th scope="col" class="qb-col-id">题目编号</th>
+                    <th scope="col" class="qb-col-content">题目内容</th>
+                    <th scope="col" class="qb-col-type">题型</th>
+                    <th scope="col" class="qb-col-diff">难度</th>
+                    <th scope="col" class="qb-col-dim">所属维度</th>
+                    <th scope="col" class="qb-col-date">创建时间</th>
+                    <th scope="col" class="qb-col-ops">操作</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="q in pagedQuestions" :key="q.id">
-                    <td class="qb-qid">{{ q.id }}</td>
-                    <td class="qb-qcontent"><text class="qb-qcontent-text">{{ q.content }}</text></td>
+                  <tr v-for="(q, index) in pagedQuestions" :key="q.id">
+                    <td class="qb-qid" :title="q.id">{{ (currentPage - 1) * pageSize + index + 1 }}</td>
+                    <td class="qb-qcontent"><text class="qb-qcontent-text" :title="q.content">{{ q.content }}</text></td>
                     <td><text :class="['qb-type-tag', q.typeClass]">{{ q.typeLabel }}</text></td>
                     <td><text :class="['qb-diff-tag', q.diffClass]">{{ q.diffLabel }}</text></td>
-                    <td class="qb-dim">{{ q.dimension }}</td>
+                    <td class="qb-dim" :title="q.dimension">{{ q.dimension }}</td>
                     <td class="qb-date">{{ q.date }}</td>
                     <td>
                       <view class="qb-actions">
@@ -332,20 +316,33 @@
         <!-- 分页 -->
         <section class="dc-section" :class="{ 'is-visible': visibleSections[3] }" aria-label="分页">
           <view class="qb-pagination">
-            <view class="qb-page-btn" :class="{ disabled: currentPage === 1 }" @tap="prevPage">
-              <view class="navi-icon navi-icon-chevron-left"></view>
+            <view class="qb-pagination-info">
+              共 {{ filteredQuestions.length }} 条，每页 {{ pageSize }} 条，当前第 {{ currentPage }} / {{ totalPages }} 页
             </view>
-            <template v-for="item in pages" :key="item">
+            <view class="qb-pagination-buttons">
               <view
-                v-if="typeof item === 'number'"
                 class="qb-page-btn"
-                :class="{ 'is-active': currentPage === item }"
-                @tap="goToPage(item)"
-              >{{ item }}</view>
-              <text v-else class="qb-page-ellipsis">...</text>
-            </template>
-            <view class="qb-page-btn" :class="{ disabled: currentPage === totalPages }" @tap="nextPage">
-              <view class="navi-icon navi-icon-chevron-right"></view>
+                :class="{ 'is-disabled': currentPage <= 1 }"
+                @tap="changePage(currentPage - 1)"
+              >上一页</view>
+              <view
+                class="qb-page-item"
+                v-for="page in visiblePageNumbers"
+                :key="page"
+              >
+                <view v-if="page === '...'" class="qb-page-ellipsis">...</view>
+                <view
+                  v-else
+                  class="qb-page-btn"
+                  :class="{ 'is-active': page === currentPage }"
+                  @tap="changePage(page)"
+                >{{ page }}</view>
+              </view>
+              <view
+                class="qb-page-btn"
+                :class="{ 'is-disabled': currentPage >= totalPages }"
+                @tap="changePage(currentPage + 1)"
+              >下一页</view>
             </view>
           </view>
         </section>
@@ -530,19 +527,18 @@ async function loadStats() {
   }
 }
 
-const pages = computed(() => {
+const visiblePageNumbers = computed(() => {
   const total = totalPages.value
+  const current = currentPage.value
   // 页数少时直接显示全部页码
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
   // 页数多时固定首末页，中间窗口跟随当前页滚动，窗口外以省略号代替
-  const cur = currentPage.value
-  const items = [1]
-  const start = Math.max(2, cur - 1)
-  const end = Math.min(total - 1, cur + 1)
-  if (start > 2) items.push('prev-ellipsis')
-  for (let p = start; p <= end; p++) items.push(p)
-  if (end < total - 1) items.push('next-ellipsis')
-  items.push(total)
+  const items = []
+  if (current > 3) items.push(1, '...')
+  const start = Math.max(1, current - 1)
+  const end = Math.min(total, current + 1)
+  for (let p = start; p <= end; p += 1) items.push(p)
+  if (current < total - 2) items.push('...', total)
   return items
 })
 
@@ -593,7 +589,7 @@ const handleCreateQuestion = () => {
   scrollToFormCard()
 }
 
-const handleEdit = (q) => {
+const handleEdit = async (q) => {
   editingId.value = q.id
   formType.value = q.type || 'single'
   formSubType.value = q.subType === 'case' ? 'case' : (q.caseText ? 'case' : 'essay')
@@ -607,6 +603,24 @@ const handleEdit = (q) => {
   formPlaceholder.value = q.placeholder || ''
   formAnalysis.value = q.analysis || ''
   formVisible.value = true
+  // 列表接口已裁掉大字段以加速加载，编辑时按需拉取完整文档补充案例/解析/选项/答案
+  try {
+    const questionsObj = uniCloud.importObject('questions', { customUI: true })
+    const r = (await questionsObj.detail({ adminToken: getAdminToken(), id: q.id })) || {}
+    if (r.errCode === 0 && r.doc) {
+      const d = r.doc
+      if (d.subType) formSubType.value = d.subType === 'case' ? 'case' : 'essay'
+      if (d.options && d.options.length) formOptions.value = d.options.map(o => `${o.key}. ${o.text}`).join('\n')
+      if (d.answer !== undefined && d.answer !== null) {
+        formAnswer.value = d.type === 'judge' ? (d.answer ? '对' : '错') : (Array.isArray(d.answer) ? d.answer.join(',') : String(d.answer))
+      }
+      formCaseText.value = d.caseText || ''
+      formPlaceholder.value = d.placeholder || ''
+      formAnalysis.value = d.analysis || ''
+    }
+  } catch (e) {
+    // 详情拉取失败时沿用列表中已有的精简字段
+  }
 }
 
 const closeForm = () => {
@@ -799,16 +813,10 @@ const handleDelete = (q) => {
   })
 }
 
-const prevPage = () => {
-  if (currentPage.value > 1) currentPage.value--
-}
-
-const nextPage = () => {
-  if (currentPage.value < totalPages.value) currentPage.value++
-}
-
-const goToPage = (page) => {
-  currentPage.value = page
+const changePage = (page) => {
+  const next = Number(page)
+  if (!Number.isInteger(next) || next < 1 || next > totalPages.value || next === currentPage.value) return
+  currentPage.value = next
 }
 
 onMounted(() => {
@@ -1050,51 +1058,73 @@ onMounted(() => {
 .qb-section-subtitle { font-size: 13px; color: var(--rule-muted-foreground); display: block; margin-top: 2px; }
 
 /* 指标卡片 */
-.qb-kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-.qb-kpi-card {
-  position: relative; overflow: hidden;
+/* 资源概览指标条 - 单行紧凑布局 */
+.res-kpi-strip {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
   background: linear-gradient(135deg, var(--rule-card), var(--rule-primary-tint-3));
   border: 1px solid color-mix(in srgb, var(--rule-border) 55%, transparent);
-  border-radius: 16px; padding: 24px;
-  display: flex; flex-direction: column; gap: 14px; min-width: 0;
+  border-radius: 12px;
   box-shadow: 0 1px 2px color-mix(in srgb, var(--rule-ink) 4%, transparent), 0 10px 28px -14px color-mix(in srgb, var(--rule-ink) 10%, transparent);
-  transition: transform 0.3s var(--qb-ease), box-shadow 0.3s var(--qb-ease), border-color 0.3s var(--qb-ease);
 }
-.qb-kpi-card:hover {
-  transform: translateY(-6px);
-  border-color: color-mix(in srgb, var(--rule-primary) 30%, transparent);
-  box-shadow: 0 4px 8px color-mix(in srgb, var(--rule-primary) 12%, transparent), 0 22px 44px -14px color-mix(in srgb, var(--rule-primary) 38%, transparent);
+.res-kpi-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--rule-card);
+  border: 1px solid color-mix(in srgb, var(--rule-border) 40%, transparent);
+  transition: transform 0.2s var(--qb-ease), box-shadow 0.2s var(--qb-ease);
 }
-.qb-kpi-card::before {
-  content: ''; position: absolute; top: 0; right: 0;
-  width: 130px; height: 130px; border-radius: 50%; pointer-events: none;
-  background: radial-gradient(circle, color-mix(in srgb, var(--rule-primary) 12%, transparent), transparent 70%);
-  transform: translate(40px, -40px);
+.res-kpi-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--rule-ink) 8%, transparent);
 }
-.qb-kpi-card.qb-accent-success:hover {
-  border-color: color-mix(in srgb, var(--state-success) 30%, transparent);
-  box-shadow: 0 4px 8px color-mix(in srgb, var(--state-success) 12%, transparent), 0 22px 44px -14px color-mix(in srgb, var(--state-success) 38%, transparent);
-}
-.qb-kpi-card.qb-accent-success::before { background: radial-gradient(circle, color-mix(in srgb, var(--state-success) 12%, transparent), transparent 70%); }
-.qb-kpi-card.qb-accent-warning:hover {
-  border-color: color-mix(in srgb, var(--state-warning) 30%, transparent);
-  box-shadow: 0 4px 8px color-mix(in srgb, var(--state-warning) 12%, transparent), 0 22px 44px -14px color-mix(in srgb, var(--state-warning) 38%, transparent);
-}
-.qb-kpi-card.qb-accent-warning::before { background: radial-gradient(circle, color-mix(in srgb, var(--state-warning) 12%, transparent), transparent 70%); }
-.qb-kpi-card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; position: relative; z-index: 1; }
-.qb-kpi-card-label { font-size: 13px; color: var(--rule-muted-foreground); font-weight: 500; }
-.qb-kpi-card-icon {
-  width: 44px; height: 44px; border-radius: 12px;
-  display: flex; align-items: center; justify-content: center;
+.res-kpi-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
   background: linear-gradient(135deg, var(--rule-primary), var(--rule-primary-active));
-  box-shadow: 0 6px 14px -4px color-mix(in srgb, var(--rule-primary) 48%, transparent);
+  box-shadow: 0 4px 10px -4px color-mix(in srgb, var(--rule-primary) 48%, transparent);
 }
-.qb-kpi-card-icon .navi-icon { width: 22px; height: 22px; background: var(--rule-primary-foreground); }
-.qb-kpi-card.qb-accent-success .qb-kpi-card-icon { background: linear-gradient(135deg, var(--state-success), color-mix(in srgb, var(--state-success) 70%, var(--rule-ink))); box-shadow: 0 6px 14px -4px color-mix(in srgb, var(--state-success) 48%, transparent); }
-.qb-kpi-card.qb-accent-warning .qb-kpi-card-icon { background: linear-gradient(135deg, var(--state-warning), color-mix(in srgb, var(--state-warning) 70%, var(--rule-ink))); box-shadow: 0 6px 14px -4px color-mix(in srgb, var(--state-warning) 48%, transparent); }
-.qb-kpi-card-value { font-size: 32px; font-weight: 700; line-height: 1.1; color: var(--rule-foreground); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; position: relative; z-index: 1; }
-.qb-kpi-card-foot { font-size: 12px; color: var(--rule-muted-foreground); position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 6px; }
+.res-kpi-icon .navi-icon { width: 18px; height: 18px; background: var(--rule-primary-foreground); }
+.res-kpi-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.res-kpi-value {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--rule-foreground);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+.res-kpi-label {
+  font-size: 11px;
+  color: var(--rule-muted-foreground);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 各类型彩色图标 */
+.res-kpi-total .res-kpi-icon { background: linear-gradient(135deg, var(--rule-primary), var(--rule-primary-active)); box-shadow: 0 4px 10px -4px color-mix(in srgb, var(--rule-primary) 48%, transparent); }
+.res-kpi-video .res-kpi-icon { background: linear-gradient(135deg, var(--state-success), color-mix(in srgb, var(--state-success) 70%, var(--rule-ink))); box-shadow: 0 4px 10px -4px color-mix(in srgb, var(--state-success) 48%, transparent); }
+.res-kpi-vocabulary .res-kpi-icon { background: linear-gradient(135deg, var(--state-warning), color-mix(in srgb, var(--state-warning) 70%, var(--rule-ink))); box-shadow: 0 4px 10px -4px color-mix(in srgb, var(--state-warning) 48%, transparent); }
+.res-kpi-reading .res-kpi-icon { background: linear-gradient(135deg, #3B82F6, #1D4ED8); box-shadow: 0 4px 10px -4px rgba(59, 130, 246, 0.48); }
+.res-kpi-listening .res-kpi-icon { background: linear-gradient(135deg, #8B5CF6, #6D28D9); box-shadow: 0 4px 10px -4px rgba(139, 92, 246, 0.48); }
+.res-kpi-case .res-kpi-icon { background: linear-gradient(135deg, #F59E0B, #D97706); box-shadow: 0 4px 10px -4px rgba(245, 158, 11, 0.48); }
 
 .qb-toolbar {
   background: linear-gradient(135deg, var(--rule-card), var(--rule-primary-tint-3));
@@ -1223,24 +1253,32 @@ onMounted(() => {
   box-shadow: 0 1px 2px color-mix(in srgb, var(--rule-ink) 4%, transparent), 0 10px 28px -14px color-mix(in srgb, var(--rule-ink) 10%, transparent);
 }
 .qb-table-container { overflow-x: auto; }
-.qb-table { width: 100%; border-collapse: collapse; min-width: 920px; }
+/* 题目列表：固定列宽，表格自适应容器宽度，题目内容列吸收剩余空间，避免横向滚动 */
+.qb-table { width: 100%; border-collapse: collapse; min-width: 0; table-layout: fixed; }
+.qb-table th.qb-col-id { width: 88px; }
+.qb-table th.qb-col-content { width: auto; }
+.qb-table th.qb-col-type { width: 96px; }
+.qb-table th.qb-col-diff { width: 72px; }
+.qb-table th.qb-col-dim { width: 220px; }
+.qb-table th.qb-col-date { width: 110px; }
+.qb-table th.qb-col-ops { width: 168px; }
 .qb-table thead th {
   font-size: 13px; font-weight: 600; color: var(--rule-muted-foreground);
-  text-align: left; padding: 12px 16px;
+  text-align: left; padding: 12px 12px;
   border-bottom: 1px solid var(--rule-border); white-space: nowrap;
 }
 .qb-table tbody td {
   font-size: 14px; color: var(--rule-foreground);
-  padding: 14px 16px; border-bottom: 1px solid var(--rule-border);
-  vertical-align: middle;
+  padding: 14px 12px; border-bottom: 1px solid var(--rule-border);
+  vertical-align: middle; overflow: hidden;
 }
 .qb-table tbody tr:last-child td { border-bottom: none; }
 .qb-table tbody tr { transition: background 0.2s ease; }
 .qb-table tbody tr:hover { background: color-mix(in srgb, var(--rule-primary) 5%, transparent); }
 .qb-qid { font-family: var(--rule-font-mono); font-size: 13px; font-weight: 600; color: var(--rule-primary); white-space: nowrap; }
-.qb-qcontent { color: var(--rule-ink-2); max-width: 340px; }
-.qb-qcontent-text { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
-.qb-dim { color: var(--rule-ink-2); white-space: nowrap; }
+.qb-qcontent { color: var(--rule-ink-2); max-width: none; }
+.qb-qcontent-text { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; font-size: 13px; color: var(--rule-muted-foreground); cursor: default; }
+.qb-dim { color: var(--rule-ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .qb-date { color: var(--rule-muted-foreground); font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 13px; }
 
 /* 类型标签 */
@@ -1271,28 +1309,48 @@ onMounted(() => {
 .qb-action-del:hover { background: var(--state-error-tint); }
 
 /* 分页 */
-.qb-pagination { display: flex; justify-content: flex-end; align-items: center; gap: 6px; }
-.qb-page-btn {
-  min-width: 36px; height: 36px; padding: 0 12px;
+.qb-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.qb-pagination-info {
+  font-size: 13px;
+  color: var(--rule-muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+.qb-pagination-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.qb-page-item { display: inline-flex; }
+.qb-page-btn,
+.qb-page-ellipsis {
+  min-width: 32px; height: 32px;
   display: inline-flex; align-items: center; justify-content: center;
+  padding: 0 10px;
   font-size: 13px; font-weight: 600; color: var(--rule-ink-2);
-  border-radius: var(--rule-radius-full);
+  border-radius: 8px;
   border: 1px solid var(--rule-border); background: var(--rule-card);
   cursor: pointer; font-variant-numeric: tabular-nums;
-  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease, opacity 0.15s ease;
 }
-.qb-page-btn:hover:not(.is-active):not(.disabled) { border-color: var(--rule-primary-tint-2); color: var(--rule-primary); transform: translateY(-1px); }
+.qb-page-ellipsis { border-color: transparent; background: transparent; cursor: default; }
+.qb-page-btn:hover:not(.is-disabled):not(.is-active) { border-color: var(--rule-primary); color: var(--rule-primary); }
 .qb-page-btn.is-active {
-  background: linear-gradient(135deg, var(--rule-primary), var(--rule-primary-active));
-  color: var(--rule-primary-foreground); border-color: transparent;
-  box-shadow: 0 4px 10px -2px color-mix(in srgb, var(--rule-primary) 42%, transparent);
+  background: var(--rule-primary);
+  border-color: var(--rule-primary);
+  color: #FFFFFF;
 }
-.qb-page-btn.disabled { opacity: 0.5; cursor: not-allowed; }
-.qb-page-btn .navi-icon { width: 16px; height: 16px; }
-.qb-page-ellipsis { padding: 0 4px; color: var(--rule-muted-foreground); font-size: 13px; }
+.qb-page-btn.is-disabled { opacity: 0.45; cursor: not-allowed; }
 
 @media (max-width: 1024px) {
-  .qb-kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .res-kpi-strip { flex-wrap: wrap; }
+  .res-kpi-item { min-width: calc(50% - 12px); }
 }
 @media (max-width: 768px) {
   .app-sidebar { transform: translateX(-100%); transition: transform 0.3s ease; }
@@ -1304,10 +1362,10 @@ onMounted(() => {
   .qb-pagination { justify-content: center; }
 }
 @media (max-width: 640px) {
-  .qb-kpi-grid { grid-template-columns: 1fr; }
+  .res-kpi-item { min-width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) {
   .dc-section { transition-duration: 0.01ms; }
-  .qb-kpi-card:hover, .qb-create-btn:hover { transform: none; }
+  .res-kpi-item:hover, .qb-create-btn:hover { transform: none; }
 }
 </style>

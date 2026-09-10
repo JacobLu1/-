@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿<template>
+﻿﻿﻿﻿﻿﻿﻿<template>
   <div class="app-shell">
       <!-- 左侧导航栏 -->
       <aside class="app-sidebar">
@@ -140,28 +140,22 @@
                 <button class="le-tab" :class="{'is-active': textView === 'zh'}" type="button" @click="setTextView('zh')">中文</button>
               </div>
               <div class="le-bilingual-body" :class="{'is-single': textView !== 'both'}">
-                <div v-if="textView !== 'zh'" class="le-text-col">
-                  <div class="le-text-head">
-                    <svg class="le-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                    English Original
-                  </div>
-                  <template v-if="transcriptParagraphs.en.length">
-                    <p v-for="(para, i) in transcriptParagraphs.en" :key="'en' + i" class="le-text">{{ para }}</p>
-                  </template>
-                  <p v-else-if="isTranscriptLoading" class="le-text le-text-empty">原文加载中...</p>
-                  <p v-else class="le-text le-text-empty">暂无英文原文</p>
+                <div v-if="textView !== 'zh'" class="le-text-head">
+                  <svg class="le-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                  English Original
                 </div>
-                <div v-if="textView !== 'en'" class="le-text-col le-text-col-zh">
-                  <div class="le-text-head">
-                    <svg class="le-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                    中文译文
-                  </div>
-                  <template v-if="transcriptParagraphs.zh.length">
-                    <p v-for="(para, i) in transcriptParagraphs.zh" :key="'zh' + i" class="le-text">{{ para }}</p>
-                  </template>
-                  <p v-else-if="isTranscriptLoading" class="le-text le-text-empty">原文加载中...</p>
-                  <p v-else class="le-text le-text-empty">暂无中文译文</p>
+                <div v-if="textView !== 'en'" class="le-text-head">
+                  <svg class="le-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                  中文译文
                 </div>
+                <template v-if="transcriptRows.length">
+                  <template v-for="(row, i) in transcriptRows" :key="'row' + i">
+                    <p v-if="textView !== 'zh'" class="le-text">{{ row.en }}</p>
+                    <p v-if="textView !== 'en'" class="le-text le-text-zh">{{ row.zh }}</p>
+                  </template>
+                </template>
+                <p v-else-if="isTranscriptLoading" class="le-text le-text-empty le-text-full">原文加载中...</p>
+                <p v-else class="le-text le-text-empty le-text-full">{{ textView === 'zh' ? '暂无中文译文' : '暂无英文原文' }}</p>
               </div>
             </section>
           </div>
@@ -271,6 +265,14 @@ const transcriptParagraphs = computed(() => ({
   en: transcripts.value.en.split(/\r?\n/).map(t => t.trim()).filter(Boolean),
   zh: transcripts.value.zh.split(/\r?\n/).map(t => t.trim()).filter(Boolean)
 }))
+
+// 中英按同一条目配对成行：左右两列同行渲染，英文换行变高时中文跟着同一行下移
+const transcriptRows = computed(() => {
+  const en = transcriptParagraphs.value.en
+  const zh = transcriptParagraphs.value.zh
+  const len = Math.max(en.length, zh.length)
+  return Array.from({ length: len }, (_, i) => ({ en: en[i] || '', zh: zh[i] || '' }))
+})
 
 // 当前课程信息
 const currentSubtitle = computed(() => currentLesson.value ? `法律英语听力 · ${currentLesson.value.difficultyText}` : '')
@@ -545,13 +547,18 @@ async function loadLessonDetail(id) {
       return
     }
     const doc = r.doc || {}
-    const enSource = doc.content || doc.description || ''
-    const zhSource = doc.description || doc.content || ''
-    const enPart = splitTranscriptByLang(enSource)
-    const zhPart = splitTranscriptByLang(zhSource)
+    const enRaw = String(doc.content || '').trim()
+    const zhRaw = String(doc.description || '').trim()
+    // 管理端已按字段分开存储：content 为英文原文、description 为中文译文，
+    // 这里直接按字段取用，不再逐词猜语言（猜分正是中英文错位的来源）。
+    // 只有老数据把中英文混在同一个 content 里时才回退到按语言拆分：
+    // 判据是英文正文里中文字符占比很高，而新导入的英文正文只在主题标题里出现个别中文。
+    const cjkCount = (enRaw.match(/[\u3400-\u9fff]/g) || []).length
+    const isMixed = !!enRaw && cjkCount / enRaw.length > 0.15
+    const mixedPart = isMixed ? splitTranscriptByLang(enRaw) : { en: '', zh: '' }
     const patch = {
-      transcriptEn: enPart.en || zhPart.en,
-      transcriptZh: enPart.zh || zhPart.zh,
+      transcriptEn: isMixed ? mixedPart.en : enRaw,
+      transcriptZh: isMixed ? mixedPart.zh : zhRaw,
       questions: (doc.questions || []).map(q => ({
         question: q.stem || '',
         options: q.options || [],
@@ -1278,19 +1285,30 @@ onLoad(() => {
 }
 .le-tab:not(.is-active):hover { color: #1B2436; }
 
+/* 中英同一条目占同一网格行：谁换行变高，整行一起变高，左右始终对齐 */
 .le-bilingual-body {
+  position: relative;
   display: grid;
   grid-template-columns: 1fr 1fr;
+  column-gap: 48px;
+  row-gap: 16px;
+  padding: 24px;
 }
-.le-bilingual-body.is-single { grid-template-columns: 1fr; }
-
-.le-text-col { padding: 24px; }
-
-.le-text-col-zh {
+/* 中文列的浅底与中间分隔线（按整块高度铺满，不随内容长短变化） */
+.le-bilingual-body::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 50%;
   background: #F7F8FB;
   border-left: 1px solid #E0E5EE;
+  z-index: 0;
 }
-.le-bilingual-body.is-single .le-text-col-zh { border-left: none; }
+.le-bilingual-body > * { position: relative; z-index: 1; }
+.le-bilingual-body.is-single { grid-template-columns: 1fr; }
+.le-bilingual-body.is-single::after { display: none; }
 
 .le-text-head {
   display: flex;
@@ -1301,18 +1319,18 @@ onLoad(() => {
   color: #9AABC0;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  margin-bottom: 16px;
+  margin: 0;
 }
 
 .le-text {
   font-size: 15px;
   line-height: 1.7;
   color: #1B2436;
-  margin: 0 0 16px;
+  margin: 0;
 }
-.le-text:last-child { margin-bottom: 0; }
-.le-text-col-zh .le-text { line-height: 1.8; }
+.le-text-zh { line-height: 1.8; }
 
+.le-text-full { grid-column: 1 / -1; }
 .le-text-empty { color: #9AABC0; }
 
 /* —— 右侧任务清单 —— */
@@ -1491,8 +1509,9 @@ onLoad(() => {
 }
 
 @media (max-width: 768px) {
-  .le-bilingual-body { grid-template-columns: 1fr; }
-  .le-text-col-zh { border-left: none; border-top: 1px solid #E0E5EE; }
+  /* 窄屏仍保留左右两列对照（改成上下堆叠会打乱逐条对齐），只收紧间距与字号 */
+  .le-bilingual-body { column-gap: 20px; padding: 16px; }
+  .le-text { font-size: 14px; }
   .le-player-meta { flex-direction: column; align-items: flex-start; gap: 8px; }
   .le-lesson-top { flex-direction: column; align-items: flex-start; }
   .le-lesson-tags { justify-content: flex-start; }

@@ -3,6 +3,9 @@
 
 const db = uniCloud.database()
 
+// 列表接口只返回表格/筛选所需字段，省掉 caseText/analysis 等大字段，显著降低传输量
+const LIST_FIELDS = { _id: true, type: true, subType: true, title: true, dimension: true, difficulty: true, status: true, createDate: true }
+
 function makeWhere(type, dimension, keyword, status) {
   const where = {}
   if (status) where.status = status
@@ -51,11 +54,27 @@ module.exports = {
     const countRes = await table.where(where).count()
     const listRes = await table
       .where(where)
+      .field(LIST_FIELDS)
       .orderBy('createDate', 'desc')
       .skip((Number(page) - 1) * Number(pageSize))
       .limit(Number(pageSize))
       .get()
     return { errCode: 0, errMsg: '', list: listRes.data, total: countRes.total }
+  },
+
+  /* 管理端：题目详情（需管理员 token），返回完整字段供编辑 */
+  async detail({ adminToken, id } = {}) {
+    const check = await checkAdmin(adminToken)
+    if (check.errCode !== 0) return check
+    if (!id) {
+      return { errCode: 'PARAM_IS_NULL', errMsg: 'id 不能为空' }
+    }
+    const res = await db.collection('question').where({ _id: id }).limit(1).get()
+    const doc = res.data[0]
+    if (!doc) {
+      return { errCode: 'NOT_FOUND', errMsg: '题目不存在' }
+    }
+    return { errCode: 0, errMsg: '', doc }
   },
 
   /* 题库统计（需管理员 token） */

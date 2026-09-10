@@ -107,9 +107,24 @@ module.exports = {
     return {
       errCode: 0,
       errMsg: '',
-      list: listRes.data,
+      list: listRes.data.map(hideBody),
       total: countRes.total
     }
+  },
+
+  /* 管理端：知识条目详情（需管理员 token），返回完整正文供编辑 */
+  async detail({ adminToken, id } = {}) {
+    const check = await checkAdmin(adminToken)
+    if (check.errCode !== 0) return check
+    if (!id) {
+      return { errCode: 'PARAM_IS_NULL', errMsg: 'id 不能为空' }
+    }
+    const res = await db.collection('legal_doc').where({ _id: id }).limit(1).get()
+    const doc = res.data[0]
+    if (!doc) {
+      return { errCode: 'NOT_FOUND', errMsg: '知识条目不存在' }
+    }
+    return { errCode: 0, errMsg: '', doc }
   },
 
   /* 知识库统计（需管理员 token） */

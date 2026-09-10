@@ -64,49 +64,33 @@
 
         <!-- 用户概览统计 -->
         <section class="dc-section" :class="{ 'is-visible': visibleSections[0] }" aria-label="用户概览统计">
-          <view class="qb-kpi-grid">
-            <view class="qb-kpi-card">
-              <view class="qb-kpi-card-head">
-                <text class="qb-kpi-card-label">用户总数</text>
-                <view class="qb-kpi-card-icon"><view class="navi-icon navi-icon-users"></view></view>
-              </view>
-              <text class="qb-kpi-card-value">{{ totalUsers }}</text>
-              <view class="qb-kpi-card-foot">
-                <view class="navi-icon navi-icon-trending-up-sm"></view>
-                <text>平台注册用户</text>
+          <view class="res-kpi-strip">
+            <view class="res-kpi-item res-kpi-total">
+              <view class="res-kpi-icon"><view class="navi-icon navi-icon-users"></view></view>
+              <view class="res-kpi-body">
+                <text class="res-kpi-value">{{ totalUsers }}</text>
+                <text class="res-kpi-label">用户总数</text>
               </view>
             </view>
-            <view class="qb-kpi-card qb-accent-success">
-              <view class="qb-kpi-card-head">
-                <text class="qb-kpi-card-label">普通用户</text>
-                <view class="qb-kpi-card-icon"><view class="navi-icon navi-icon-user"></view></view>
-              </view>
-              <text class="qb-kpi-card-value">{{ userCount }}</text>
-              <view class="qb-kpi-card-foot">
-                <view class="navi-icon navi-icon-trending-up-sm"></view>
-                <text>占 {{ userPct }}%</text>
+            <view class="res-kpi-item res-kpi-video">
+              <view class="res-kpi-icon"><view class="navi-icon navi-icon-user"></view></view>
+              <view class="res-kpi-body">
+                <text class="res-kpi-value">{{ userCount }}</text>
+                <text class="res-kpi-label">普通用户</text>
               </view>
             </view>
-            <view class="qb-kpi-card qb-accent-warning">
-              <view class="qb-kpi-card-head">
-                <text class="qb-kpi-card-label">管理员</text>
-                <view class="qb-kpi-card-icon"><view class="navi-icon navi-icon-shield"></view></view>
-              </view>
-              <text class="qb-kpi-card-value">{{ adminCount }}</text>
-              <view class="qb-kpi-card-foot">
-                <view class="navi-icon navi-icon-trending-up-sm"></view>
-                <text>平台运营角色</text>
+            <view class="res-kpi-item res-kpi-vocabulary">
+              <view class="res-kpi-icon"><view class="navi-icon navi-icon-shield"></view></view>
+              <view class="res-kpi-body">
+                <text class="res-kpi-value">{{ adminCount }}</text>
+                <text class="res-kpi-label">管理员</text>
               </view>
             </view>
-            <view class="qb-kpi-card">
-              <view class="qb-kpi-card-head">
-                <text class="qb-kpi-card-label">本周新增</text>
-                <view class="qb-kpi-card-icon"><view class="navi-icon navi-icon-user-plus"></view></view>
-              </view>
-              <text class="qb-kpi-card-value">{{ weekNewCount }}</text>
-              <view class="qb-kpi-card-foot">
-                <view class="navi-icon navi-icon-trending-up-sm"></view>
-                <text>近 7 天注册</text>
+            <view class="res-kpi-item res-kpi-reading">
+              <view class="res-kpi-icon"><view class="navi-icon navi-icon-user-plus"></view></view>
+              <view class="res-kpi-body">
+                <text class="res-kpi-value">{{ weekNewCount }}</text>
+                <text class="res-kpi-label">本周新增</text>
               </view>
             </view>
           </view>
@@ -193,19 +177,33 @@
         <!-- 分页 -->
         <section class="dc-section" :class="{ 'is-visible': visibleSections[3] }" aria-label="分页">
           <view class="qb-pagination">
-            <view class="qb-page-btn" :class="{ disabled: currentPage === 1 }" @tap="prevPage">
-              <view class="navi-icon navi-icon-chevron-left"></view>
+            <view class="qb-pagination-info">
+              共 {{ listTotal }} 条，每页 {{ pageSize }} 条，当前第 {{ currentPage }} / {{ totalPages }} 页
             </view>
-            <view
-              v-for="page in pages"
-              :key="page"
-              class="qb-page-btn"
-              :class="{ 'is-active': currentPage === page }"
-              @tap="goToPage(page)"
-            >{{ page }}</view>
-            <text v-if="totalPages > 5" class="qb-page-ellipsis">...</text>
-            <view class="qb-page-btn" :class="{ disabled: currentPage === totalPages }" @tap="nextPage">
-              <view class="navi-icon navi-icon-chevron-right"></view>
+            <view class="qb-pagination-buttons">
+              <view
+                class="qb-page-btn"
+                :class="{ 'is-disabled': currentPage <= 1 }"
+                @tap="changePage(currentPage - 1)"
+              >上一页</view>
+              <view
+                class="qb-page-item"
+                v-for="page in visiblePageNumbers"
+                :key="page"
+              >
+                <view v-if="page === '...'" class="qb-page-ellipsis">...</view>
+                <view
+                  v-else
+                  class="qb-page-btn"
+                  :class="{ 'is-active': page === currentPage }"
+                  @tap="changePage(page)"
+                >{{ page }}</view>
+              </view>
+              <view
+                class="qb-page-btn"
+                :class="{ 'is-disabled': currentPage >= totalPages }"
+                @tap="changePage(currentPage + 1)"
+              >下一页</view>
             </view>
           </view>
         </section>
@@ -245,11 +243,19 @@ const todayDateText = computed(() => {
   return `${y}年${m}月${d}日`
 })
 
-const pages = computed(() => {
-  const result = []
-  const max = Math.min(totalPages.value, 5)
-  for (let i = 1; i <= max; i++) result.push(i)
-  return result
+const visiblePageNumbers = computed(() => {
+  const total = totalPages.value
+  const current = currentPage.value
+  // 页数少时直接显示全部页码
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+  // 页数多时固定首末页，中间窗口跟随当前页滚动，窗口外以省略号代替
+  const items = []
+  if (current > 3) items.push(1, '...')
+  const start = Math.max(1, current - 1)
+  const end = Math.min(total, current + 1)
+  for (let p = start; p <= end; p += 1) items.push(p)
+  if (current < total - 2) items.push('...', total)
+  return items
 })
 
 function getAdminToken() {
@@ -427,16 +433,10 @@ function handleDelete(u) {
   })
 }
 
-const prevPage = () => {
-  if (currentPage.value > 1) loadUsers(currentPage.value - 1)
-}
-
-const nextPage = () => {
-  if (currentPage.value < totalPages.value) loadUsers(currentPage.value + 1)
-}
-
-const goToPage = (page) => {
-  loadUsers(page)
+const changePage = (page) => {
+  const next = Number(page)
+  if (!Number.isInteger(next) || next < 1 || next > totalPages.value || next === currentPage.value) return
+  loadUsers(next)
 }
 
 onMounted(() => {
@@ -669,51 +669,73 @@ onMounted(() => {
 .qb-section-subtitle { font-size: 13px; color: var(--rule-muted-foreground); display: block; margin-top: 2px; }
 
 /* 指标卡片 */
-.qb-kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-.qb-kpi-card {
-  position: relative; overflow: hidden;
+/* 资源概览指标条 - 单行紧凑布局 */
+.res-kpi-strip {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
   background: linear-gradient(135deg, var(--rule-card), var(--rule-primary-tint-3));
   border: 1px solid color-mix(in srgb, var(--rule-border) 55%, transparent);
-  border-radius: 16px; padding: 24px;
-  display: flex; flex-direction: column; gap: 14px; min-width: 0;
+  border-radius: 12px;
   box-shadow: 0 1px 2px color-mix(in srgb, var(--rule-ink) 4%, transparent), 0 10px 28px -14px color-mix(in srgb, var(--rule-ink) 10%, transparent);
-  transition: transform 0.3s var(--qb-ease), box-shadow 0.3s var(--qb-ease), border-color 0.3s var(--qb-ease);
 }
-.qb-kpi-card:hover {
-  transform: translateY(-6px);
-  border-color: color-mix(in srgb, var(--rule-primary) 30%, transparent);
-  box-shadow: 0 4px 8px color-mix(in srgb, var(--rule-primary) 12%, transparent), 0 22px 44px -14px color-mix(in srgb, var(--rule-primary) 38%, transparent);
+.res-kpi-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--rule-card);
+  border: 1px solid color-mix(in srgb, var(--rule-border) 40%, transparent);
+  transition: transform 0.2s var(--qb-ease), box-shadow 0.2s var(--qb-ease);
 }
-.qb-kpi-card::before {
-  content: ''; position: absolute; top: 0; right: 0;
-  width: 130px; height: 130px; border-radius: 50%; pointer-events: none;
-  background: radial-gradient(circle, color-mix(in srgb, var(--rule-primary) 12%, transparent), transparent 70%);
-  transform: translate(40px, -40px);
+.res-kpi-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--rule-ink) 8%, transparent);
 }
-.qb-kpi-card.qb-accent-success:hover {
-  border-color: color-mix(in srgb, var(--state-success) 30%, transparent);
-  box-shadow: 0 4px 8px color-mix(in srgb, var(--state-success) 12%, transparent), 0 22px 44px -14px color-mix(in srgb, var(--state-success) 38%, transparent);
-}
-.qb-kpi-card.qb-accent-success::before { background: radial-gradient(circle, color-mix(in srgb, var(--state-success) 12%, transparent), transparent 70%); }
-.qb-kpi-card.qb-accent-warning:hover {
-  border-color: color-mix(in srgb, var(--state-warning) 30%, transparent);
-  box-shadow: 0 4px 8px color-mix(in srgb, var(--state-warning) 12%, transparent), 0 22px 44px -14px color-mix(in srgb, var(--state-warning) 38%, transparent);
-}
-.qb-kpi-card.qb-accent-warning::before { background: radial-gradient(circle, color-mix(in srgb, var(--state-warning) 12%, transparent), transparent 70%); }
-.qb-kpi-card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; position: relative; z-index: 1; }
-.qb-kpi-card-label { font-size: 13px; color: var(--rule-muted-foreground); font-weight: 500; }
-.qb-kpi-card-icon {
-  width: 44px; height: 44px; border-radius: 12px;
-  display: flex; align-items: center; justify-content: center;
+.res-kpi-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
   background: linear-gradient(135deg, var(--rule-primary), var(--rule-primary-active));
-  box-shadow: 0 6px 14px -4px color-mix(in srgb, var(--rule-primary) 48%, transparent);
+  box-shadow: 0 4px 10px -4px color-mix(in srgb, var(--rule-primary) 48%, transparent);
 }
-.qb-kpi-card-icon .navi-icon { width: 22px; height: 22px; background: var(--rule-primary-foreground); }
-.qb-kpi-card.qb-accent-success .qb-kpi-card-icon { background: linear-gradient(135deg, var(--state-success), color-mix(in srgb, var(--state-success) 70%, var(--rule-ink))); box-shadow: 0 6px 14px -4px color-mix(in srgb, var(--state-success) 48%, transparent); }
-.qb-kpi-card.qb-accent-warning .qb-kpi-card-icon { background: linear-gradient(135deg, var(--state-warning), color-mix(in srgb, var(--state-warning) 70%, var(--rule-ink))); box-shadow: 0 6px 14px -4px color-mix(in srgb, var(--state-warning) 48%, transparent); }
-.qb-kpi-card-value { font-size: 32px; font-weight: 700; line-height: 1.1; color: var(--rule-foreground); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; position: relative; z-index: 1; }
-.qb-kpi-card-foot { font-size: 12px; color: var(--rule-muted-foreground); position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 6px; }
+.res-kpi-icon .navi-icon { width: 18px; height: 18px; background: var(--rule-primary-foreground); }
+.res-kpi-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.res-kpi-value {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--rule-foreground);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+.res-kpi-label {
+  font-size: 11px;
+  color: var(--rule-muted-foreground);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 各类型彩色图标 */
+.res-kpi-total .res-kpi-icon { background: linear-gradient(135deg, var(--rule-primary), var(--rule-primary-active)); box-shadow: 0 4px 10px -4px color-mix(in srgb, var(--rule-primary) 48%, transparent); }
+.res-kpi-video .res-kpi-icon { background: linear-gradient(135deg, var(--state-success), color-mix(in srgb, var(--state-success) 70%, var(--rule-ink))); box-shadow: 0 4px 10px -4px color-mix(in srgb, var(--state-success) 48%, transparent); }
+.res-kpi-vocabulary .res-kpi-icon { background: linear-gradient(135deg, var(--state-warning), color-mix(in srgb, var(--state-warning) 70%, var(--rule-ink))); box-shadow: 0 4px 10px -4px color-mix(in srgb, var(--state-warning) 48%, transparent); }
+.res-kpi-reading .res-kpi-icon { background: linear-gradient(135deg, #3B82F6, #1D4ED8); box-shadow: 0 4px 10px -4px rgba(59, 130, 246, 0.48); }
+.res-kpi-listening .res-kpi-icon { background: linear-gradient(135deg, #8B5CF6, #6D28D9); box-shadow: 0 4px 10px -4px rgba(139, 92, 246, 0.48); }
+.res-kpi-case .res-kpi-icon { background: linear-gradient(135deg, #F59E0B, #D97706); box-shadow: 0 4px 10px -4px rgba(245, 158, 11, 0.48); }
 
 .qb-toolbar {
   background: linear-gradient(135deg, var(--rule-card), var(--rule-primary-tint-3));
@@ -813,28 +835,48 @@ onMounted(() => {
 .qb-action-del:hover { background: var(--state-error-tint); }
 
 /* 分页 */
-.qb-pagination { display: flex; justify-content: flex-end; align-items: center; gap: 6px; }
-.qb-page-btn {
-  min-width: 36px; height: 36px; padding: 0 12px;
+.qb-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.qb-pagination-info {
+  font-size: 13px;
+  color: var(--rule-muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+.qb-pagination-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.qb-page-item { display: inline-flex; }
+.qb-page-btn,
+.qb-page-ellipsis {
+  min-width: 32px; height: 32px;
   display: inline-flex; align-items: center; justify-content: center;
+  padding: 0 10px;
   font-size: 13px; font-weight: 600; color: var(--rule-ink-2);
-  border-radius: var(--rule-radius-full);
+  border-radius: 8px;
   border: 1px solid var(--rule-border); background: var(--rule-card);
   cursor: pointer; font-variant-numeric: tabular-nums;
-  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease, opacity 0.15s ease;
 }
-.qb-page-btn:hover:not(.is-active):not(.disabled) { border-color: var(--rule-primary-tint-2); color: var(--rule-primary); transform: translateY(-1px); }
+.qb-page-ellipsis { border-color: transparent; background: transparent; cursor: default; }
+.qb-page-btn:hover:not(.is-disabled):not(.is-active) { border-color: var(--rule-primary); color: var(--rule-primary); }
 .qb-page-btn.is-active {
-  background: linear-gradient(135deg, var(--rule-primary), var(--rule-primary-active));
-  color: var(--rule-primary-foreground); border-color: transparent;
-  box-shadow: 0 4px 10px -2px color-mix(in srgb, var(--rule-primary) 42%, transparent);
+  background: var(--rule-primary);
+  border-color: var(--rule-primary);
+  color: #FFFFFF;
 }
-.qb-page-btn.disabled { opacity: 0.5; cursor: not-allowed; }
-.qb-page-btn .navi-icon { width: 16px; height: 16px; }
-.qb-page-ellipsis { padding: 0 4px; color: var(--rule-muted-foreground); font-size: 13px; }
+.qb-page-btn.is-disabled { opacity: 0.45; cursor: not-allowed; }
 
 @media (max-width: 1024px) {
-  .qb-kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .res-kpi-strip { flex-wrap: wrap; }
+  .res-kpi-item { min-width: calc(50% - 12px); }
 }
 @media (max-width: 768px) {
   .app-sidebar { transform: translateX(-100%); transition: transform 0.3s ease; }
@@ -843,13 +885,12 @@ onMounted(() => {
   .qb-toolbar-row { flex-direction: column; align-items: stretch; }
   .qb-filter-group { width: 100%; flex-wrap: wrap; }
   .qb-create-btn { width: 100%; justify-content: center; }
-  .qb-pagination { justify-content: center; }
 }
 @media (max-width: 640px) {
-  .qb-kpi-grid { grid-template-columns: 1fr; }
+  .res-kpi-item { min-width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) {
   .dc-section { transition-duration: 0.01ms; }
-  .qb-kpi-card:hover, .qb-create-btn:hover { transform: none; }
+  .res-kpi-item:hover, .qb-create-btn:hover { transform: none; }
 }
 </style>

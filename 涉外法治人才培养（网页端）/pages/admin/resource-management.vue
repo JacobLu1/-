@@ -73,71 +73,47 @@
               </view>
             </view>
           </view>
-          <view class="qb-kpi-grid">
-            <view class="qb-kpi-card">
-              <view class="qb-kpi-card-head">
-                <text class="qb-kpi-card-label">资源总数</text>
-                <view class="qb-kpi-card-icon"><view class="navi-icon navi-icon-folder"></view></view>
-              </view>
-              <text class="qb-kpi-card-value">{{ kpiTotal }}</text>
-              <view class="qb-kpi-card-foot">
-                <view class="navi-icon navi-icon-trending-up-sm"></view>
-                <text>resource 集合实时统计</text>
+          <view class="res-kpi-strip">
+            <view class="res-kpi-item res-kpi-total">
+              <view class="res-kpi-icon"><view class="navi-icon navi-icon-folder"></view></view>
+              <view class="res-kpi-body">
+                <text class="res-kpi-value">{{ kpiTotal }}</text>
+                <text class="res-kpi-label">资源总数</text>
               </view>
             </view>
-            <view class="qb-kpi-card qb-accent-success">
-              <view class="qb-kpi-card-head">
-                <text class="qb-kpi-card-label">视频资源</text>
-                <view class="qb-kpi-card-icon"><view class="navi-icon navi-icon-video"></view></view>
-              </view>
-              <text class="qb-kpi-card-value">{{ kpiVideo }}</text>
-              <view class="qb-kpi-card-foot">
-                <view class="navi-icon navi-icon-trending-up-sm"></view>
-                <text>type = video</text>
+            <view class="res-kpi-item res-kpi-video">
+              <view class="res-kpi-icon"><view class="navi-icon navi-icon-video"></view></view>
+              <view class="res-kpi-body">
+                <text class="res-kpi-value">{{ kpiVideo }}</text>
+                <text class="res-kpi-label">视频</text>
               </view>
             </view>
-            <view class="qb-kpi-card qb-accent-warning">
-              <view class="qb-kpi-card-head">
-                <text class="qb-kpi-card-label">词汇资源</text>
-                <view class="qb-kpi-card-icon"><view class="navi-icon navi-icon-book-open"></view></view>
-              </view>
-              <text class="qb-kpi-card-value">{{ kpiVocabulary }}</text>
-              <view class="qb-kpi-card-foot">
-                <view class="navi-icon navi-icon-trending-up-sm"></view>
-                <text>type = vocabulary</text>
+            <view class="res-kpi-item res-kpi-vocabulary">
+              <view class="res-kpi-icon"><view class="navi-icon navi-icon-book-open"></view></view>
+              <view class="res-kpi-body">
+                <text class="res-kpi-value">{{ kpiVocabulary }}</text>
+                <text class="res-kpi-label">词汇</text>
               </view>
             </view>
-            <view class="qb-kpi-card">
-              <view class="qb-kpi-card-head">
-                <text class="qb-kpi-card-label">文本阅读</text>
-                <view class="qb-kpi-card-icon"><view class="navi-icon navi-icon-file-text"></view></view>
-              </view>
-              <text class="qb-kpi-card-value">{{ kpiReading }}</text>
-              <view class="qb-kpi-card-foot">
-                <view class="navi-icon navi-icon-trending-up-sm"></view>
-                <text>type = reading</text>
+            <view class="res-kpi-item res-kpi-reading">
+              <view class="res-kpi-icon"><view class="navi-icon navi-icon-file-text"></view></view>
+              <view class="res-kpi-body">
+                <text class="res-kpi-value">{{ kpiReading }}</text>
+                <text class="res-kpi-label">文本阅读</text>
               </view>
             </view>
-            <view class="qb-kpi-card">
-              <view class="qb-kpi-card-head">
-                <text class="qb-kpi-card-label">听力训练</text>
-                <view class="qb-kpi-card-icon"><view class="navi-icon navi-icon-mic"></view></view>
-              </view>
-              <text class="qb-kpi-card-value">{{ kpiListening }}</text>
-              <view class="qb-kpi-card-foot">
-                <view class="navi-icon navi-icon-trending-up-sm"></view>
-                <text>type = listening</text>
+            <view class="res-kpi-item res-kpi-listening">
+              <view class="res-kpi-icon"><view class="navi-icon navi-icon-mic"></view></view>
+              <view class="res-kpi-body">
+                <text class="res-kpi-value">{{ kpiListening }}</text>
+                <text class="res-kpi-label">听力训练</text>
               </view>
             </view>
-            <view class="qb-kpi-card qb-accent-warning">
-              <view class="qb-kpi-card-head">
-                <text class="qb-kpi-card-label">文书案例</text>
-                <view class="qb-kpi-card-icon"><view class="navi-icon navi-icon-file-text"></view></view>
-              </view>
-              <text class="qb-kpi-card-value">{{ kpiCase }}</text>
-              <view class="qb-kpi-card-foot">
-                <view class="navi-icon navi-icon-trending-up-sm"></view>
-                <text>type = case</text>
+            <view class="res-kpi-item res-kpi-case">
+              <view class="res-kpi-icon"><view class="navi-icon navi-icon-file-text"></view></view>
+              <view class="res-kpi-body">
+                <text class="res-kpi-value">{{ kpiCase }}</text>
+                <text class="res-kpi-label">文书案例</text>
               </view>
             </view>
           </view>
@@ -446,7 +422,16 @@
                   <view class="qb-pill" :class="{ 'is-active': resourceFilter === 'vocabulary' }" @tap="resourceFilter = 'vocabulary'">词汇</view>
                   <view class="qb-pill" :class="{ 'is-active': resourceFilter === 'reading' }" @tap="resourceFilter = 'reading'">阅读</view>
                   <view class="qb-pill" :class="{ 'is-active': resourceFilter === 'listening' }" @tap="resourceFilter = 'listening'">听力</view>
+                  <view class="qb-pill" :class="{ 'is-active': resourceFilter === 'case' }" @tap="resourceFilter = 'case'">文书</view>
                 </view>
+              </view>
+              <view
+                class="qb-clean-btn"
+                :class="{ 'is-loading': cleaningListening }"
+                @tap="cleanAllListeningText"
+              >
+                <view class="navi-icon navi-icon-check-circle"></view>
+                <text>{{ cleaningListening ? '清洗中…' : '一键清洗听力正文' }}</text>
               </view>
               <view v-if="selectedIds.length" class="qb-batch-del" @tap="batchDelete">
                 <view class="navi-icon navi-icon-trash-2"></view>
@@ -459,31 +444,31 @@
               <table class="qb-table">
                 <thead>
                   <tr>
-                    <th scope="col" class="qb-check-col">
+                    <th scope="col" class="qb-check-col qb-col-check">
                       <view class="qb-check" :class="{ 'is-checked': isAllSelected }" @tap="toggleSelectAll()"></view>
                     </th>
-                    <th scope="col">编号</th>
-                    <th scope="col">类型</th>
-                    <th v-if="showLanguageColumn" scope="col">语言</th>
-                    <th scope="col">资源标题</th>
-                    <th scope="col">分类</th>
-                    <th scope="col">难度 / 时长</th>
-                    <th scope="col">排序</th>
-                    <th scope="col">状态</th>
-                    <th scope="col">操作</th>
+                    <th scope="col" class="qb-col-id">编号</th>
+                    <th scope="col" class="qb-col-type">类型</th>
+                    <th v-if="showLanguageColumn" scope="col" class="qb-col-lang">语言</th>
+                    <th scope="col" class="qb-col-title">资源标题</th>
+                    <th scope="col" class="qb-col-cat">分类</th>
+                    <th scope="col" class="qb-col-meta">难度 / 时长</th>
+                    <th scope="col" class="qb-col-sort">排序</th>
+                    <th scope="col" class="qb-col-status">状态</th>
+                    <th scope="col" class="qb-col-ops">操作</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="item in pagedResources" :key="item.id">
+                  <tr v-for="(item, index) in pagedResources" :key="item.id">
                     <td class="qb-check-col">
                       <view class="qb-check" :class="{ 'is-checked': selectedIds.includes(item.id) }" @tap="toggleSelect(item.id)"></view>
                     </td>
-                    <td><text class="qb-qid">{{ item.id }}</text></td>
+                    <td><text class="qb-qid" :title="item.id">{{ (currentPage - 1) * PAGE_SIZE + index + 1 }}</text></td>
                     <td><text class="qb-type-tag" :class="item.typeClass">{{ resourceTypeLabel(item.type) }}</text></td>
-                    <td v-if="showLanguageColumn"><text class="qb-type-tag qb-cat-blue">{{ item.lang || '英语' }}</text></td>
-                    <td class="qb-qcontent"><text class="qb-qcontent-text">{{ item.title }}</text></td>
-                    <td><text class="qb-type-tag" :class="item.tagClass">{{ item.category || '待分类' }}</text></td>
-                    <td><text class="qb-date">{{ item.meta || '--' }}</text></td>
+                    <td v-if="showLanguageColumn"><text class="qb-type-tag qb-cat-blue" :title="item.lang || '英语'">{{ item.lang || '英语' }}</text></td>
+                    <td class="qb-qcontent"><text class="qb-qcontent-text" :title="item.title">{{ item.title }}</text></td>
+                    <td class="qb-cat-cell"><text class="qb-type-tag" :class="item.tagClass" :title="item.category || '待分类'">{{ item.category || '待分类' }}</text></td>
+                    <td><text class="qb-date" :title="item.meta || '--'">{{ item.meta || '--' }}</text></td>
                     <td><text class="qb-date">{{ item.sortOrder }}</text></td>
                     <td><text class="qb-diff-tag" :class="item.statusClass">{{ item.status }}</text></td>
                     <td>
@@ -614,8 +599,16 @@
 
               <view v-if="editType === 'listening'" class="rm-upload-row">
                 <view class="rm-form-field rm-form-field-grow">
-                  <text class="rm-form-label">音频地址</text>
-                  <input class="rm-input" v-model="editForm.audioUrl" placeholder="填写云存储音频 URL" />
+                  <text class="rm-form-label">音频文件</text>
+                  <view class="rm-file-row">
+                    <view class="rm-file-btn rm-file-btn-sm" @tap="chooseEditAudioFile">
+                      <view class="navi-icon navi-icon-upload-cloud"></view>
+                      <text>{{ uploadingEditAudio ? '上传中...' : '选择音频文件' }}</text>
+                    </view>
+                    <text v-if="editAudioName" class="rm-file-name">{{ editAudioName }}</text>
+                  </view>
+                  <text class="rm-form-label rm-form-label-soft">音频地址（选择文件后自动填入，也可手动填写）</text>
+                  <input class="rm-input" v-model="editForm.audioUrl" placeholder="云存储音频 URL" />
                 </view>
                 <view class="rm-form-field">
                   <text class="rm-form-label">封面图</text>
@@ -776,6 +769,8 @@ const uploadPdfName = ref('')
 const uploadingPdf = ref(false)
 const uploadCoverName = ref('')
 const uploadingCover = ref(false)
+const editAudioName = ref('')
+const uploadingEditAudio = ref(false)
 
 /* 批量导入词汇 */
 const batchText = ref('')
@@ -973,6 +968,7 @@ const resources = ref([])
 const PAGE_SIZE = 50
 const currentPage = ref(1)
 const selectedIds = ref([])
+const cleaningListening = ref(false)
 
 // 当前筛选结果是否全部选中
 const isAllSelected = computed(() => {
@@ -1172,6 +1168,52 @@ async function loadAll() {
   }
 }
 
+/* 一键清洗全部听力正文：把库里已有的听力素材按 cleanListeningText 过一遍，
+   修复历史数据里的脚注粘连数字与换行断裂数字；只有内容确实变化的条目才回写 */
+async function cleanAllListeningText() {
+  if (cleaningListening.value) return
+  cleaningListening.value = true
+  let updated = 0
+  let failed = 0
+  try {
+    const resourcesObj = uniCloud.importObject('resources', { customUI: true })
+    const r = (await resourcesObj.list({
+      adminToken: getAdminToken(),
+      type: 'listening',
+      withContent: true
+    })) || {}
+    if (r.errCode !== 0) {
+      uni.showToast({ title: r.errMsg || '读取听力资源失败', icon: 'none' })
+      return
+    }
+    const list = r.list || []
+    for (const doc of list) {
+      const rawContent = String(doc.content || '')
+      const rawDesc = String(doc.description || '')
+      const nextContent = cleanListeningText(rawContent)
+      const nextDesc = cleanListeningText(rawDesc)
+      if (nextContent === rawContent && nextDesc === rawDesc) continue
+      const res = (await resourcesObj.update({
+        adminToken: getAdminToken(),
+        id: doc._id,
+        data: { content: nextContent, description: nextDesc }
+      })) || {}
+      if (res.errCode === 0) updated += 1
+      else failed += 1
+    }
+    if (failed) {
+      uni.showToast({ title: `清洗完成：更新 ${updated} 条，失败 ${failed} 条`, icon: 'none', duration: 3000 })
+    } else {
+      uni.showToast({ title: updated ? `已清洗 ${updated} 条听力正文` : '听力正文无需清洗', icon: 'success' })
+    }
+    await loadAll()
+  } catch (e) {
+    uni.showToast({ title: (e && e.errMsg) || '清洗失败', icon: 'none' })
+  } finally {
+    cleaningListening.value = false
+  }
+}
+
 function nextSortOrderForType(type) {
   const max = resources.value
     .filter((item) => item.type === type)
@@ -1295,11 +1337,52 @@ function readLocalTextFile(file) {
   })
 }
 
+/* —— 听力文本清洗 ——
+   听力素材多由 PDF / Word 转换而来，入库前先清掉三类排版噪声，
+   否则脏数据会一直留在库里，前端只能反复兜底：
+   1) 脚注上标数字粘连在英文单词后：revoke2 / dispositions4 / testament3
+   2) 数字被换行拆断：上一行以数字结尾、下一行以数字开头（如 "第1" + "0题"）
+   3) 行首行尾多余空格、连续空行
+   注意：编号"重新开始"是素材本身的分节编号，属于正文内容，这里不做改动 */
+const FOOTNOTE_GLUED = /([A-Za-z][a-z]{2,})(\d{1,2})\b/g
+const LIST_ITEM_MARKER = /^\d{1,3}[.、．)）]/
+
+/* 合并被换行拆断的数字；纯数字行（列表编号）与 "1. xxx" 这类条目起始行不合并，避免误拼 */
+function mergeSplitNumbers(text) {
+  const out = []
+  String(text || '').split(/\r\n|\r|\n/).forEach((line) => {
+    const prev = out.length ? out[out.length - 1] : ''
+    const joinable = prev
+      && /\d$/.test(prev)
+      && /^\d/.test(line)
+      && !LIST_ITEM_MARKER.test(line)
+      && (!/^\d+$/.test(prev.trim()) || !/^\d+$/.test(line.trim()))
+    if (joinable) {
+      out[out.length - 1] = prev.replace(/[ \t\u3000]+$/, '') + line.replace(/^[ \t\u3000]+/, '')
+    } else {
+      out.push(line)
+    }
+  })
+  return out.join('\n')
+}
+
+function cleanListeningText(text) {
+  if (!text) return ''
+  let out = String(text)
+  out = out.replace(FOOTNOTE_GLUED, '$1')
+  out = mergeSplitNumbers(out)
+  out = out.split(/\r\n|\r|\n/)
+    .map(line => line.replace(/[ \t\u3000]+/g, ' ').trim())
+    .join('\n')
+  out = out.replace(/\n{3,}/g, '\n\n')
+  return out.trim()
+}
+
 async function chooseListeningTextFile() {
   try {
     const file = await chooseOneFile(['.txt', '.text', '.md'])
     const text = await readLocalTextFile(file)
-    uploadContent.value = text
+    uploadContent.value = cleanListeningText(text)
     uploadListeningTextName.value = file.name || ''
     uni.showToast({ title: '文本已导入，可继续修改', icon: 'success' })
   } catch (e) {
@@ -1349,7 +1432,7 @@ async function chooseListeningWordFile() {
   try {
     const file = await chooseOneFile(['.docx'])
     const text = await readWordFile(file)
-    uploadContent.value = text
+    uploadContent.value = cleanListeningText(text)
     uploadListeningWordName.value = file.name || ''
     uni.showToast({ title: 'Word 已导入，可继续修改', icon: 'success' })
   } catch (e) {
@@ -1363,7 +1446,7 @@ async function chooseListeningZhTextFile() {
   try {
     const file = await chooseOneFile(['.txt', '.text', '.md'])
     const text = await readLocalTextFile(file)
-    uploadDescription.value = text
+    uploadDescription.value = cleanListeningText(text)
     uploadListeningZhTextName.value = file.name || ''
     uni.showToast({ title: '中文文本已导入，可继续修改', icon: 'success' })
   } catch (e) {
@@ -1377,7 +1460,7 @@ async function chooseListeningZhWordFile() {
   try {
     const file = await chooseOneFile(['.docx'])
     const text = await readWordFile(file)
-    uploadDescription.value = text
+    uploadDescription.value = cleanListeningText(text)
     uploadListeningZhWordName.value = file.name || ''
     uni.showToast({ title: '中文 Word 已导入，可继续修改', icon: 'success' })
   } catch (e) {
@@ -1391,7 +1474,7 @@ async function chooseEditListeningTextFile() {
   try {
     const file = await chooseOneFile(['.txt', '.text', '.md'])
     const text = await readLocalTextFile(file)
-    editForm.content = text
+    editForm.content = cleanListeningText(text)
     editListeningTextName.value = file.name || ''
     uni.showToast({ title: '文本已导入，可继续修改', icon: 'success' })
   } catch (e) {
@@ -1405,7 +1488,7 @@ async function chooseEditListeningWordFile() {
   try {
     const file = await chooseOneFile(['.docx'])
     const text = await readWordFile(file)
-    editForm.content = text
+    editForm.content = cleanListeningText(text)
     editListeningWordName.value = file.name || ''
     uni.showToast({ title: 'Word 已导入，可继续修改', icon: 'success' })
   } catch (e) {
@@ -1419,7 +1502,7 @@ async function chooseEditListeningZhTextFile() {
   try {
     const file = await chooseOneFile(['.txt', '.text', '.md'])
     const text = await readLocalTextFile(file)
-    editForm.description = text
+    editForm.description = cleanListeningText(text)
     editListeningZhTextName.value = file.name || ''
     uni.showToast({ title: '中文文本已导入，可继续修改', icon: 'success' })
   } catch (e) {
@@ -1433,7 +1516,7 @@ async function chooseEditListeningZhWordFile() {
   try {
     const file = await chooseOneFile(['.docx'])
     const text = await readWordFile(file)
-    editForm.description = text
+    editForm.description = cleanListeningText(text)
     editListeningZhWordName.value = file.name || ''
     uni.showToast({ title: '中文 Word 已导入，可继续修改', icon: 'success' })
   } catch (e) {
@@ -1498,12 +1581,19 @@ function uploadToCloud(file, dir, options = {}) {
         options.onProgress(percent)
       }
     }
-  }).then((res) => {
-    const url = (res && (res.fileID || res.fileUrl || res.url)) || ''
-    if (!/^https?:\/\//.test(url)) {
-      throw new Error('上传完成但未获取到可访问地址，请手动填写 URL')
+  }).then(async (res) => {
+    const fileID = (res && (res.fileID || res.fileUrl || res.url)) || ''
+    if (/^https?:\/\//.test(fileID)) return fileID
+    // 阿里云之外的平台（支付宝云/腾讯云）返回的是 cloud:// 文件ID，需换成可访问的 HTTPS 链接
+    if (fileID) {
+      try {
+        const tmp = await uniCloud.getTempFileURL({ fileList: [fileID] })
+        const item = (tmp && tmp.fileList && tmp.fileList[0]) || {}
+        const url = item.tempFileURL || item.download_url || ''
+        if (/^https?:\/\//.test(url)) return url
+      } catch (e) { /* 换取失败时走下面的提示 */ }
     }
-    return url
+    throw new Error('上传完成但未获取到可访问地址，请手动填写 URL')
   })
 }
 
@@ -1662,6 +1752,32 @@ async function chooseAudioFile() {
   }
 }
 
+async function chooseEditAudioFile() {
+  if (uploadingEditAudio.value) return
+  try {
+    const file = await chooseOneFile(['.mp3', '.m4a', '.wav', '.aac'])
+    if (!warnIfLargeFile(file, '音频')) return
+    uploadingEditAudio.value = true
+    uni.showLoading({ title: `音频上传中${file.size ? ' ' + formatFileSize(file.size) : ''}`, mask: true })
+    const url = await uploadWithRetry(file, 'upload/audio', '音频', (percent, message) => {
+      uni.showLoading({
+        title: message || `音频上传中 ${percent}%`,
+        mask: true
+      })
+    })
+    editForm.audioUrl = url
+    editAudioName.value = file.name
+    uni.showToast({ title: '音频已上传', icon: 'success' })
+  } catch (e) {
+    if (!isCancelError(e)) {
+      uni.showToast({ title: (e && e.message) || (e && e.errMsg) || '音频上传失败', icon: 'none', duration: 5000 })
+    }
+  } finally {
+    uploadingEditAudio.value = false
+    uni.hideLoading()
+  }
+}
+
 async function choosePdfFile() {
   if (uploadingPdf.value) return
   try {
@@ -1741,8 +1857,8 @@ const doUpload = async (publishNow = false) => {
     cover: uploadCover.value.trim(),
     fileUrl: uploadUrl.value.trim(),
     audioUrl: uploadAudioUrl.value.trim(),
-    content: uploadContent.value.trim(),
-    description: uploadDescription.value.trim(),
+    content: uploadType.value === 'listening' ? cleanListeningText(uploadContent.value) : uploadContent.value.trim(),
+    description: uploadType.value === 'listening' ? cleanListeningText(uploadDescription.value) : uploadDescription.value.trim(),
     lang: uploadType.value === 'vocabulary' ? uploadLang.value : '',
     questions: uploadQuestions.value.map(q => ({
       stem: q.stem.trim(),
@@ -1791,7 +1907,7 @@ const doUpload = async (publishNow = false) => {
   uni.showToast({ title: publishNow ? '已保存并上线' : '保存成功，等待审核', icon: 'success' })
 }
 
-const openEdit = (item) => {
+const openEdit = async (item) => {
   editType.value = item.type || 'video'
   editTarget.value = item
   editForm.id = item.id
@@ -1820,7 +1936,24 @@ const openEdit = (item) => {
   editListeningWordName.value = ''
   editListeningZhTextName.value = ''
   editListeningZhWordName.value = ''
+  editAudioName.value = ''
   editVisible.value = true
+  // 列表接口已裁掉正文/题目等大字段以加速加载，编辑时按需拉取完整文档
+  try {
+    const resourcesObj = uniCloud.importObject('resources', { customUI: true })
+    const r = (await resourcesObj.detail({ adminToken: getAdminToken(), id: item.id })) || {}
+    if (r.errCode === 0 && r.doc) {
+      const d = r.doc
+      editForm.content = d.content || ''
+      editQuestions.value = (d.questions || []).map(q => ({
+        stem: q.stem || '',
+        options: Array.isArray(q.options) && q.options.length ? q.options.map(o => String(o || '')) : ['', ''],
+        answer: q.answer === undefined || q.answer === null ? '' : String(q.answer)
+      }))
+    }
+  } catch (e) {
+    // 详情拉取失败时沿用列表中已有的精简字段
+  }
 }
 
 const closeEdit = () => {
@@ -1840,6 +1973,8 @@ const saveEdit = async () => {
     return
   }
 
+  const isListening = editType.value === 'listening'
+  // 听力素材入库前统一清洗：去脚注粘连数字、合并被换行拆断的数字
   const data = {
     title,
     cat: editForm.cat.trim() || '待分类',
@@ -1848,9 +1983,9 @@ const saveEdit = async () => {
     diffClass: editForm.diffClass || 'qb-diff-mid',
     fileUrl: editForm.fileUrl.trim(),
     audioUrl: editForm.audioUrl.trim(),
-    content: editForm.content.trim(),
+    content: isListening ? cleanListeningText(editForm.content) : editForm.content.trim(),
     cover: editForm.cover.trim(),
-    description: editForm.description.trim(),
+    description: isListening ? cleanListeningText(editForm.description) : editForm.description.trim(),
     lang: editType.value === 'vocabulary' ? editForm.lang : '',
     questions: editQuestions.value.map(q => ({
       stem: q.stem.trim(),
@@ -2169,52 +2304,73 @@ onMounted(() => {
 .qb-section-title { font-size: 17px; font-weight: 700; color: var(--rule-foreground); letter-spacing: -0.01em; line-height: 1.3; }
 .qb-section-subtitle { font-size: 13px; color: var(--rule-muted-foreground); display: block; margin-top: 2px; }
 
-/* 指标卡片 */
-.qb-kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-.qb-kpi-card {
-  position: relative; overflow: hidden;
+/* 资源概览指标条 - 单行紧凑布局 */
+.res-kpi-strip {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
   background: linear-gradient(135deg, var(--rule-card), var(--rule-primary-tint-3));
   border: 1px solid color-mix(in srgb, var(--rule-border) 55%, transparent);
-  border-radius: 16px; padding: 24px;
-  display: flex; flex-direction: column; gap: 14px; min-width: 0;
+  border-radius: 12px;
   box-shadow: 0 1px 2px color-mix(in srgb, var(--rule-ink) 4%, transparent), 0 10px 28px -14px color-mix(in srgb, var(--rule-ink) 10%, transparent);
-  transition: transform 0.3s var(--qb-ease), box-shadow 0.3s var(--qb-ease), border-color 0.3s var(--qb-ease);
 }
-.qb-kpi-card:hover {
-  transform: translateY(-6px);
-  border-color: color-mix(in srgb, var(--rule-primary) 30%, transparent);
-  box-shadow: 0 4px 8px color-mix(in srgb, var(--rule-primary) 12%, transparent), 0 22px 44px -14px color-mix(in srgb, var(--rule-primary) 38%, transparent);
+.res-kpi-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--rule-card);
+  border: 1px solid color-mix(in srgb, var(--rule-border) 40%, transparent);
+  transition: transform 0.2s var(--qb-ease), box-shadow 0.2s var(--qb-ease);
 }
-.qb-kpi-card::before {
-  content: ''; position: absolute; top: 0; right: 0;
-  width: 130px; height: 130px; border-radius: 50%; pointer-events: none;
-  background: radial-gradient(circle, color-mix(in srgb, var(--rule-primary) 12%, transparent), transparent 70%);
-  transform: translate(40px, -40px);
+.res-kpi-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--rule-ink) 8%, transparent);
 }
-.qb-kpi-card.qb-accent-success:hover {
-  border-color: color-mix(in srgb, var(--state-success) 30%, transparent);
-  box-shadow: 0 4px 8px color-mix(in srgb, var(--state-success) 12%, transparent), 0 22px 44px -14px color-mix(in srgb, var(--state-success) 38%, transparent);
-}
-.qb-kpi-card.qb-accent-success::before { background: radial-gradient(circle, color-mix(in srgb, var(--state-success) 12%, transparent), transparent 70%); }
-.qb-kpi-card.qb-accent-warning:hover {
-  border-color: color-mix(in srgb, var(--state-warning) 30%, transparent);
-  box-shadow: 0 4px 8px color-mix(in srgb, var(--state-warning) 12%, transparent), 0 22px 44px -14px color-mix(in srgb, var(--state-warning) 38%, transparent);
-}
-.qb-kpi-card.qb-accent-warning::before { background: radial-gradient(circle, color-mix(in srgb, var(--state-warning) 12%, transparent), transparent 70%); }
-.qb-kpi-card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; position: relative; z-index: 1; }
-.qb-kpi-card-label { font-size: 13px; color: var(--rule-muted-foreground); font-weight: 500; }
-.qb-kpi-card-icon {
-  width: 44px; height: 44px; border-radius: 12px;
-  display: flex; align-items: center; justify-content: center;
+.res-kpi-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
   background: linear-gradient(135deg, var(--rule-primary), var(--rule-primary-active));
-  box-shadow: 0 6px 14px -4px color-mix(in srgb, var(--rule-primary) 48%, transparent);
+  box-shadow: 0 4px 10px -4px color-mix(in srgb, var(--rule-primary) 48%, transparent);
 }
-.qb-kpi-card-icon .navi-icon { width: 22px; height: 22px; background: var(--rule-primary-foreground); }
-.qb-kpi-card.qb-accent-success .qb-kpi-card-icon { background: linear-gradient(135deg, var(--state-success), color-mix(in srgb, var(--state-success) 70%, var(--rule-ink))); box-shadow: 0 6px 14px -4px color-mix(in srgb, var(--state-success) 48%, transparent); }
-.qb-kpi-card.qb-accent-warning .qb-kpi-card-icon { background: linear-gradient(135deg, var(--state-warning), color-mix(in srgb, var(--state-warning) 70%, var(--rule-ink))); box-shadow: 0 6px 14px -4px color-mix(in srgb, var(--state-warning) 48%, transparent); }
-.qb-kpi-card-value { font-size: 32px; font-weight: 700; line-height: 1.1; color: var(--rule-foreground); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; position: relative; z-index: 1; }
-.qb-kpi-card-foot { font-size: 12px; color: var(--rule-muted-foreground); position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 6px; }
+.res-kpi-icon .navi-icon { width: 18px; height: 18px; background: var(--rule-primary-foreground); }
+.res-kpi-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.res-kpi-value {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--rule-foreground);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+.res-kpi-label {
+  font-size: 11px;
+  color: var(--rule-muted-foreground);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 各类型彩色图标 */
+.res-kpi-total .res-kpi-icon { background: linear-gradient(135deg, var(--rule-primary), var(--rule-primary-active)); box-shadow: 0 4px 10px -4px color-mix(in srgb, var(--rule-primary) 48%, transparent); }
+.res-kpi-video .res-kpi-icon { background: linear-gradient(135deg, var(--state-success), color-mix(in srgb, var(--state-success) 70%, var(--rule-ink))); box-shadow: 0 4px 10px -4px color-mix(in srgb, var(--state-success) 48%, transparent); }
+.res-kpi-vocabulary .res-kpi-icon { background: linear-gradient(135deg, var(--state-warning), color-mix(in srgb, var(--state-warning) 70%, var(--rule-ink))); box-shadow: 0 4px 10px -4px color-mix(in srgb, var(--state-warning) 48%, transparent); }
+.res-kpi-reading .res-kpi-icon { background: linear-gradient(135deg, #3B82F6, #1D4ED8); box-shadow: 0 4px 10px -4px rgba(59, 130, 246, 0.48); }
+.res-kpi-listening .res-kpi-icon { background: linear-gradient(135deg, #8B5CF6, #6D28D9); box-shadow: 0 4px 10px -4px rgba(139, 92, 246, 0.48); }
+.res-kpi-case .res-kpi-icon { background: linear-gradient(135deg, #F59E0B, #D97706); box-shadow: 0 4px 10px -4px rgba(245, 158, 11, 0.48); }
 
 .qb-toolbar {
   background: linear-gradient(135deg, var(--rule-card), var(--rule-primary-tint-3));
@@ -2240,6 +2396,28 @@ onMounted(() => {
 }
 .qb-batch-del:hover { background: #FECACA; }
 .qb-batch-del .navi-icon {
+  width: 14px;
+  height: 14px;
+  background: currentColor;
+}
+.qb-clean-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--rule-border);
+  background: var(--rule-card);
+  color: var(--rule-ink-2);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color .15s ease, color .15s ease, opacity .15s ease;
+}
+.qb-clean-btn:hover:not(.is-loading) { border-color: var(--rule-primary); color: var(--rule-primary); }
+.qb-clean-btn.is-loading { opacity: .6; cursor: not-allowed; }
+.qb-clean-btn .navi-icon {
   width: 14px;
   height: 14px;
   background: currentColor;
@@ -2337,22 +2515,36 @@ onMounted(() => {
   box-shadow: 0 1px 2px color-mix(in srgb, var(--rule-ink) 4%, transparent), 0 10px 28px -14px color-mix(in srgb, var(--rule-ink) 10%, transparent);
 }
 .qb-table-container { overflow-x: auto; }
-.qb-table { width: 100%; border-collapse: collapse; min-width: 920px; }
+/* 学习资源列表：固定列宽，表格自适应容器宽度，标题列吸收剩余空间，避免横向滚动 */
+.qb-table { width: 100%; border-collapse: collapse; min-width: 0; table-layout: fixed; }
+.qb-table th.qb-col-check { width: 56px; }
+.qb-table th.qb-col-id { width: 56px; }
+.qb-table th.qb-col-type { width: 92px; }
+.qb-table th.qb-col-lang { width: 68px; }
+.qb-table th.qb-col-title { width: auto; }
+.qb-table th.qb-col-cat { width: 150px; }
+.qb-table th.qb-col-meta { width: 84px; }
+.qb-table th.qb-col-sort { width: 44px; }
+.qb-table th.qb-col-status { width: 84px; }
+.qb-table th.qb-col-ops { width: 168px; }
+/* 分类列：标签过长时省略号收尾，鼠标悬浮看完整内容，避免被裁剪 */
+.qb-cat-cell { overflow: hidden; }
+.qb-cat-cell .qb-type-tag { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
 .qb-table thead th {
   font-size: 13px; font-weight: 600; color: var(--rule-muted-foreground);
-  text-align: left; padding: 12px 16px;
+  text-align: left; padding: 12px 12px;
   border-bottom: 1px solid var(--rule-border); white-space: nowrap;
 }
 .qb-table tbody td {
   font-size: 14px; color: var(--rule-foreground);
-  padding: 14px 16px; border-bottom: 1px solid var(--rule-border);
-  vertical-align: middle;
+  padding: 14px 12px; border-bottom: 1px solid var(--rule-border);
+  vertical-align: middle; overflow: hidden;
 }
 .qb-table tbody tr:last-child td { border-bottom: none; }
 .qb-table tbody tr { transition: background 0.2s ease; }
 .qb-table tbody tr:hover { background: color-mix(in srgb, var(--rule-primary) 5%, transparent); }
-.qb-qid { font-family: var(--rule-font-mono); font-size: 13px; font-weight: 600; color: var(--rule-primary); white-space: nowrap; }
-.qb-qcontent { color: var(--rule-ink-2); max-width: 340px; }
+.qb-qid { font-family: var(--rule-font-mono); font-size: 13px; font-weight: 600; color: var(--rule-primary); display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
+.qb-qcontent { color: var(--rule-ink-2); max-width: none; }
 .qb-qcontent-text { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
 .qb-empty-row { padding: 28px 16px; text-align: center; font-size: 13px; color: var(--rule-muted-foreground); }
 .qb-date { color: var(--rule-muted-foreground); font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 13px; }
@@ -2649,7 +2841,8 @@ onMounted(() => {
 }
 
 @media (max-width: 1024px) {
-  .qb-kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .res-kpi-strip { flex-wrap: wrap; }
+  .res-kpi-item { min-width: calc(50% - 12px); }
 }
 @media (max-width: 768px) {
   .app-sidebar { transform: translateX(-100%); transition: transform 0.3s ease; }
@@ -2660,10 +2853,10 @@ onMounted(() => {
   .qb-create-btn { width: 100%; justify-content: center; }
 }
 @media (max-width: 640px) {
-  .qb-kpi-grid { grid-template-columns: 1fr; }
+  .res-kpi-item { min-width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) {
   .dc-section { transition-duration: 0.01ms; }
-  .qb-kpi-card:hover, .qb-create-btn:hover { transform: none; }
+  .res-kpi-item:hover, .qb-create-btn:hover { transform: none; }
 }
 </style>

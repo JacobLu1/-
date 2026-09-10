@@ -60,7 +60,7 @@ function makeWhere({ type = 'all', category = '', keyword = '', lang = '', statu
 
 module.exports = {
   /* 资源列表（需管理员 token） */
-  async list({ adminToken, type = 'all', category = '', keyword = '', lang = '' } = {}) {
+  async list({ adminToken, type = 'all', category = '', keyword = '', lang = '', withContent = false } = {}) {
     const check = await checkAdmin(adminToken)
     if (check.errCode !== 0) return check
 
@@ -71,7 +71,31 @@ module.exports = {
       .orderBy('sortOrder', 'asc')
       .orderBy('createDate', 'desc')
     const list = await fetchAll(query, table.where(where))
-    return { errCode: 0, errMsg: '', list }
+    // 列表接口去掉正文/题目等大字段，加速加载；编辑时用 detail 拉取完整文档
+    // withContent 仅供「一键清洗听力正文」这类批量维护使用，常规列表不要传
+    if (withContent) return { errCode: 0, errMsg: '', list }
+    const out = (list || []).map(doc => {
+      const item = { ...doc }
+      delete item.content
+      delete item.questions
+      return item
+    })
+    return { errCode: 0, errMsg: '', list: out }
+  },
+
+  /* 管理端：资源详情（需管理员 token），返回完整字段供编辑 */
+  async detail({ adminToken, id } = {}) {
+    const check = await checkAdmin(adminToken)
+    if (check.errCode !== 0) return check
+    if (!id) {
+      return { errCode: 'PARAM_IS_NULL', errMsg: 'id 不能为空' }
+    }
+    const res = await db.collection('resource').where({ _id: id }).limit(1).get()
+    const doc = res.data[0]
+    if (!doc) {
+      return { errCode: 'NOT_FOUND', errMsg: '资源不存在' }
+    }
+    return { errCode: 0, errMsg: '', doc }
   },
 
   /* 公开资源列表（学习中心使用，只返回已上线） */
